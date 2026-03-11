@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>온보딩 가이드 | CoSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "indigo-primary": "#4F46E5",
+                        "emerald-accent": "#10B981",
+                        "neutral-bg": "#F9FAFB",
+                        "charcoal": "#1f2937",
+                    },
+                    fontFamily: {
+                        "sans": ["'NanumSquareNeo'", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquareNeo', sans-serif;
+                background-color: #F9FAFB;
+            }
+        }
+        .step-card {
+            @apply bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 flex flex-col items-center justify-center;
+        }
+        .step-card:hover {
+            @apply border-indigo-primary/20 shadow-[0_15px_40px_rgb(79,70,229,0.08)] -translate-y-1;
+        }
+        .gradient-text {
+            @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-primary to-emerald-accent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .font-black-custom {
+            font-weight: 900;
+        }
+        .path-line {
+            stroke-dasharray: 8 8;
+        }
+    </style>
+</head>
+<body class="bg-neutral-bg text-charcoal min-h-screen selection:bg-indigo-primary/10">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between border-b border-gray-100 bg-white/70 backdrop-blur-xl px-6 md:px-10 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="size-9 bg-indigo-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-primary/20">
+<span class="material-symbols-outlined text-[22px]">sync_alt</span>
+</div>
+<h2 class="text-gray-900 text-xl font-black-custom tracking-tight">CoSync</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-gray-500 hover:text-indigo-primary text-sm font-bold transition-colors" href="#">진단 가이드</a>
+<a class="text-gray-500 hover:text-indigo-primary text-sm font-bold transition-colors" href="#">성공 사례</a>
+<a class="text-gray-500 hover:text-indigo-primary text-sm font-bold transition-colors" href="#">문의하기</a>
+</nav>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-xl h-10 px-5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-black-custom transition-all">
+                로그인
+            </button>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center px-6 py-12 md:py-24 relative">
+<div class="max-w-[1000px] w-full text-center space-y-16">
+<div class="space-y-8">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-primary/5 border border-indigo-primary/10 text-indigo-primary text-[13px] font-black-custom tracking-tight rounded-full">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-primary"></span>
+</span>
+                    Onboarding Guide
+                </div>
+<h1 class="text-gray-900 tracking-tighter text-5xl md:text-7xl font-black-custom leading-[1.2] whitespace-pre-line">
+                    막연한 약속을
+                    <span class="gradient-text block md:inline">실행 가능한 규칙으로</span>
+</h1>
+<p class="text-gray-500 text-lg md:text-xl font-bold max-w-3xl mx-auto leading-relaxed break-keep">
+                    미루고 싶은 지분·역할·이탈 규칙까지. 팀의 민감한 의제들을 <br class="hidden md:block"/>CoSync 합의 인프라로 해결하고 성장에만 집중하세요.
+                </p>
+<div class="flex items-center justify-center gap-2 text-emerald-accent font-black-custom text-sm">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span>팀원 모두 참여 시 합의 인프라 구축이 시작됩니다.</span>
+</div>
+</div>
+<div class="relative grid grid-cols-1 md:grid-cols-3 gap-12 py-4">
+<div class="hidden md:block absolute top-[48px] left-[15%] w-[70%] h-12 z-0">
+<svg class="overflow-visible" fill="none" height="100%" viewBox="0 0 600 40" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path class="path-line opacity-30" d="M0 20C100 20 100 2 200 2C300 2 300 38 400 38C500 38 500 20 600 20" stroke="url(#paint0_linear)" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="200" cy="2" fill="#4F46E5" r="4"></circle>
+<circle cx="400" cy="38" fill="#10B981" r="4"></circle>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear" x1="0" x2="600" y1="20" y2="20">
+<stop stop-color="#4F46E5"></stop>
+<stop offset="0.5" stop-color="#10B981"></stop>
+<stop offset="1" stop-color="#4F46E5"></stop>
+</linearGradient>
+</defs>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col items-center group">
+<div class="mb-10 flex items-center justify-center h-24 bg-white rounded-full size-24 shadow-sm border border-gray-50">
+<span class="material-symbols-outlined text-indigo-primary group-hover:scale-110 transition-transform duration-300 text-[48px]">person_search</span>
+</div>
+<div class="step-card p-8 rounded-3xl w-full h-[220px]">
+<div class="text-indigo-primary text-xs font-black-custom mb-1 tracking-widest text-center">STEP 01</div>
+<h3 class="text-gray-900 text-lg font-black-custom mb-2 text-center">시나리오 진단</h3>
+<p class="text-gray-400 text-[10px] font-black-custom mb-4 uppercase tracking-tighter text-center">Scenario Survey</p>
+<p class="text-gray-500 text-[15px] font-bold leading-relaxed break-keep text-center">
+                            나의 운영 기준을 정합니다.
+                        </p>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center group">
+<div class="mb-10 flex items-center justify-center h-24 bg-white rounded-full size-24 shadow-sm border border-gray-50">
+<span class="material-symbols-outlined text-emerald-accent group-hover:scale-110 transition-transform duration-300 text-[48px]">analytics</span>
+</div>
+<div class="step-card p-8 rounded-3xl w-full h-[220px]">
+<div class="text-emerald-accent text-xs font-black-custom mb-1 tracking-widest text-center">STEP 02</div>
+<h3 class="text-gray-900 text-lg font-black-custom mb-2 text-center">인식 격차 분석</h3>
+<p class="text-gray-400 text-[10px] font-black-custom mb-4 uppercase tracking-tighter text-center">Gap Analysis</p>
+<p class="text-gray-500 text-[15px] font-bold leading-relaxed break-keep text-center">
+                            팀원과 차이를 확인합니다.
+                        </p>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center group">
+<div class="mb-10 flex items-center justify-center h-24 bg-white rounded-full size-24 shadow-sm border border-gray-50">
+<span class="material-symbols-outlined text-indigo-primary group-hover:scale-110 transition-transform duration-300 text-[48px]">gavel</span>
+</div>
+<div class="step-card p-8 rounded-3xl w-full h-[220px]">
+<div class="text-indigo-primary text-xs font-black-custom mb-1 tracking-widest text-center">STEP 03</div>
+<h3 class="text-gray-900 text-lg font-black-custom mb-2 text-center">최종 규칙 확정</h3>
+<p class="text-gray-400 text-[10px] font-black-custom mb-4 uppercase tracking-tighter text-center">Finalized Governance</p>
+<p class="text-gray-500 text-[15px] font-bold leading-relaxed break-keep text-center">
+                            합의안을 구조화합니다.
+                        </p>
+</div>
+</div>
+</div>
+<div class="pt-8 flex flex-col items-center gap-6">
+<button class="group relative flex min-w-[320px] cursor-pointer items-center justify-center overflow-hidden rounded-2xl h-16 px-10 bg-indigo-primary text-white text-lg font-black-custom transition-all hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] active:scale-[0.98]">
+<span class="z-10 flex items-center gap-2">
+                        무료 진단 시작하기
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</span>
+<div class="absolute inset-0 bg-gradient-to-r from-indigo-primary to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+<div class="flex items-center gap-4 text-gray-400 text-sm font-bold">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>거버넌스 인프라 보안 강화</span>
+</div>
+<div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+<span>(약 3분 소요 · 저장됨)</span>
+</div>
+</div>
+</div>
+</main>
+<footer class="px-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm gap-6">
+<div class="flex items-center gap-8">
+<span class="font-black-custom text-gray-500">© 2024 CoSync.</span>
+<nav class="flex gap-6">
+<a class="hover:text-indigo-primary transition-colors font-bold" href="#">개인정보처리방침</a>
+<a class="hover:text-indigo-primary transition-colors font-bold" href="#">이용약관</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-emerald-accent/5 px-3 py-1 rounded-full border border-emerald-accent/10">
+<span class="size-1.5 rounded-full bg-emerald-accent"></span>
+<span class="text-xs font-black-custom text-emerald-accent uppercase tracking-tight">System Normal</span>
+</div>
+<span class="text-gray-300 font-mono text-xs">v2.1.0-cosync</span>
+</div>
+</footer>
+</div>
+<div class="fixed top-0 right-0 w-[500px] h-[500px] bg-indigo-primary/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-emerald-accent/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+
+</body></html>

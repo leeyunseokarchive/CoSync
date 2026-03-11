@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5C4FE5",
+                        "soft-emerald": "#10B981",
+                        "background-neutral": "#F9FAFB",
+                        "charcoal": "#111827",
+                        "lavender-tint": "#F3F1FF",
+                        "neutral-gray": "#6B7280",
+                        "border-subtle": "#E5E7EB",
+                        "brand-dark": "#4338CA"
+                    },
+                    fontFamily: {
+                        "sans": ["NanumSquare Neo", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "4xl": "40px",
+                        "input": "12px",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "soft": "0 10px 40px -10px rgba(0, 0, 0, 0.05)",
+                        "brand": "0 8px 25px -5px rgba(92, 79, 229, 0.3)",
+                        "glow": "0 0 100px 20px rgba(167, 139, 250, 0.15)"
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquare Neo', sans-serif;
+                background-color: #F9FAFB;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                overflow-x: hidden;
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .font-neo-bold { font-family: 'NanumSquare Neo'; font-weight: 800; }
+        .font-neo-semibold { font-family: 'NanumSquare Neo'; font-weight: 700; }
+        .font-neo-medium { font-family: 'NanumSquare Neo'; font-weight: 500; }
+        .font-neo-regular { font-family: 'NanumSquare Neo'; font-weight: 400; }
+        .text-strict-charcoal { color: #111827; }
+        .bg-architectural {
+            background-color: #F9FAFB;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-architectural relative flex flex-col">
+<nav class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-border-subtle z-50 px-8 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-charcoal rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">dataset</span>
+</div>
+<span class="font-neo-bold text-xl tracking-tight text-charcoal">CoSync</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[15px] font-neo-bold text-charcoal tracking-[-0.02em]" href="#">합의 세션</a>
+<a class="text-[15px] font-neo-medium text-neutral-gray hover:text-charcoal transition-colors tracking-[-0.02em]" href="#">리포트</a>
+<a class="text-[15px] font-neo-medium text-neutral-gray hover:text-charcoal transition-colors tracking-[-0.02em]" href="#">히스토리</a>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col items-end">
+<span class="text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em]">황주명</span>
+<span class="text-[11px] text-neutral-gray tracking-[-0.02em]">Product Owner</span>
+</div>
+<div class="w-9 h-9 rounded-full bg-gray-200 border border-white shadow-sm overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU_35YTH0A5ZYK8hFbvncrohMRZd6C519tp0BP7BzRgHO-iqvQbf4IijiTkGfozY5Fx_g3erO6hZOv-v5R5HUTXcP_CNS-13Hca0pfEJUUugIAAGqabbAJfcx868bIfToSU5_-UgeWmP5jreLWMGqfdhfVHQFBcKY5Jt_FcCvzxsdBzn3tBb-VQQmKByaYr4XacanwpZ3YSNV2Shut3TNPeml26-RdJEvpN8d6xcPevYxzkHTmwoqZnRJyfQA-QHB3g1lvan64yRU"/>
+</div>
+</div>
+</nav>
+<main class="relative z-10 flex flex-col items-center justify-center flex-grow py-24 px-6 w-full">
+<div class="w-full max-w-[680px] flex items-center justify-start mb-6">
+<button class="flex items-center gap-2 text-neutral-gray hover:text-charcoal transition-colors group">
+<span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span class="text-[14px] font-neo-medium tracking-[-0.02em]">이전으로</span>
+</button>
+</div>
+<div class="w-full max-w-[680px] bg-white rounded-4xl border-[1.5px] border-border-subtle shadow-soft relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-[6px] bg-gray-100">
+<div class="h-full bg-primary transition-all duration-500" style="width: 33.33%;"></div>
+</div>
+<div class="p-10 pb-12">
+<header class="mb-10">
+<div class="mb-6">
+<h1 class="text-charcoal text-[32px] font-neo-bold tracking-[-0.05em] leading-[1.4] mb-2">온보딩 진단</h1>
+<p class="text-neutral-gray text-[15px] font-neo-medium tracking-[-0.03em]">팀의 의사결정 방식과 규칙을 설정하는 단계입니다.</p>
+</div>
+<div class="bg-lavender-tint rounded-input p-5 w-full">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5 flex-shrink-0">info</span>
+<p class="text-primary text-[14px] font-neo-medium tracking-[-0.03em] leading-[1.5]">
+                            제품 방향을 두고 여러 차례 논의했지만 결론이 나지 않습니다. 마감은 다가오고 있고, 실행은 지연되고 있습니다.
+                        </p>
+</div>
+</div>
+</header>
+<div class="">
+<div class="grid grid-cols-1 md:grid-cols-2">
+<div class="pb-10 md:pr-8 md:border-r border-border-subtle">
+<label class="block text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em] mb-4">1. 교착 판단 기준</label>
+<div class="space-y-3">
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-[14px] text-neutral-gray font-neo-medium tracking-[-0.02em]">동일 안건</span>
+<input class="w-[60px] h-[42px] rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-center text-charcoal font-neo-medium tracking-[-0.02em] text-sm" placeholder="0" type="number"/>
+<span class="text-[14px] text-neutral-gray font-neo-medium tracking-[-0.02em]">회 반복 시</span>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-[14px] text-neutral-gray font-neo-semibold tracking-[-0.02em] mr-1">OR</span>
+<input class="w-[60px] h-[42px] rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-center text-charcoal font-neo-medium tracking-[-0.02em] text-sm" placeholder="0" type="number"/>
+<div class="relative w-[76px]">
+<select class="w-full appearance-none h-[42px] pl-3 pr-8 rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-[14px] bg-white text-charcoal font-neo-medium tracking-[-0.02em]">
+<option>시간</option>
+<option>일</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-neutral-gray pointer-events-none text-[18px]">expand_more</span>
+</div>
+<span class="text-[14px] text-neutral-gray font-neo-medium tracking-[-0.02em]">경과 시</span>
+</div>
+</div>
+</div>
+<div class="pb-10 md:pl-8">
+<label class="block text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em] mb-4">3. 결정 방식</label>
+<div class="grid grid-cols-2 gap-2">
+<label class="cursor-pointer">
+<input class="hidden peer" name="method" type="radio"/>
+<div class="h-[42px] flex items-center justify-center rounded-input border-[1.5px] border-border-subtle bg-white text-neutral-gray text-[14px] font-neo-medium tracking-[-0.02em] peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:font-neo-semibold transition-all hover:bg-gray-50">전원합의</div>
+</label>
+<label class="cursor-pointer">
+<input class="hidden peer" name="method" type="radio"/>
+<div class="h-[42px] flex items-center justify-center rounded-input border-[1.5px] border-border-subtle bg-white text-neutral-gray text-[14px] font-neo-medium tracking-[-0.02em] peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:font-neo-semibold transition-all hover:bg-gray-50">2/3 동의</div>
+</label>
+<label class="cursor-pointer">
+<input checked="" class="hidden peer" name="method" type="radio"/>
+<div class="h-[42px] flex items-center justify-center rounded-input border-[1.5px] border-border-subtle bg-white text-neutral-gray text-[14px] font-neo-medium tracking-[-0.02em] peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:font-neo-semibold transition-all hover:bg-gray-50">과반수</div>
+</label>
+<label class="cursor-pointer">
+<input class="hidden peer" name="method" type="radio"/>
+<div class="h-[42px] flex items-center justify-center rounded-input border-[1.5px] border-border-subtle bg-white text-neutral-gray text-[14px] font-neo-medium tracking-[-0.02em] peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:font-neo-semibold transition-all hover:bg-gray-50">대표 결정</div>
+</label>
+<label class="cursor-pointer">
+<input class="hidden peer" name="method" type="radio"/>
+<div class="h-[42px] flex items-center justify-center rounded-input border-[1.5px] border-border-subtle bg-white text-neutral-gray text-[14px] font-neo-medium tracking-[-0.02em] peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:font-neo-semibold transition-all hover:bg-gray-50">투표</div>
+</label>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2">
+<div class="pt-10 pb-10 md:pr-8 md:border-r border-border-subtle">
+<label class="block text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em] mb-4">2. 최종 결정 기한</label>
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-[14px] text-neutral-gray font-neo-medium tracking-[-0.02em]">판단 후</span>
+<input class="w-[70px] h-[42px] rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-center text-charcoal font-neo-medium tracking-[-0.02em] text-sm" placeholder="0" type="number"/>
+<div class="relative w-[76px]">
+<select class="w-full appearance-none h-[42px] pl-3 pr-8 rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-[14px] bg-white text-charcoal font-neo-medium tracking-[-0.02em]">
+<option>시간</option>
+<option>일</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-neutral-gray pointer-events-none text-[18px]">expand_more</span>
+</div>
+<span class="text-[14px] text-neutral-gray font-neo-medium tracking-[-0.02em]">이내 확정</span>
+</div>
+</div>
+<div class="pt-10 pb-10 md:pl-8">
+<div class="space-y-6">
+<div>
+<label class="block text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em] mb-4">4. 실행 책임</label>
+<input class="w-full h-[48px] px-4 rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-[14px] font-neo-medium placeholder:text-gray-400 placeholder:font-neo-medium text-charcoal tracking-[-0.02em]" placeholder="부서/직책 입력" type="text"/>
+</div>
+<div>
+<label class="block text-[14px] font-neo-semibold text-charcoal tracking-[-0.02em] mb-4">5. 최종 책임</label>
+<input class="w-full h-[48px] px-4 rounded-input border-[1.5px] border-border-subtle focus:border-primary focus:ring-0 text-[14px] font-neo-medium placeholder:text-gray-400 placeholder:font-neo-medium text-charcoal tracking-[-0.02em]" placeholder="결정권자 입력" type="text"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between pt-8">
+<button class="flex items-center gap-1 group text-neutral-gray hover:text-primary transition-colors">
+<span class="text-[14px] font-neo-semibold tracking-[-0.02em]">예시 보기</span>
+<span class="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-300">expand_more</span>
+</button>
+<button class="h-[56px] px-10 bg-primary hover:bg-[#4A3DBE] text-white rounded-full flex items-center justify-center gap-2 text-[16px] font-neo-semibold tracking-[-0.03em] shadow-brand transition-all active:scale-95">
+                    다음 단계로
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<footer class="mt-12 opacity-40">
+<div class="flex items-center gap-1.5">
+<div class="w-5 h-5 bg-charcoal rounded-[4px] flex items-center justify-center">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 48 48">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"></path>
+</svg>
+</div>
+<span class="text-charcoal font-neo-bold tracking-tight text-sm">CoSync</span>
+</div>
+</footer>
+</main>
+
+</body></html>

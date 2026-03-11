@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>세션 홈 (진행률 타이포그래피 정밀 수정) - CoSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "indigo-purple": "#4F46E5",
+                        "soft-emerald": "#10B981",
+                        "slate-950": "#020617",
+                        "charcoal": "#2D333A",
+                    },
+                    fontFamily: {
+                        "neo": ["NanumSquareNeo", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'depth-1': '0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                        'depth-2': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquareNeo', sans-serif;
+                background-color: #F9FAFB;
+                background-image: 
+                    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.03) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+                background-size: 100% 100%;
+                letter-spacing: -0.02em;
+                position: relative;
+                min-height: 100vh;
+            }
+        }
+        .font-extrabold { font-weight: 800; }
+        .font-bold { font-weight: 700; }
+        .font-medium { font-weight: 500; }
+        .font-regular { font-weight: 400; }
+        .glass-card-main {
+            @apply bg-white/95 backdrop-blur-xl border border-white/60 shadow-depth-2;
+        }
+        .glass-card-side {
+            @apply bg-white border border-slate-200/60 shadow-depth-1;
+        }
+        .cta-glow {
+            box-shadow: 0 0 20px 2px rgba(79, 70, 229, 0.25);
+        }
+        .watermark-symbol {
+            position: fixed;
+            bottom: -5%;
+            right: -5%;
+            font-size: 40rem;
+            color: rgba(79, 70, 229, 0.02);
+            pointer-events: none;
+            z-index: -1;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="text-slate-900 antialiased font-neo selection:bg-indigo-purple/10 selection:text-indigo-purple overflow-x-hidden">
+<span class="material-symbols-outlined watermark-symbol">sync_alt</span>
+<nav class="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+<div class="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-2.5">
+<div class="text-indigo-purple flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px] font-bold">sync_alt</span>
+</div>
+<h1 class="text-xl font-extrabold tracking-tight text-slate-900">CoSync</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[14px] font-bold text-indigo-purple relative" href="#">대시보드</a>
+<a class="text-[14px] font-medium text-slate-500 hover:text-indigo-purple transition-colors" href="#">합의 히스토리</a>
+<a class="text-[14px] font-medium text-slate-500 hover:text-indigo-purple transition-colors" href="#">설정</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-indigo-purple transition-all relative">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+</button>
+<div class="w-8 h-8 rounded-full border border-slate-200 overflow-hidden">
+<img alt="프로필" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNy3DRXViv3sKfYSQyxCENb3lcB03BOt4rmND0WL2o5Ng_PuUhtp9B59J5Brq1TJqzj02uGOfV2Y2p0Ky1zz7bZ3sahcUEnK0-iT-5n7uclt0wyvvojiEbXezEDbuExaJbpLV8Jo7lCk-CnohhczjTayYmS_oTimuHH4w4QdKgIIC4ebky4yJ5roNyIH7Vj_65gmt4-2TZrQfGbtS-afeBijmaqaaR6BY2euhOchzhgGtrcq29aLC_UPaXGXZgrpsdYYq6SdYDSA"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-6xl mx-auto px-8 py-10">
+<div class="mb-10 w-full overflow-x-auto pb-4">
+<div class="flex items-center min-w-max">
+<div class="flex items-center opacity-60">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-slate-200 flex items-center justify-center bg-white text-slate-400">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-[11px] font-bold text-slate-400">운영 규칙</span>
+</div>
+<div class="w-16 h-[2px] bg-slate-200 mb-6"></div>
+</div>
+<div class="flex items-center opacity-60">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-slate-200 flex items-center justify-center bg-white text-slate-400">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-[11px] font-bold text-slate-400">의사결정</span>
+</div>
+<div class="w-16 h-[2px] bg-slate-200 mb-6"></div>
+</div>
+<div class="flex items-center opacity-60">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-slate-200 flex items-center justify-center bg-white text-slate-400">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-[11px] font-bold text-slate-400">역할·책임</span>
+</div>
+<div class="w-16 h-[2px] bg-indigo-purple/30 mb-6"></div>
+</div>
+<div class="flex items-center opacity-100">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-indigo-purple flex items-center justify-center bg-indigo-purple text-white ring-4 ring-indigo-purple/10">
+<span class="text-[12px] font-extrabold">04</span>
+</div>
+<span class="text-[11px] font-extrabold text-indigo-purple">자금·재무</span>
+</div>
+<div class="w-16 h-[2px] bg-slate-100 mb-6"></div>
+</div>
+<div class="flex items-center">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-slate-100 flex items-center justify-center bg-white text-slate-300">
+<span class="text-[12px] font-extrabold">05</span>
+</div>
+<span class="text-[11px] font-bold text-slate-300">회수·종료</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-row items-start justify-between mb-8">
+<div class="space-y-1.5">
+<p class="text-[10px] font-bold text-indigo-purple/50 tracking-[0.15em] uppercase">Session Progress</p>
+<h2 class="text-4xl font-extrabold text-slate-950 tracking-tight leading-tight">창업 팀 구조적 합의 세션</h2>
+</div>
+<div class="flex flex-col items-end gap-3">
+<div class="flex items-center gap-2.5 px-3 py-1.5 bg-white border border-slate-200/60 rounded-full text-[11px] font-bold text-slate-500 shadow-sm">
+<span class="text-slate-400">TEAM CODE</span>
+<code class="text-slate-900 font-extrabold">CS-7X29-BK</code>
+<button class="hover:text-indigo-purple transition-colors flex items-center">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="lg:col-span-8 space-y-6">
+<div class="glass-card-main rounded-2xl p-8 border-l-4 border-l-indigo-purple">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-extrabold text-slate-900">Governance Progress</h3>
+<p class="text-[13px] text-slate-500 mt-1 font-medium">팀원 모두 완료 시 최종 리포트 생성</p>
+</div>
+<div class="text-right flex flex-col items-end gap-[4px]">
+<span class="text-[36px] font-bold text-indigo-purple leading-none">80%</span>
+<span class="text-[12px] font-regular text-slate-900/60 leading-none">완료</span>
+</div>
+</div>
+<div class="w-full h-2.5 bg-slate-100 rounded-full mb-10 overflow-hidden">
+<div class="bg-indigo-purple h-full w-[80%] rounded-full opacity-90"></div>
+</div>
+<div class="space-y-6 mb-12">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="relative w-11 h-11">
+<img alt="황주명" class="w-full h-full rounded-full object-cover border border-slate-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNy3DRXViv3sKfYSQyxCENb3lcB03BOt4rmND0WL2o5Ng_PuUhtp9B59J5Brq1TJqzj02uGOfV2Y2p0Ky1zz7bZ3sahcUEnK0-iT-5n7uclt0wyvvojiEbXezEDbuExaJbpLV8Jo7lCk-CnohhczjTayYmS_oTimuHH4w4QdKgIIC4ebky4yJ5roNyIH7Vj_65gmt4-2TZrQfGbtS-afeBijmaqaaR6BY2euhOchzhgGtrcq29aLC_UPaXGXZgrpsdYYq6SdYDSA"/>
+<div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-soft-emerald rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+<span class="material-symbols-outlined text-[12px] text-white font-bold">check</span>
+</div>
+</div>
+<div>
+<p class="text-[15px] font-bold text-slate-900">황주명 (나)</p>
+<p class="text-[11px] text-slate-400 font-medium">답변 완료</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[13px] font-bold text-soft-emerald">100%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="bg-soft-emerald h-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="relative w-11 h-11">
+<div class="w-full h-full rounded-full bg-indigo-purple/5 border border-indigo-purple/10 flex items-center justify-center text-indigo-purple">
+<span class="material-symbols-outlined text-[24px]">person</span>
+</div>
+<div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-indigo-purple rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+<div class="w-full h-full flex items-center justify-center relative">
+<svg class="w-full h-full -rotate-90">
+<circle cx="10" cy="10" fill="transparent" r="8" stroke="rgba(255,255,255,0.2)" stroke-width="2"></circle>
+<circle cx="10" cy="10" fill="transparent" r="8" stroke="white" stroke-dasharray="50.2" stroke-dashoffset="20.1" stroke-width="2"></circle>
+</svg>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<p class="text-[15px] font-bold text-slate-900">이윤석 (팀원)</p>
+<button class="text-[10px] font-extrabold text-indigo-purple bg-indigo-purple/5 px-2 py-0.5 rounded border border-indigo-purple/10 hover:bg-indigo-purple hover:text-white transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">send</span>
+                                        리마인드
+                                    </button>
+</div>
+<p class="text-[11px] text-indigo-purple font-bold">진행 중...</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[13px] font-bold text-slate-600">60%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="bg-indigo-purple h-full w-[60%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="text-center mt-10">
+<button class="w-full py-5 bg-indigo-purple hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 cta-glow">
+<span>10문항 답변 이어가기</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<div class="mt-5 flex items-center justify-center gap-2 text-[12px] font-medium text-slate-500">
+<span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+<span>팀원 1명 답변 대기 중 <span class="text-slate-200/60 px-1 font-normal">·</span> 마지막 활동 5분 전</span>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 space-y-6">
+<div class="glass-card-side rounded-2xl p-7 flex flex-col h-[230px]">
+<div class="flex items-start justify-between mb-5">
+<div class="w-10 h-10 bg-indigo-purple/5 rounded-lg flex items-center justify-center text-indigo-purple">
+<span class="material-symbols-outlined text-[22px]">analytics</span>
+</div>
+<div class="text-right">
+<p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">GAP SCORE</p>
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-purple text-white">
+<span class="text-[10px] font-extrabold tracking-tight">HIGH</span>
+</div>
+</div>
+</div>
+<h4 class="text-[15px] font-extrabold text-slate-900 mb-2">온보딩 진단 결과</h4>
+<p class="text-[13px] text-slate-500 font-medium leading-relaxed mb-auto">
+                    창업자 간 의견 차이가 발생할 가능성이 높은 항목들이 발견되었습니다.
+                </p>
+<button class="mt-4 text-indigo-purple text-[13px] font-bold flex items-center gap-1 hover:translate-x-1 transition-transform">
+                    Gap 리포트 보기
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<div class="glass-card-side bg-slate-50/50 rounded-2xl p-6 shadow-depth-1">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-indigo-purple text-[20px]">auto_awesome</span>
+<h4 class="text-[15px] font-extrabold text-slate-900">AI 가이드</h4>
+</div>
+<div class="bg-white/80 rounded-xl p-3 border border-slate-100 mb-4">
+<p class="text-[12.5px] text-slate-600 font-medium leading-relaxed italic">
+                        "지분 구조 설계 시 현재의 기여도뿐 아니라 미래의 기여 가능성 및 베스팅 조건을 포함하는 것이 유리합니다."
+                    </p>
+</div>
+<div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 mb-4">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span>예상 소요 시간: 약 15분</span>
+</div>
+<button class="text-indigo-purple text-[12px] font-bold flex items-center gap-1 hover:translate-x-1 transition-transform">
+                    가이드 열기
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="max-w-6xl mx-auto px-8 py-10 mt-10 border-t border-slate-200/60">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex flex-col items-center md:items-start gap-2">
+<div class="flex items-center gap-2 opacity-40 grayscale">
+<span class="material-symbols-outlined text-[20px] font-bold">sync_alt</span>
+<p class="text-sm font-extrabold tracking-tighter">CoSync</p>
+</div>
+<p class="text-[10px] font-medium text-slate-400">모든 데이터는 암호화되어 저장됩니다.</p>
+</div>
+<p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">© 2024 COSYNC. PREMIUM ARCHITECTURAL GOVERNANCE.</p>
+<div class="flex gap-6 text-[11px] font-bold text-slate-400">
+<a class="hover:text-indigo-purple transition-colors" href="#">이용약관</a>
+<a class="hover:text-indigo-purple transition-colors" href="#">개인정보처리방침</a>
+</div>
+</div>
+</footer>
+
+</body></html>

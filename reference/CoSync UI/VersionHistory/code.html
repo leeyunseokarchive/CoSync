@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>합의 히스토리 | CoSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "purple-primary": "#4F46E5",
+                        "emerald-accent": "#10B981",
+                        "neutral-bg": "#F9FAFB",
+                        "charcoal": "#111827",
+                    },
+                    fontFamily: {
+                        "sans": ["NanumSquareNeo", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "sans-serif"]
+                    },
+                    boxShadow: {
+                        "premium": "0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02)",
+                        "active-glow": "0 20px 40px -12px rgba(79, 70, 229, 0.12), 0 0 15px rgba(79, 70, 229, 0.03)"
+                    },
+                    borderRadius: {
+                        "card": "24px",
+                        "inner": "12px"
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: "NanumSquareNeo", sans-serif;
+            @apply bg-neutral-bg text-charcoal antialiased overflow-hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(79, 70, 229, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
+                radial-gradient(#e2e8f0 0.8px, transparent 0.8px);
+            background-size: 100% 100%, 100% 100%, 32px 32px;
+        }
+        .sidebar-item {
+            @apply flex items-center px-8 py-2.5 text-[13px] font-medium transition-all text-gray-500 relative;
+        }
+        .sidebar-item.active {
+            @apply text-purple-primary font-bold;
+        }
+        .sidebar-item.active::before {
+            content: '';
+            @apply absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-purple-primary rounded-r-full;
+        }
+        .doc-card {
+            @apply bg-white border border-gray-100 rounded-card p-6 shadow-premium transition-all duration-300;
+        }
+        .active-card {
+            @apply border-[1.5px] border-purple-primary/20 shadow-active-glow bg-white/80 backdrop-blur-sm;
+        }
+        .doc-card-flat {
+            @apply bg-white border border-gray-100 rounded-card p-5 shadow-premium transition-all duration-300;
+        }
+        .btn-primary {
+            @apply bg-purple-primary hover:bg-indigo-700 text-white px-6 h-11 rounded-inner text-[13px] font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.98];
+        }
+        .btn-secondary {
+            @apply bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 px-6 h-11 rounded-inner text-[13px] font-bold transition-all flex items-center justify-center gap-2 active:scale-[0.98];
+        }
+        .input-field {
+            @apply h-11 rounded-inner border border-gray-200 bg-white/50 backdrop-blur-sm px-4 text-sm font-medium transition-all focus:ring-2 focus:ring-purple-primary/10 focus:border-purple-primary outline-none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .timeline-dot {
+            @apply size-[6px] rounded-full z-10 ring-[5px] ring-neutral-bg;
+        }
+        .timeline-line {
+            @apply absolute left-[120px] top-0 bottom-0 w-[1px] border-l border-dashed border-gray-300;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            @apply bg-gray-200 rounded-full;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+<header class="h-16 bg-white/80 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-50">
+<div class="flex items-center gap-16">
+<div class="flex items-center text-purple-primary">
+<span class="material-symbols-outlined text-[26px] font-bold">all_inclusive</span>
+<span class="ml-2 text-[19px] font-black tracking-tight">CoSync</span>
+</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-[13px] font-bold text-gray-400 hover:text-purple-primary transition-colors" href="#">대시보드</a>
+<a class="text-[13px] font-black text-purple-primary relative h-16 flex items-center px-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-purple-primary" href="#">합의 히스토리</a>
+<a class="text-[13px] font-bold text-gray-400 hover:text-purple-primary transition-colors" href="#">설정</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-10 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-50 transition-all">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button class="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100">
+<span class="text-[13px] font-bold text-gray-700">황주명</span>
+<div class="size-8 rounded-full bg-purple-primary text-white flex items-center justify-center font-bold text-[11px] shadow-sm">
+                JM
+            </div>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden max-w-[1440px] w-full mx-auto">
+<aside class="w-64 py-8 hidden lg:block shrink-0 bg-transparent">
+<div class="mb-10">
+<h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4 px-8">Archives</h3>
+<nav class="space-y-0.5">
+<a class="sidebar-item active" href="#">
+<span>전체 히스토리</span>
+</a>
+<a class="sidebar-item" href="#">
+<span>최종 확정본</span>
+</a>
+<a class="sidebar-item" href="#">
+<span>임시 저장</span>
+</a>
+</nav>
+</div>
+<div class="mb-10">
+<h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4 px-8">Status</h3>
+<nav class="space-y-0.5">
+<a class="sidebar-item" href="#">
+<span class="material-symbols-outlined text-[16px] mr-2 text-emerald-accent" style="font-variation-settings: 'wght' 600;">check_circle</span>
+<span>합의 완료</span>
+</a>
+<a class="sidebar-item" href="#">
+<span class="material-symbols-outlined text-[16px] mr-2 text-purple-primary" style="font-variation-settings: 'wght' 600;">history</span>
+<span>검토 중</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto px-6">
+<div class="bg-white/50 border border-gray-100 rounded-card p-5 shadow-sm">
+<div class="flex items-center gap-2 mb-2 text-purple-primary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<p class="text-[12px] font-black">Pro Support</p>
+</div>
+<p class="text-[11px] text-gray-500 mb-4 leading-relaxed font-medium">합의안의 법적 검토가 필요하신가요?</p>
+<button class="w-full text-[11px] font-bold text-purple-primary bg-indigo-50/50 h-9 rounded-inner hover:bg-indigo-50 transition-all">
+                    전문가 연결
+                </button>
+</div>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto p-12 relative">
+<div class="flex flex-wrap items-center justify-between gap-6 mb-10">
+<div>
+<h2 class="text-[26px] font-black text-gray-900 tracking-tight mb-2">합의 히스토리</h2>
+<p class="text-[13px] text-gray-500 font-medium">팀의 성장 궤적과 주요 합의 내용을 투명하게 관리하세요.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+<input class="input-field pl-11 w-64 placeholder:text-gray-400" placeholder="히스토리 검색..." type="text"/>
+</div>
+<button class="btn-primary px-5">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    새 합의안 작성
+                </button>
+</div>
+</div>
+<div class="relative">
+<div class="timeline-line"></div>
+<div class="space-y-4"> 
+<div class="relative grid grid-cols-[120px_1fr] gap-10 items-start">
+<div class="text-right pr-4 pt-[24px]">
+<span class="text-[11px] font-black text-purple-primary uppercase tracking-wider">Just Now</span>
+</div>
+<div class="absolute left-[120px] top-[29px] -ml-[3px] timeline-dot bg-purple-primary shadow-[0_0_8px_rgba(79,70,229,0.4)]"></div>
+<div class="doc-card active-card">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-inner bg-purple-primary/5 flex items-center justify-center text-purple-primary">
+<span class="material-symbols-outlined text-[24px]">description</span>
+</div>
+<div>
+<h3 class="text-[17px] font-black text-gray-900 flex items-center gap-3">
+                                        합의안 v2.1
+                                        <span class="text-[11px] font-bold text-purple-primary ml-1 flex items-center">
+<span class="size-1.5 rounded-full bg-purple-primary mr-1.5"></span>
+                                            ACTIVE
+                                        </span>
+</h3>
+<p class="text-[12px] text-gray-500 font-medium mt-1">지분율 재조정 논의 반영 중</p>
+</div>
+</div>
+<div class="px-3 py-1.5 rounded-full border border-purple-primary/20 bg-purple-primary/5 text-purple-primary text-[11px] font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+                                검토 진행 중
+                            </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+<div class="bg-gray-50/50 border border-gray-100 p-4 rounded-inner">
+<p class="text-[10px] text-gray-400 mb-2 font-black uppercase tracking-widest">핵심 변경 사항</p>
+<p class="text-[13px] text-gray-800 font-bold leading-relaxed">CTO 지분율 상향 및 베스팅 스케줄 재설정</p>
+</div>
+<div class="bg-gray-50/50 border border-gray-100 p-4 rounded-inner">
+<p class="text-[10px] text-gray-400 mb-2 font-black uppercase tracking-widest">참여자 현황</p>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-1.5">
+<div class="size-6 rounded-full border border-white bg-gray-200 text-[9px] font-bold flex items-center justify-center">JD</div>
+<div class="size-6 rounded-full border border-white bg-emerald-100 text-[9px] font-bold text-emerald-700 flex items-center justify-center">LS</div>
+<div class="size-6 rounded-full border border-white bg-gray-200 text-[9px] font-bold flex items-center justify-center">PK</div>
+</div>
+<span class="text-[11px] font-bold text-gray-500">1/3 승인</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="btn-primary flex-1 !rounded-inner">수정하기</button>
+<button class="btn-secondary flex-1">이력 보기</button>
+</div>
+</div>
+</div>
+<div class="relative grid grid-cols-[120px_1fr] gap-10 items-start">
+<div class="text-right pr-4 pt-[24px]">
+<span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">2024.03.15</span>
+</div>
+<div class="absolute left-[120px] top-[29px] -ml-[3px] timeline-dot bg-emerald-accent"></div>
+<div class="doc-card-flat flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="size-11 rounded-inner bg-emerald-50 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+<div>
+<h3 class="text-[15px] font-black text-gray-800">합의안 v2.0 (최종 확정)</h3>
+<p class="text-[12px] text-gray-500 font-medium">법인 설립 등기용 공식 최종본</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-black">전원 합의 완료</span>
+<div class="h-5 w-px bg-gray-100 mx-1"></div>
+<button class="size-9 rounded-inner text-gray-400 hover:text-purple-primary hover:bg-gray-50 transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative grid grid-cols-[120px_1fr] gap-10 items-start">
+<div class="text-right pr-4 pt-[24px]">
+<span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">2024.02.20</span>
+</div>
+<div class="absolute left-[120px] top-[29px] -ml-[3px] timeline-dot bg-gray-300"></div>
+<div class="doc-card-flat flex items-center justify-between border-dashed">
+<div class="flex items-center gap-4">
+<div class="size-11 rounded-inner bg-gray-50 text-gray-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<div>
+<h3 class="text-[15px] font-bold text-gray-600">합의안 v1</h3>
+<p class="text-[12px] text-gray-400 font-medium">베스팅 기간 조정안</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-3 py-1.5 rounded-full border border-gray-200 text-gray-400 text-[10px] font-black">ARCHIVED</span>
+<button class="h-9 px-4 text-[11px] font-black text-gray-500 hover:text-purple-primary hover:bg-gray-50 rounded-inner transition-all border border-gray-100">기록 보기</button>
+</div>
+</div>
+</div>
+<div class="relative pt-8 pb-12 flex flex-col items-center">
+<div class="absolute left-[120px] top-0 h-8 w-[1px] border-l border-dashed border-gray-300"></div>
+<div class="relative flex flex-col items-center">
+<div class="size-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 shadow-sm mb-3">
+<span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+</div>
+<div class="text-center">
+<p class="text-[11px] font-black text-gray-500 tracking-[0.1em] uppercase">Project Started</p>
+<p class="text-[10px] font-bold text-gray-400 mt-0.5">2024.01.05</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5C4FE5",
+                        "primary-hover": "#4F46E5",
+                        "accent-emerald": "#10B981",
+                        "neutral-gray": "#F9FAFB",
+                        "border-color": "#E5E7EB",
+                    },
+                    fontFamily: {
+                        "sans": ["NanumSquareNeo", "sans-serif"],
+                        "display": ["NanumSquareNeo", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquareNeo', sans-serif;
+                background-color: #F9FAFB;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+        .line-input {
+            border: none;
+            border-bottom: 1px solid #E5E7EB;
+            border-radius: 0;
+            padding-left: 0;
+            padding-right: 0;
+            transition: all 0.2s ease;
+            background-color: transparent;
+        }
+        .line-input:focus {
+            outline: none;
+            border-bottom-color: #5C4FE5;
+            box-shadow: none;
+            ring: 0;
+        }
+        .auth-card {
+            background-color: #FFFFFF;
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.04);
+            border-radius: 40px; 
+            width: 640px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .font-regular { font-weight: 400; }
+        .font-semibold { font-weight: 700; }
+        .font-bold { font-weight: 800; }
+        .primary-button {
+            background-color: #5C4FE5;
+            height: 56px;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+        }
+        .primary-button:hover {
+            background-color: #4F46E5;
+        }
+        .primary-button:active {
+            transform: scale(0.98);
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 80px;
+            background-color: #1E293B;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            left: 125%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-[#F9FAFB] text-slate-900 font-display min-h-screen flex items-center justify-center relative">
+<nav class="fixed top-10 left-10 z-20">
+<a class="tooltip flex items-center justify-center w-10 h-10 text-[#64748B] hover:text-slate-900 transition-colors" href="javascript:history.back()">
+<span class="material-symbols-outlined text-3xl">west</span>
+<span class="tooltiptext">뒤로가기</span>
+</a>
+</nav>
+<main class="w-full flex items-center justify-center p-8 min-h-screen">
+<div class="auth-card px-16 py-14">
+<div class="flex flex-col items-center mb-10 text-center">
+<h1 class="text-[#0F172A] text-[32px] font-bold mb-3">회원가입</h1>
+<div class="flex items-center gap-2">
+<span class="text-[#64748B] text-[15px] font-regular">이미 계정이 있으신가요?</span>
+<a class="text-[#5C4FE5] text-[15px] font-semibold hover:underline underline-offset-4" href="#">로그인</a>
+</div>
+</div>
+<form class="space-y-8">
+<div class="space-y-8">
+<div class="flex flex-col gap-1.5">
+<label class="text-[#475569] text-[13px] font-semibold">이름</label>
+<input class="line-input w-full text-[#0F172A] text-[16px] py-1.5 placeholder:text-slate-300" placeholder="성함을 입력하세요" type="text"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#475569] text-[13px] font-semibold">이메일 주소</label>
+<input class="line-input w-full text-[#0F172A] text-[16px] py-1.5 placeholder:text-slate-300" placeholder="example@cosync.com" type="email"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#475569] text-[13px] font-semibold">비밀번호</label>
+<div class="relative">
+<input class="line-input w-full text-[#0F172A] text-[16px] py-1.5 pr-10 placeholder:text-slate-300" placeholder="••••••••" type="password"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-[13px] text-accent-emerald font-bold">check_circle</span>
+<p class="text-[11px] text-[#94A3B8] font-regular">최소 8자 이상, 영문/숫자 포함</p>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#475569] text-[13px] font-semibold">비밀번호 확인</label>
+<div class="relative">
+<input class="line-input w-full text-[#0F172A] text-[16px] py-1.5 pr-10 placeholder:text-slate-300" placeholder="••••••••" type="password"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<div class="pt-2 space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="h-4 w-4 rounded border-slate-300 text-[#5C4FE5] focus:ring-[#5C4FE5] transition-all cursor-pointer" required="" type="checkbox"/>
+<span class="text-slate-600 text-[13px] font-regular leading-none">
+<span class="text-[#5C4FE5] font-semibold">(필수)</span> <u>서비스 이용약관</u>에 동의합니다.
+                        </span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="h-4 w-4 rounded border-slate-300 text-[#5C4FE5] focus:ring-[#5C4FE5] transition-all cursor-pointer" required="" type="checkbox"/>
+<span class="text-slate-600 text-[13px] font-regular leading-none">
+<span class="text-[#5C4FE5] font-semibold">(필수)</span> <u>개인정보 수집 및 이용</u>에 동의합니다.
+                        </span>
+</label>
+</div>
+<div class="pt-6">
+<button class="primary-button w-full flex items-center justify-center gap-2 text-white font-semibold text-[16px] px-8" type="submit">
+<span>계정 만들기</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</main>
+
+</body></html>

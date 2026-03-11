@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CoSync Agenda Analysis Modal - Master Typography Alignment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Square+Neo:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #5C4FE5;
+            --bg-lavender: #F3F1FF;
+            --text-charcoal: #111827;
+            --neutral-bg: #F9FAFB;
+            --sub-text-gray: #4B5563;
+        }
+        body {
+            font-family: 'Nanum Square Neo', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--neutral-bg);
+        }
+        .modal-backdrop {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+        }
+        .deep-soft-shadow {
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.16), 0 16px 32px -16px rgba(92, 79, 229, 0.15);
+        }
+        .title-master {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.4;
+            color: #111827;
+        }
+        .member-name-master {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #111827;
+        }
+        .body-quote-master {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            line-height: 1.6;
+            color: #111827;
+        }
+        .ai-label-master {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #5C4FE5;
+        }
+        .ai-description-master {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            line-height: 1.6;
+        }
+        .primary-button-text {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .close-icon {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48;
+        }
+    </style>
+</head>
+<body class="text-[var(--text-charcoal)] min-h-screen overflow-hidden">
+<div class="fixed inset-0 overflow-hidden pointer-events-none select-none grayscale-[0.2] opacity-10">
+<nav class="sticky top-0 z-0 bg-white border-b border-gray-100 px-10 py-5 flex items-center justify-between">
+<div class="flex items-center gap-10">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 bg-[var(--primary-color)] rounded-xl flex items-center justify-center">
+<span class="text-white font-bold text-xl">C</span>
+</div>
+<span class="font-bold text-2xl tracking-tight">CoSync</span>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-10 py-12 space-y-12">
+<div class="h-40 bg-white rounded-[40px] border border-gray-100 shadow-sm"></div>
+<div class="grid grid-cols-3 gap-8">
+<div class="h-80 bg-white rounded-[40px] border border-gray-100 shadow-sm"></div>
+<div class="h-80 bg-white rounded-[40px] border border-gray-100 shadow-sm"></div>
+<div class="h-80 bg-white rounded-[40px] border border-gray-100 shadow-sm"></div>
+</div>
+</main>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-6 modal-backdrop">
+<div class="bg-white w-full max-w-[1000px] rounded-[40px] border-[1.5px] border-[#E5E7EB] deep-soft-shadow relative flex flex-col overflow-hidden">
+<button class="absolute top-10 right-10 w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all group z-10">
+<span class="material-symbols-outlined close-icon text-[#111827] text-3xl">close</span>
+</button>
+<div class="px-14 pt-14 pb-8">
+<div class="space-y-4">
+<div class="inline-flex items-center px-4 py-1.5 bg-[#5C4FE5] text-white text-[11px] font-bold tracking-[0.05em] rounded-full uppercase">
+                        HIGH CONFLICT
+                    </div>
+<h1 class="title-master">
+                        최종 의사결정권자의 권한 범위
+                    </h1>
+</div>
+</div>
+<div class="px-14 pb-12 space-y-10">
+<div class="grid grid-cols-2 gap-8">
+<div class="flex flex-col gap-5">
+<div class="flex items-center gap-3">
+<img alt="황주명" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrIlot7Hi-x8Q6_z-1YLDGhfkeHdhxFAiaxCItohuFIWEEzmK8_OKQXd_c--EfzTNnZC7tXikrsAwCew6UihnJRk_AehkkTjIBYYYL6u7Ppz0MtbRZeoSeEZv-kzNrqITrb5BWGye8NdDNr4IMO4xymMKU-Y1LdIOBKooRuPOFNQzrvhhLVylwuiwbutD5KPeXV7oPIfe6RIZppxmdRDz_iuQdbrczSNXYwSbjmPHRkqCJqwkt-KMwa2iM9WKLfPH8KYe19gvkRQ4"/>
+<span class="member-name-master">황주명</span>
+</div>
+<div class="flex-1 bg-[var(--neutral-bg)] rounded-[40px] p-10 border-[1.5px] border-[#F3F4F6] relative min-h-[180px]">
+<span class="material-symbols-outlined absolute top-8 left-8 text-[#E5E7EB] text-4xl opacity-50">format_quote</span>
+<p class="relative z-10 body-quote-master">
+                                “영업 및 마케팅 전체 영역에서 대표가 독점적 결정권을 가져야 한다.”
+                            </p>
+</div>
+</div>
+<div class="flex flex-col gap-5">
+<div class="flex items-center gap-3">
+<img alt="이윤석" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYeOyWfC39gJW_1oRJZZSrbev-2Yus-6mKkzuKS1MJGLUJ43ohtpBd1yrrWF3mEpyl3qkRcYRNJTGC9moCRZkNA-dZDMPcxyXwilKEXSWp0_ezAOUavgjckYg-Al8-yeYTB9DnWiQ-7O-Ph-1hdzpmzSwkwwIIHxFCXK5kM8RGU9CpLO_yfEwcc68JYJejsD8SzBIB4lW--MF4rKb1pg0CBGH3paEc-50gxn6KoZq8C73mVies4gq34msheGoguncJ4YW-mbB-70E"/>
+<span class="member-name-master">이윤석</span>
+</div>
+<div class="flex-1 bg-[var(--neutral-bg)] rounded-[40px] p-10 border-[1.5px] border-[#F3F4F6] relative min-h-[180px]">
+<span class="material-symbols-outlined absolute top-8 left-8 text-[#E5E7EB] text-4xl opacity-50">format_quote</span>
+<p class="relative z-10 body-quote-master">
+                                “중요한 전략은 공동 창업자 간의 합의를 통한 집단 의사결정이 필수적이다.”
+                            </p>
+</div>
+</div>
+</div>
+<div class="bg-[var(--bg-lavender)] rounded-[40px] p-10 flex gap-8 items-center border-[1.5px] border-[#EBE8FF]">
+<div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-[0_8px_16px_rgba(92,79,229,0.08)] shrink-0">
+<span class="material-symbols-outlined text-[#5C4FE5] text-3xl font-light">auto_awesome</span>
+</div>
+<div class="space-y-1">
+<div class="ai-label-master">GAP INSIGHT</div>
+<p class="ai-description-master text-[#4B43B0]">
+<span class="font-bold">GAP POINT:</span>
+<span class="font-medium">결정권의 독점 여부에 대한 상반된 이해도가 존재하며, 이는 추후 실행 속도와 팀 결속력에 큰 영향을 줄 수 있습니다.</span>
+</p>
+</div>
+</div>
+</div>
+<div class="px-14 py-8 bg-[#FCFCFE] border-t border-[#F3F4F6] flex items-center justify-between">
+<button class="px-6 py-4 text-[16px] font-medium text-[#6B7280] hover:text-[#111827] transition-colors tracking-[-0.02em]">
+                    닫기
+                </button>
+<button class="h-[56px] px-10 bg-[#5C4FE5] text-white rounded-full flex items-center gap-4 shadow-[0_12px_24px_rgba(92,79,229,0.25)] hover:shadow-[0_16px_32px_rgba(92,79,229,0.35)] hover:-translate-y-0.5 transition-all active:translate-y-0">
+<span class="primary-button-text">이 주제로 합의 시작하기</span>
+<span class="material-symbols-outlined text-2xl font-light">arrow_right_alt</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>
