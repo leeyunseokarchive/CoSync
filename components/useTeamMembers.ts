@@ -10,6 +10,15 @@ type TeamMember = {
   role: string;
   status: string;
   progress: number;
+  answers?: {
+    repeatCount?: number | string;
+    timeElapsed?: number | string;
+    timeElapsedUnit?: string;
+    decisionDeadline?: number | string;
+    decisionDeadlineUnit?: string;
+    decisionRule?: string;
+    decisionMaker?: string;
+  };
 };
 
 export function useTeamMembers(teamId: string | undefined) {
@@ -23,16 +32,21 @@ export function useTeamMembers(teamId: string | undefined) {
         setLoading(false);
         return;
       }
-      const membersRef = collection(db, "teams", teamId, "members");
-      const q = query(membersRef, orderBy("name"));
-      const snapshot = await getDocs(q);
-      setMembers(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as Omit<TeamMember, "id">)
-        }))
-      );
-      setLoading(false);
+      try {
+        const membersRef = collection(db, "teams", teamId, "members");
+        const q = query(membersRef, orderBy("name"));
+        const snapshot = await getDocs(q);
+        setMembers(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...(doc.data() as Omit<TeamMember, "id">)
+          }))
+        );
+      } catch {
+        setMembers([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchMembers();

@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className={noto.variable}>
+      <body className={noto.variable} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

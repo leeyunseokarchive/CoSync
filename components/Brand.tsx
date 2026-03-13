@@ -23,12 +23,18 @@ export function BrandMark({ variant = "primary" }: { variant?: "primary" | "dark
   );
 }
 
-export function CircleAvatar({ label }: { label: string }) {
+export function CircleAvatar({
+  label,
+  size = 34
+}: {
+  label: string;
+  size?: number;
+}) {
   return (
     <div
       style={{
-        width: 34,
-        height: 34,
+        width: size,
+        height: size,
         borderRadius: "50%",
         background: "#f2f3f8",
         display: "inline-flex",
@@ -36,7 +42,7 @@ export function CircleAvatar({ label }: { label: string }) {
         justifyContent: "center",
         color: "#7c8494",
         fontWeight: 600,
-        fontSize: 12
+        fontSize: Math.max(11, Math.round(size * 0.36))
       }}
     >
       {label}

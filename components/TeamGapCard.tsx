@@ -1,0 +1,29 @@
+"use client";
+
+import Link from "next/link";
+
+type Team = {
+  id: string;
+  gapCount?: number;
+  gapScore?: "LOW" | "MID" | "HIGH";
+};
+
+export function TeamGapCard({ team }: { team: Team }) {
+  const gapCount = team.gapCount ?? 0;
+  const gapScore = team.gapScore ?? "LOW";
+  const scoreLabel = gapScore === "HIGH" ? "HIGH" : gapScore === "MID" ? "MID" : "LOW";
+
+  return (
+    <div className="card gap-mini">
+      <div className="side-top">
+        <span className="pill">GAP SCORE</span>
+        <span className={`badge ${scoreLabel.toLowerCase()}`}>{scoreLabel}</span>
+      </div>
+      <h4>온보딩 진단 결과</h4>
+      <p>온보딩 답변에서 갈등 가능성이 높은 항목을 {gapCount}개 발견했습니다.</p>
+      <Link href="/gap-report" className="link">
+        Gap 리포트 보기 →
+      </Link>
+    </div>
+  );
+}

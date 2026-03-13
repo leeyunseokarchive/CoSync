@@ -30,10 +30,10 @@ export function TopNav({
   return (
     <header className="topbar">
       <div className="topbar-inner container">
-        <Link href="/" aria-label="CoSync 홈">
-          <BrandMark />
-        </Link>
-        {isAuthed && (
+        <div className="topbar-left">
+          <Link href="/" aria-label="CoSync Dashboard">
+            <BrandMark />
+          </Link>
           <div className="nav-links">
             {links.map((link) => (
               <Link
@@ -45,14 +45,14 @@ export function TopNav({
               </Link>
             ))}
           </div>
-        )}
+        </div>
         <div className="topbar-right">
           {isAuthed ? (
             <>
               <div style={{ fontSize: 12, color: "#1f2430", fontWeight: 600 }}>
                 {user?.displayName || "김리더"}
               </div>
-              <CircleAvatar label="HJ" />
+              <CircleAvatar label={(user?.displayName || "김리더").slice(0, 1)} />
               <button className="logout-link" type="button" onClick={handleLogout}>
                 로그아웃
               </button>

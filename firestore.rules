@@ -5,20 +5,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isTeamMember(teamId) {
-      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.members;
-    }
-
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /teams/{teamId} {
-      allow read, write: if isTeamMember(teamId);
+      allow read: if isSignedIn();
+      allow update: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.members;
 
       match /members/{memberId} {
-        allow read: if isTeamMember(teamId);
+        allow read: if isSignedIn();
         allow write: if isSignedIn() && request.auth.uid == memberId;
       }
     }

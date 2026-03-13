@@ -14,6 +14,9 @@ type Team = {
   industry?: string;
   stage?: string;
   progress?: number;
+  gapCount?: number;
+  gapScore?: "LOW" | "MID" | "HIGH";
+  status?: string;
 };
 
 export function useTeams() {
@@ -34,10 +37,12 @@ export function useTeams() {
         const teamsRef = collection(db, "teams");
         const q = query(teamsRef, where("members", "array-contains", user.uid));
         const snapshot = await getDocs(q);
-        const nextTeams = snapshot.docs.map((doc) => ({
+        const nextTeams = snapshot.docs
+          .map((doc) => ({
           id: doc.id,
           ...(doc.data() as Omit<Team, "id">)
-        }));
+          }))
+          .filter((team) => team.status !== "archived");
         setTeams(nextTeams);
       } catch (err) {
         setError("팀 정보를 불러오지 못했습니다.");

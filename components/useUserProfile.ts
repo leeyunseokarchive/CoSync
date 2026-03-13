@@ -11,6 +11,7 @@ type UserProfile = {
   department?: string;
   role?: string;
   teamIds?: string[];
+  lastActiveTeamId?: string;
 };
 
 export function useUserProfile() {

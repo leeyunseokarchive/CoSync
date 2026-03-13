@@ -6,8 +6,10 @@ import { useAppState } from "../../../components/AppState";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../components/AuthContext";
 import { useUserProfile } from "../../../components/useUserProfile";
-import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
+import { computeGapSummary } from "../../../lib/gap";
+import { computeTeamProgress } from "../../../lib/teamProgress";
 
 export default function OnboardingDiagnosisPage() {
   const {
@@ -49,20 +51,37 @@ export default function OnboardingDiagnosisPage() {
   const handleNext = async () => {
     if (!user) return;
     const teamId = profile?.teamIds?.[0];
+    const answers = {
+      repeatCount,
+      timeElapsed,
+      timeElapsedUnit,
+      decisionDeadline,
+      decisionDeadlineUnit,
+      decisionRule,
+      decisionMaker
+    };
     if (teamId) {
-      await updateDoc(doc(db, "teams", teamId), {
-        progress
-      });
       await setDoc(
         doc(db, "teams", teamId, "members", user.uid),
         {
           name: profile?.name || user.displayName || "팀원",
           role: role || "MEMBER",
           status: "active",
-          progress
+          progress,
+          answers
         },
         { merge: true }
       );
+      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
+      const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
+      const { gapCount, gapScore } = computeGapSummary(memberAnswers);
+      const teamProgress = computeTeamProgress(memberDocs);
+      await updateDoc(doc(db, "teams", teamId), {
+        progress: teamProgress,
+        gapCount,
+        gapScore
+      });
     }
     await updateDoc(doc(db, "users", user.uid), {
       department,
@@ -77,12 +96,9 @@ export default function OnboardingDiagnosisPage() {
 
       <section className="container diagnosis-wrap">
         <div className="diagnosis-card">
-          <Link className="back-link" href="/session">
-            ← 이전으로
-          </Link>
           <div className="diagnosis-header">
             <h2>온보딩 진단</h2>
-            <p>팀의 의사결정 방식과 규칙을 설정하는 단계입니다.</p>
+            <p>아래 상황을 읽고 문항에 답해주세요.</p>
           </div>
           <div className="info-box">
             <span className="info-dot">i</span>
@@ -154,7 +170,7 @@ export default function OnboardingDiagnosisPage() {
             </div>
             <div>
               <div className="diag-section">
-                <h4>3.</h4>
+                <h4>3. 결정 방식</h4>
                 <div className="chip-grid">
                   {[
                     "전원합의",
@@ -175,7 +191,7 @@ export default function OnboardingDiagnosisPage() {
                 </div>
               </div>
               <div className="diag-section">
-                <h4>4. 팀원 님의 부서/직책</h4>
+                <h4>4. 본인 부서/직책</h4>
                 <div className="select-stack">
                   <select
                     className="chip-select"
@@ -221,7 +237,7 @@ export default function OnboardingDiagnosisPage() {
           </div>
 
           <div className="diag-footer">
-            <Link className="btn btn-primary" href="/login" onClick={handleNext}>
+            <Link className="btn btn-primary" href="/workspace" onClick={handleNext}>
               다음 단계로 →
             </Link>
           </div>

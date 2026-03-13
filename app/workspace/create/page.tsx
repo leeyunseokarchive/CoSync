@@ -10,6 +10,8 @@ import { db } from "../../../lib/firebase";
 import { generateInviteCode } from "../../../lib/team";
 import { useEffect, useState } from "react";
 import { useUserProfile } from "../../../components/useUserProfile";
+import { computeGapSummary } from "../../../lib/gap";
+import { computeTeamProgress } from "../../../lib/teamProgress";
 
 export default function WorkspaceCreatePage() {
   const router = useRouter();
@@ -21,7 +23,14 @@ export default function WorkspaceCreatePage() {
     setActiveSessions,
     progress,
     department,
-    role
+    role,
+    decisionRule,
+    repeatCount,
+    timeElapsed,
+    timeElapsedUnit,
+    decisionDeadline,
+    decisionDeadlineUnit,
+    decisionMaker
   } = useAppState();
   const { profile } = useUserProfile();
   const [teamName, setTeamName] = useState("");
@@ -42,6 +51,17 @@ export default function WorkspaceCreatePage() {
       setError("팀 이름을 입력해주세요.");
       return;
     }
+    const answers = {
+      repeatCount,
+      timeElapsed,
+      timeElapsedUnit,
+      decisionDeadline,
+      decisionDeadlineUnit,
+      decisionRule,
+      decisionMaker
+    };
+    const { gapCount, gapScore } = computeGapSummary([answers]);
+    const teamProgress = computeTeamProgress([{ progress }]);
     const inviteCode = generateInviteCode();
     const teamRef = await addDoc(collection(db, "teams"), {
       name: teamName,
@@ -52,7 +72,9 @@ export default function WorkspaceCreatePage() {
       createdBy: user.uid,
       members: [user.uid],
       createdAt: serverTimestamp(),
-      progress
+      progress: teamProgress,
+      gapCount,
+      gapScore
     });
     await setDoc(doc(db, "inviteCodes", inviteCode), {
       teamId: teamRef.id,
@@ -65,7 +87,8 @@ export default function WorkspaceCreatePage() {
         role: role || profile?.role || "OWNER",
         department: department || "",
         status: "active",
-        progress
+        progress,
+        answers
       },
       { merge: true }
     );
