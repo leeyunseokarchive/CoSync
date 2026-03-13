@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { TopNav } from "../../../components/TopNav";
 import { useAppState } from "../../../components/AppState";
+import { Footer } from "../../../components/Footer";
+import { useAuth } from "../../../components/AuthContext";
+import { useUserProfile } from "../../../components/useUserProfile";
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../../lib/firebase";
 
 export default function OnboardingDiagnosisPage() {
   const {
@@ -20,30 +25,61 @@ export default function OnboardingDiagnosisPage() {
     setDecisionDeadlineUnit,
     department,
     setDepartment,
+    role,
+    setRole,
     decisionMaker,
-    setDecisionMaker
+    setDecisionMaker,
+    progress
   } = useAppState();
+  const { user } = useAuth();
+  const { profile } = useUserProfile();
+
   const activeRule = decisionRule || "과반수";
+  const roleOptions: Record<string, string[]> = {
+    제품: ["CPO", "PO", "PM", "서비스 기획"],
+    기술: ["CTO", "프론트엔드", "백엔드", "모바일", "DevOps"],
+    비즈니스: ["COO", "사업개발", "세일즈", "CS"],
+    마케팅: ["CMO", "퍼포먼스", "콘텐츠", "브랜딩"],
+    운영: ["운영", "HR", "총무"],
+    재무: ["CFO", "회계", "재무"],
+    법무: ["Legal", "컴플라이언스"]
+  };
+  const rolesForDepartment = roleOptions[department] ?? ["CEO", "CPO", "CTO"];
+
+  const handleNext = async () => {
+    if (!user) return;
+    const teamId = profile?.teamIds?.[0];
+    if (teamId) {
+      await updateDoc(doc(db, "teams", teamId), {
+        progress
+      });
+      await setDoc(
+        doc(db, "teams", teamId, "members", user.uid),
+        {
+          name: profile?.name || user.displayName || "팀원",
+          role: role || "MEMBER",
+          status: "active",
+          progress
+        },
+        { merge: true }
+      );
+    }
+    await updateDoc(doc(db, "users", user.uid), {
+      department,
+      role,
+      updatedAt: serverTimestamp()
+    });
+  };
 
   return (
     <main className="page diagnosis-page">
-      <TopNav
-        links={[
-          { label: "대시보드", href: "/session" },
-          { label: "합의 세션", href: "/onboarding/diagnosis" },
-          { label: "리포트", href: "/gap-report" },
-          { label: "팀 설정", href: "/team-setting" }
-        ]}
-        active="합의 세션"
-        rightName="황주명"
-        rightLabel="Product Owner"
-      />
+      <TopNav links={[{ label: "대시보드", href: "/workspace" }]} active="합의 세션" />
 
       <section className="container diagnosis-wrap">
         <div className="diagnosis-card">
-          {/* <Link className="back-link" href="/session">
+          <Link className="back-link" href="/session">
             ← 이전으로
-          </Link> */}
+          </Link>
           <div className="diagnosis-header">
             <h2>온보딩 진단</h2>
             <p>팀의 의사결정 방식과 규칙을 설정하는 단계입니다.</p>
@@ -118,11 +154,11 @@ export default function OnboardingDiagnosisPage() {
             </div>
             <div>
               <div className="diag-section">
-                <h4>3. 결정 방식</h4>
+                <h4>3.</h4>
                 <div className="chip-grid">
                   {[
-                    "전원 합의",
-                    "2/3 합의",
+                    "전원합의",
+                    "2/3 합",
                     "과반수",
                     "대표 결정",
                     "투표"
@@ -139,16 +175,41 @@ export default function OnboardingDiagnosisPage() {
                 </div>
               </div>
               <div className="diag-section">
-                <h4>4. 본인의 부서/직책</h4>
-                <input
-                  className="input"
-                  placeholder="부서/직책 입력"
-                  value={department}
-                  onChange={(event) => setDepartment(event.target.value)}
-                />
+                <h4>4. 팀원 님의 부서/직책</h4>
+                <div className="select-stack">
+                  <select
+                    className="chip-select"
+                    value={department}
+                    onChange={(event) => {
+                      setDepartment(event.target.value);
+                      setRole("");
+                    }}
+                  >
+                    <option value="">부서 선택</option>
+                    <option value="제품">제품</option>
+                    <option value="기술">기술</option>
+                    <option value="비즈니스">비즈니스</option>
+                    <option value="마케팅">마케팅</option>
+                    <option value="운영">운영</option>
+                    <option value="재무">재무</option>
+                    <option value="법무">법무</option>
+                  </select>
+                  <select
+                    className="chip-select"
+                    value={role}
+                    onChange={(event) => setRole(event.target.value)}
+                  >
+                    <option value="">직책 선택</option>
+                    {rolesForDepartment.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="diag-section">
-                <h4>5. 최종 결정권자</h4>
+                <h4>5. 결정권자</h4>
                 <input
                   className="input"
                   placeholder="결정권자 입력"
@@ -160,12 +221,13 @@ export default function OnboardingDiagnosisPage() {
           </div>
 
           <div className="diag-footer">
-            <Link className="btn btn-primary" href="/login">
+            <Link className="btn btn-primary" href="/login" onClick={handleNext}>
               다음 단계로 →
             </Link>
           </div>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

@@ -1,17 +1,61 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAppState } from "../../components/AppState";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
+import { useAppState } from "../../components/AppState";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const { setIsAuthed } = useAppState();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { department, role, progress } = useAppState();
+
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (department || role || progress > 0) {
+        await setDoc(
+          doc(db, "users", cred.user.uid),
+          {
+            department,
+            role,
+            onboardingProgress: progress,
+            updatedAt: serverTimestamp()
+          },
+          { merge: true }
+        );
+      }
+      router.push("/workspace");
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (code === "auth/invalid-credential" || code === "auth/wrong-password") {
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      } else if (code === "auth/user-not-found") {
+        setError("등록되지 않은 계정입니다. 회원가입을 진행해주세요.");
+      } else if (code === "auth/too-many-requests") {
+        setError("로그인이 일시적으로 제한되었습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        setError("로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="page auth-page">
       <div className="container">
-        <Link className="back-arrow" href="/onboarding/diagnosis">
+        <Link className="back-arrow" href="/">
           ←
         </Link>
       </div>
@@ -25,7 +69,12 @@ export default function LoginPage() {
 
         <div className="form-grid">
           <label className="label">이메일 주소</label>
-          <input className="input" placeholder="example@cosync.com" />
+          <input
+            className="input"
+            placeholder="example@cosync.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
 
           <label className="label">비밀번호</label>
           <div className="password-row">
@@ -33,6 +82,8 @@ export default function LoginPage() {
               className="input"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
             />
             <button
               className="eye-btn"
@@ -66,15 +117,12 @@ export default function LoginPage() {
             </button>
           </div>
           <div className="right-link">비밀번호를 잊으셨나요?</div>
+          {error && <div className="error-text">{error}</div>}
         </div>
 
-        <Link
-          className="btn btn-primary full"
-          href="/workspace"
-          onClick={() => setIsAuthed(true)}
-        >
-          로그인하기 →
-        </Link>
+        <button className="btn btn-primary full" type="button" onClick={handleLogin} disabled={loading}>
+          {loading ? "로그인 중..." : "로그인하기 →"}
+        </button>
         <div className="auth-footer">
           계정 정보를 잊으셨나요? <strong>계정 찾기</strong>
         </div>

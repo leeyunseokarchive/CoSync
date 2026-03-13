@@ -1,17 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type AppState = {
-  isAuthed: boolean;
   activeTeams: number;
   activeSessions: number;
-  recentWorkspaces: {
-    id: string;
-    name: string;
-    progress: number;
-    lastActive: string;
-  }[];
   decisionRule: string;
   repeatCount: string;
   timeElapsed: string;
@@ -24,17 +17,8 @@ type AppState = {
 };
 
 type AppStateContextValue = AppState & {
-  setIsAuthed: (value: boolean) => void;
   setActiveTeams: (value: number) => void;
   setActiveSessions: (value: number) => void;
-  setRecentWorkspaces: (
-    value: {
-      id: string;
-      name: string;
-      progress: number;
-      lastActive: string;
-    }[]
-  ) => void;
   setDecisionRule: (value: string) => void;
   setRepeatCount: (value: string) => void;
   setTimeElapsed: (value: string) => void;
@@ -48,10 +32,8 @@ type AppStateContextValue = AppState & {
 };
 
 const defaultState: AppState = {
-  isAuthed: false,
   activeTeams: 0,
   activeSessions: 0,
-  recentWorkspaces: [],
   decisionRule: "",
   repeatCount: "",
   timeElapsed: "",
@@ -98,23 +80,83 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return Math.min(100, Math.round((answered / total) * 100));
   }, [state]);
 
-  const value: AppStateContextValue = {
-    ...state,
-    setIsAuthed: (value) => setState((prev) => ({ ...prev, isAuthed: value })),
-    setActiveTeams: (value) => setState((prev) => ({ ...prev, activeTeams: value })),
-    setActiveSessions: (value) => setState((prev) => ({ ...prev, activeSessions: value })),
-    setRecentWorkspaces: (value) => setState((prev) => ({ ...prev, recentWorkspaces: value })),
-    setDecisionRule: (value) => setState((prev) => ({ ...prev, decisionRule: value })),
-    setRepeatCount: (value) => setState((prev) => ({ ...prev, repeatCount: value })),
-    setTimeElapsed: (value) => setState((prev) => ({ ...prev, timeElapsed: value })),
-    setDecisionDeadline: (value) => setState((prev) => ({ ...prev, decisionDeadline: value })),
-    setTimeElapsedUnit: (value) => setState((prev) => ({ ...prev, timeElapsedUnit: value })),
-    setDecisionDeadlineUnit: (value) => setState((prev) => ({ ...prev, decisionDeadlineUnit: value })),
-    setDepartment: (value) => setState((prev) => ({ ...prev, department: value })),
-    setRole: (value) => setState((prev) => ({ ...prev, role: value })),
-    setDecisionMaker: (value) => setState((prev) => ({ ...prev, decisionMaker: value })),
-    progress
-  };
+  const setActiveTeams = useCallback(
+    (value: number) => setState((prev) => ({ ...prev, activeTeams: value })),
+    []
+  );
+  const setActiveSessions = useCallback(
+    (value: number) => setState((prev) => ({ ...prev, activeSessions: value })),
+    []
+  );
+  const setDecisionRule = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionRule: value })),
+    []
+  );
+  const setRepeatCount = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, repeatCount: value })),
+    []
+  );
+  const setTimeElapsed = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, timeElapsed: value })),
+    []
+  );
+  const setDecisionDeadline = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionDeadline: value })),
+    []
+  );
+  const setTimeElapsedUnit = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, timeElapsedUnit: value })),
+    []
+  );
+  const setDecisionDeadlineUnit = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionDeadlineUnit: value })),
+    []
+  );
+  const setDepartment = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, department: value })),
+    []
+  );
+  const setRole = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, role: value })),
+    []
+  );
+  const setDecisionMaker = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionMaker: value })),
+    []
+  );
+
+  const value: AppStateContextValue = useMemo(
+    () => ({
+      ...state,
+      setActiveTeams,
+      setActiveSessions,
+      setDecisionRule,
+      setRepeatCount,
+      setTimeElapsed,
+      setDecisionDeadline,
+      setTimeElapsedUnit,
+      setDecisionDeadlineUnit,
+      setDepartment,
+      setRole,
+      setDecisionMaker,
+      progress
+    }),
+    [
+      state,
+      setActiveTeams,
+      setActiveSessions,
+      setDecisionRule,
+      setRepeatCount,
+      setTimeElapsed,
+      setDecisionDeadline,
+      setTimeElapsedUnit,
+      setDecisionDeadlineUnit,
+      setDepartment,
+      setRole,
+      setDecisionMaker,
+      progress
+    ]
+  );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

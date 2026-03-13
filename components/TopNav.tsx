@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { BrandMark, CircleAvatar } from "./Brand";
-import { useAppState } from "./AppState";
+import { signOut } from "firebase/auth";
+import { auth } from "../lib/firebase";
+import { useAuth } from "./AuthContext";
 
 export function TopNav({
   links,
@@ -17,10 +19,14 @@ export function TopNav({
   rightName?: string;
   showBell?: boolean;
 }) {
-  const { isAuthed } = useAppState();
+  const { user } = useAuth();
+  const isAuthed = Boolean(user);
   void showBell;
   void rightName;
   void rightLabel;
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
   return (
     <header className="topbar">
       <div className="topbar-inner container">
@@ -44,9 +50,12 @@ export function TopNav({
           {isAuthed ? (
             <>
               <div style={{ fontSize: 12, color: "#1f2430", fontWeight: 600 }}>
-                김리더
+                {user?.displayName || "김리더"}
               </div>
               <CircleAvatar label="HJ" />
+              <button className="logout-link" type="button" onClick={handleLogout}>
+                로그아웃
+              </button>
             </>
           ) : (
             <div className="auth-links">

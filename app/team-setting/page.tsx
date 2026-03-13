@@ -6,14 +6,10 @@ export default function TeamSettingPage() {
     <main className="page settings-page">
       <TopNav
         links={[
-          { label: "대시보드", href: "/session" },
-          { label: "합의 세션", href: "/onboarding/diagnosis" },
-          { label: "리포트", href: "/gap-report" },
-          { label: "팀 설정", href: "/team-setting" }
+          { label: "대시보드", href: "/workspace" }
         ]}
         active="팀 설정"
         rightName="황주명"
-        showBell
       />
 
       <section className="container settings-layout">

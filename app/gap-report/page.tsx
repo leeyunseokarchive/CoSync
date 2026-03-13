@@ -5,10 +5,9 @@ import { useState } from "react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import { Autoplay, Pagination, Keyboard } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import "swiper/css/navigation";
 
 export default function GapReportPage() {
   const [showSubscribe, setShowSubscribe] = useState(false);
@@ -24,10 +23,7 @@ export default function GapReportPage() {
     <main className="page gap-page">
       <TopNav
         links={[
-          { label: "대시보드", href: "/session" },
-          { label: "합의 세션", href: "/onboarding/diagnosis" },
-          { label: "리포트", href: "/gap-report" },
-          { label: "팀 설정", href: "/team-setting" }
+          { label: "대시보드", href: "/workspace" }
         ]}
         active="리포트"
         rightName="황주명"
@@ -158,10 +154,10 @@ export default function GapReportPage() {
             </p>
             <div className="preview-slider">
               <Swiper
-                modules={[Autoplay, Pagination, Navigation]}
+                modules={[Autoplay, Pagination, Keyboard]}
                 autoplay={{ delay: 2400, disableOnInteraction: false }}
                 pagination={{ clickable: true }}
-                navigation
+                keyboard={{ enabled: true }}
                 loop
                 spaceBetween={16}
               >
