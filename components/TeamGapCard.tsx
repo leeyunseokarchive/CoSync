@@ -6,9 +6,11 @@ type Team = {
   id: string;
   gapCount?: number;
   gapScore?: "LOW" | "MID" | "HIGH";
+  progress?: number;
 };
 
 export function TeamGapCard({ team }: { team: Team }) {
+  if ((team.progress ?? 0) < 100) return null;
   const gapCount = team.gapCount ?? 0;
   const gapScore = team.gapScore ?? "LOW";
   const scoreLabel = gapScore === "HIGH" ? "HIGH" : gapScore === "MID" ? "MID" : "LOW";

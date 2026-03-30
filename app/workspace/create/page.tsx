@@ -24,13 +24,26 @@ export default function WorkspaceCreatePage() {
     progress,
     department,
     role,
-    decisionRule,
-    repeatCount,
-    timeElapsed,
-    timeElapsedUnit,
-    decisionDeadline,
-    decisionDeadlineUnit,
-    decisionMaker
+    decisionStructure,
+    decisionConfirmation,
+    deadlockRepeat,
+    deadlockDays,
+    extraWorkPrinciple,
+    extraWorkPriority,
+    motivationChoices,
+    workType,
+    boundaryTasks,
+    allocationRule,
+    burdenTasks,
+    conflictRepeat,
+    conflictWeeks,
+    agendaOwners,
+    customAgendaName,
+    customAgendaOwner,
+    exitRecoveryItems,
+    handoverMethod,
+    exitCleanupHours,
+    exitCleanupDays
   } = useAppState();
   const { profile } = useUserProfile();
   const [teamName, setTeamName] = useState("");
@@ -52,13 +65,26 @@ export default function WorkspaceCreatePage() {
       return;
     }
     const answers = {
-      repeatCount,
-      timeElapsed,
-      timeElapsedUnit,
-      decisionDeadline,
-      decisionDeadlineUnit,
-      decisionRule,
-      decisionMaker
+      decisionStructure,
+      decisionConfirmation,
+      deadlockRepeat,
+      deadlockDays,
+      extraWorkPrinciple,
+      extraWorkPriority,
+      motivationChoices,
+      workType,
+      boundaryTasks,
+      allocationRule,
+      burdenTasks,
+      conflictRepeat,
+      conflictWeeks,
+      agendaOwners,
+      customAgendaName,
+      customAgendaOwner,
+      exitRecoveryItems,
+      handoverMethod,
+      exitCleanupHours,
+      exitCleanupDays
     };
     const { gapCount, gapScore } = computeGapSummary([answers]);
     const teamProgress = computeTeamProgress([{ progress }]);

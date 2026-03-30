@@ -1,30 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { arrayRemove, deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
-import { TopNav } from "../../../components/TopNav";
-import { Footer } from "../../../components/Footer";
-import { useAuth } from "../../../components/AuthContext";
-import { useTeamMembers } from "../../../components/useTeamMembers";
-import { CircleAvatar } from "../../../components/Brand";
+import { db } from "../../lib/firebase";
+import { TopNav } from "../../components/TopNav";
+import { Footer } from "../../components/Footer";
+import { useAuth } from "../../components/AuthContext";
+import { useTeamMembers } from "../../components/useTeamMembers";
+import { CircleAvatar } from "../../components/Brand";
 
-type TeamInfo = {
-  id: string;
-  name: string;
-  inviteCode?: string;
-  industry?: string;
-  stage?: string;
-};
-
-export default function TeamSettingDetailPage() {
-  const params = useParams();
-  const teamId = params?.teamId as string | undefined;
+export function TeamSettingClient() {
+  const searchParams = useSearchParams();
+  const teamId = searchParams.get("teamId") || undefined;
   const router = useRouter();
   const { user, loading } = useAuth();
   const { members, loading: membersLoading } = useTeamMembers(teamId);
-  const [team, setTeam] = useState<TeamInfo | null>(null);
+  const [team, setTeam] = useState<{ id: string; name?: string; inviteCode?: string; industry?: string; stage?: string } | null>(null);
   const [teamLoading, setTeamLoading] = useState(true);
   const [teamName, setTeamName] = useState("");
   const [industry, setIndustry] = useState("");
@@ -47,14 +39,19 @@ export default function TeamSettingDetailPage() {
 
   useEffect(() => {
     const fetchTeam = async () => {
-      if (!teamId) return;
+      if (!teamId) {
+        setTeam(null);
+        setTeamLoading(false);
+        return;
+      }
       const teamSnap = await getDoc(doc(db, "teams", teamId));
       if (teamSnap.exists()) {
-        const data = teamSnap.data() as Omit<TeamInfo, "id"> & {
-          settings?: {
-            permissions?: { requireAllAgree?: boolean; allowMemberInvite?: boolean };
-          };
-          status?: string;
+        const data = teamSnap.data() as {
+          name?: string;
+          inviteCode?: string;
+          industry?: string;
+          stage?: string;
+          settings?: { permissions?: { requireAllAgree?: boolean; allowMemberInvite?: boolean } };
         };
         setTeam({ id: teamSnap.id, ...data });
         setTeamName(data.name || "");
@@ -174,45 +171,45 @@ export default function TeamSettingDetailPage() {
           </div>
 
           {activeSection === "팀 정보" && (
-          <div className="card settings-card">
-            <div className="form-grid">
-              <label className="label">팀 이름</label>
-              <input
-                className="input"
-                placeholder="팀 이름"
-                value={teamName}
-                onChange={(event) => setTeamName(event.target.value)}
-              />
+            <div className="card settings-card">
+              <div className="form-grid">
+                <label className="label">팀 이름</label>
+                <input
+                  className="input"
+                  placeholder="팀 이름"
+                  value={teamName}
+                  onChange={(event) => setTeamName(event.target.value)}
+                />
 
-              <label className="label">비즈니스 분야</label>
-              <div className="select-row">
-                <select className="input select" value={industry} onChange={(event) => setIndustry(event.target.value)}>
-                  <option value="">선택해주세요</option>
-                  <option>SaaS</option>
-                  <option>핀테크</option>
-                  <option>커머스</option>
-                  <option>콘텐츠</option>
-                  <option>바이오/헬스</option>
-                </select>
+                <label className="label">비즈니스 분야</label>
+                <div className="select-row">
+                  <select className="input select" value={industry} onChange={(event) => setIndustry(event.target.value)}>
+                    <option value="">선택해주세요</option>
+                    <option>SaaS</option>
+                    <option>핀테크</option>
+                    <option>커머스</option>
+                    <option>콘텐츠</option>
+                    <option>바이오/헬스</option>
+                  </select>
+                </div>
+
+                <label className="label">팀 단계</label>
+                <div className="select-row">
+                  <select className="input select" value={stage} onChange={(event) => setStage(event.target.value)}>
+                    <option value="">선택해주세요</option>
+                    <option>아이디어 단계</option>
+                    <option>MVP 단계</option>
+                    <option>PMF 단계</option>
+                    <option>스케일업 단계</option>
+                  </select>
+                </div>
               </div>
-
-              <label className="label">팀 단계</label>
-              <div className="select-row">
-                <select className="input select" value={stage} onChange={(event) => setStage(event.target.value)}>
-                  <option value="">선택해주세요</option>
-                  <option>아이디어 단계</option>
-                  <option>MVP 단계</option>
-                  <option>PMF 단계</option>
-                  <option>스케일업 단계</option>
-                </select>
+              <div style={{ marginTop: 14 }}>
+                <button className="btn btn-primary" type="button" onClick={handleSaveTeam} disabled={saving}>
+                  팀 정보 저장
+                </button>
               </div>
             </div>
-            <div style={{ marginTop: 14 }}>
-              <button className="btn btn-primary" type="button" onClick={handleSaveTeam} disabled={saving}>
-                팀 정보 저장
-              </button>
-            </div>
-          </div>
           )}
 
           {activeSection === "팀 정보" && (
@@ -269,74 +266,70 @@ export default function TeamSettingDetailPage() {
           )}
 
           {activeSection === "멤버 관리" && (
-          <div className="card settings-card">
-            <div className="card-row">
-              <h2>멤버 관리</h2>
-              <div className="member-search">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm9 2-4.2-4.2"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+            <div className="card settings-card">
+              <div className="card-row">
+                <h2>멤버 관리</h2>
+                <div className="member-search">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm9 2-4.2-4.2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <input
+                    placeholder="멤버 이름 또는 이메일 검색..."
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
                   />
-                </svg>
-                <input
-                  placeholder="멤버 이름 또는 이메일 검색..."
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
+                </div>
               </div>
-            </div>
-            <div className="member-tabs">
-              {roleTabs.map((tab) => (
-                <button
-                  key={tab}
-                  className={`tab ${tab === roleFilter ? "active" : ""}`}
-                  onClick={() => setRoleFilter(tab)}
-                  type="button"
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            <div className="member-table">
-              <div className="member-row head">
-                <span>이름 / 포지션</span>
-                <span>이메일 주소</span>
-                <span>권한</span>
-                <span>상태</span>
-                <span>진행률</span>
-              </div>
-              {(membersLoading || teamLoading) && (
-                <div className="member-row">멤버 불러오는 중...</div>
-              )}
-              {!membersLoading &&
-                filteredMembers.map((member) => (
-                  <div className="member-row" key={member.id}>
-                    <div className="member-cell">
-                      <CircleAvatar label={member.name?.[0] ?? "?"} size={28} />
-                      <div>
-                        <div className="member-name">{member.name}</div>
-                        <div className="member-role">{member.role}</div>
-                      </div>
-                    </div>
-                    <span>-</span>
-                    <span className="pill">{member.role}</span>
-                    <span className={`status ${formatStatus(member.status).className}`}>
-                      {formatStatus(member.status).label}
-                    </span>
-                    <span>{member.progress ?? 0}%</span>
-                  </div>
+              <div className="member-tabs">
+                {roleTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    className={`tab ${tab === roleFilter ? "active" : ""}`}
+                    onClick={() => setRoleFilter(tab)}
+                    type="button"
+                  >
+                    {tab}
+                  </button>
                 ))}
-            </div>
-          </div>
-          )}
+              </div>
 
-          
+              <div className="member-table">
+                <div className="member-row head">
+                  <span>이름 / 포지션</span>
+                  <span>이메일 주소</span>
+                  <span>권한</span>
+                  <span>상태</span>
+                  <span>진행률</span>
+                </div>
+                {(membersLoading || teamLoading) && <div className="member-row">멤버 불러오는 중...</div>}
+                {!membersLoading &&
+                  filteredMembers.map((member) => (
+                    <div className="member-row" key={member.id}>
+                      <div className="member-cell">
+                        <CircleAvatar label={member.name?.[0] ?? "?"} size={28} />
+                        <div>
+                          <div className="member-name">{member.name}</div>
+                          <div className="member-role">{member.role}</div>
+                        </div>
+                      </div>
+                      <span>-</span>
+                      <span className="pill">{member.role}</span>
+                      <span className={`status ${formatStatus(member.status).className}`}>
+                        {formatStatus(member.status).label}
+                      </span>
+                      <span>{member.progress ?? 0}%</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {activeSection === "고급 설정" && (
             <>

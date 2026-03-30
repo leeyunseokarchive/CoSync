@@ -2,47 +2,100 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+type AgendaOwner = {
+  lead: string;
+  approver: string;
+};
+
 type AppState = {
   activeTeams: number;
   activeSessions: number;
-  decisionRule: string;
-  repeatCount: string;
-  timeElapsed: string;
-  timeElapsedUnit: string;
-  decisionDeadline: string;
-  decisionDeadlineUnit: string;
+  decisionStructure: string;
+  decisionConfirmation: string;
+  deadlockRepeat: string;
+  deadlockDays: string;
+  extraWorkPrinciple: string;
+  extraWorkPriority: string;
+  motivationChoices: string[];
+  workType: string;
+  boundaryTasks: string[];
+  allocationRule: string;
+  burdenTasks: string[];
+  conflictRepeat: string;
+  conflictWeeks: string;
+  agendaOwners: Record<string, AgendaOwner>;
+  customAgendaName: string;
+  customAgendaOwner: AgendaOwner;
+  exitRecoveryItems: string[];
+  handoverMethod: string;
+  exitCleanupHours: string;
+  exitCleanupDays: string;
   department: string;
   role: string;
-  decisionMaker: string;
 };
 
 type AppStateContextValue = AppState & {
   setActiveTeams: (value: number) => void;
   setActiveSessions: (value: number) => void;
-  setDecisionRule: (value: string) => void;
-  setRepeatCount: (value: string) => void;
-  setTimeElapsed: (value: string) => void;
-  setDecisionDeadline: (value: string) => void;
-  setTimeElapsedUnit: (value: string) => void;
-  setDecisionDeadlineUnit: (value: string) => void;
+  setDecisionStructure: (value: string) => void;
+  setDecisionConfirmation: (value: string) => void;
+  setDeadlockRepeat: (value: string) => void;
+  setDeadlockDays: (value: string) => void;
+  setExtraWorkPrinciple: (value: string) => void;
+  setExtraWorkPriority: (value: string) => void;
+  setMotivationChoices: (value: string[]) => void;
+  setWorkType: (value: string) => void;
+  setBoundaryTasks: (value: string[]) => void;
+  setAllocationRule: (value: string) => void;
+  setBurdenTasks: (value: string[]) => void;
+  setConflictRepeat: (value: string) => void;
+  setConflictWeeks: (value: string) => void;
+  setAgendaOwners: (value: Record<string, AgendaOwner>) => void;
+  setCustomAgendaName: (value: string) => void;
+  setCustomAgendaOwner: (value: AgendaOwner) => void;
+  setExitRecoveryItems: (value: string[]) => void;
+  setHandoverMethod: (value: string) => void;
+  setExitCleanupHours: (value: string) => void;
+  setExitCleanupDays: (value: string) => void;
   setDepartment: (value: string) => void;
   setRole: (value: string) => void;
-  setDecisionMaker: (value: string) => void;
   progress: number;
+};
+
+const defaultAgendaOwners: Record<string, AgendaOwner> = {
+  제품: { lead: "대표", approver: "대표" },
+  개발: { lead: "공동창업자 A(개발)", approver: "대표" },
+  디자인: { lead: "공동창업자 B(디자인)", approver: "대표" },
+  일정: { lead: "대표", approver: "대표" },
+  "외부 커밋": { lead: "대표", approver: "대표" },
+  예산: { lead: "대표", approver: "대표" }
 };
 
 const defaultState: AppState = {
   activeTeams: 0,
   activeSessions: 0,
-  decisionRule: "",
-  repeatCount: "",
-  timeElapsed: "",
-  timeElapsedUnit: "시간",
-  decisionDeadline: "",
-  decisionDeadlineUnit: "시간",
+  decisionStructure: "",
+  decisionConfirmation: "",
+  deadlockRepeat: "",
+  deadlockDays: "",
+  extraWorkPrinciple: "",
+  extraWorkPriority: "",
+  motivationChoices: [],
+  workType: "",
+  boundaryTasks: [],
+  allocationRule: "",
+  burdenTasks: [],
+  conflictRepeat: "",
+  conflictWeeks: "",
+  agendaOwners: defaultAgendaOwners,
+  customAgendaName: "",
+  customAgendaOwner: { lead: "대표", approver: "대표" },
+  exitRecoveryItems: [],
+  handoverMethod: "",
+  exitCleanupHours: "",
+  exitCleanupDays: "",
   department: "",
-  role: "",
-  decisionMaker: ""
+  role: ""
 };
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
@@ -55,7 +108,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as AppState;
-        setState({ ...defaultState, ...parsed, isAuthed: false });
+        setState({ ...defaultState, ...parsed });
       } catch {
         setState(defaultState);
       }
@@ -67,16 +120,28 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   const progress = useMemo(() => {
-    const textFields = [state.decisionRule, state.department, state.role, state.decisionMaker];
-    const numericFields = [
-      Number(state.repeatCount),
-      Number(state.timeElapsed),
-      Number(state.decisionDeadline)
+    const boolFields = [
+      state.decisionStructure,
+      state.decisionConfirmation,
+      state.extraWorkPrinciple,
+      state.extraWorkPriority,
+      state.handoverMethod,
+      state.department,
+      state.role
     ];
-    const answeredText = textFields.filter((value) => value.trim().length > 0).length;
+    const numericFields = [
+      Number(state.deadlockRepeat),
+      Number(state.deadlockDays),
+      Number(state.exitCleanupHours),
+      Number(state.exitCleanupDays)
+    ];
+    const listFields = [state.motivationChoices, state.exitRecoveryItems];
+
+    const answeredText = boolFields.filter((value) => value.trim().length > 0).length;
     const answeredNumeric = numericFields.filter((value) => Number.isFinite(value) && value > 0).length;
-    const total = textFields.length + numericFields.length;
-    const answered = answeredText + answeredNumeric;
+    const answeredList = listFields.filter((value) => value.length > 0).length;
+    const total = boolFields.length + numericFields.length + listFields.length;
+    const answered = answeredText + answeredNumeric + answeredList;
     return Math.min(100, Math.round((answered / total) * 100));
   }, [state]);
 
@@ -88,28 +153,84 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     (value: number) => setState((prev) => ({ ...prev, activeSessions: value })),
     []
   );
-  const setDecisionRule = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, decisionRule: value })),
+  const setDecisionStructure = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionStructure: value })),
     []
   );
-  const setRepeatCount = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, repeatCount: value })),
+  const setDecisionConfirmation = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, decisionConfirmation: value })),
     []
   );
-  const setTimeElapsed = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, timeElapsed: value })),
+  const setDeadlockRepeat = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, deadlockRepeat: value })),
     []
   );
-  const setDecisionDeadline = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, decisionDeadline: value })),
+  const setDeadlockDays = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, deadlockDays: value })),
     []
   );
-  const setTimeElapsedUnit = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, timeElapsedUnit: value })),
+  const setExtraWorkPrinciple = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, extraWorkPrinciple: value })),
     []
   );
-  const setDecisionDeadlineUnit = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, decisionDeadlineUnit: value })),
+  const setExtraWorkPriority = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, extraWorkPriority: value })),
+    []
+  );
+  const setMotivationChoices = useCallback(
+    (value: string[]) => setState((prev) => ({ ...prev, motivationChoices: value })),
+    []
+  );
+  const setWorkType = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, workType: value })),
+    []
+  );
+  const setBoundaryTasks = useCallback(
+    (value: string[]) => setState((prev) => ({ ...prev, boundaryTasks: value })),
+    []
+  );
+  const setAllocationRule = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, allocationRule: value })),
+    []
+  );
+  const setBurdenTasks = useCallback(
+    (value: string[]) => setState((prev) => ({ ...prev, burdenTasks: value })),
+    []
+  );
+  const setConflictRepeat = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, conflictRepeat: value })),
+    []
+  );
+  const setConflictWeeks = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, conflictWeeks: value })),
+    []
+  );
+  const setAgendaOwners = useCallback(
+    (value: Record<string, AgendaOwner>) => setState((prev) => ({ ...prev, agendaOwners: value })),
+    []
+  );
+  const setCustomAgendaName = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, customAgendaName: value })),
+    []
+  );
+  const setCustomAgendaOwner = useCallback(
+    (value: AgendaOwner) => setState((prev) => ({ ...prev, customAgendaOwner: value })),
+    []
+  );
+  const setExitRecoveryItems = useCallback(
+    (value: string[]) => setState((prev) => ({ ...prev, exitRecoveryItems: value })),
+    []
+  );
+  const setHandoverMethod = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, handoverMethod: value })),
+    []
+  );
+  const setExitCleanupHours = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, exitCleanupHours: value })),
+    []
+  );
+  const setExitCleanupDays = useCallback(
+    (value: string) => setState((prev) => ({ ...prev, exitCleanupDays: value })),
     []
   );
   const setDepartment = useCallback(
@@ -120,40 +241,62 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     (value: string) => setState((prev) => ({ ...prev, role: value })),
     []
   );
-  const setDecisionMaker = useCallback(
-    (value: string) => setState((prev) => ({ ...prev, decisionMaker: value })),
-    []
-  );
 
   const value: AppStateContextValue = useMemo(
     () => ({
       ...state,
       setActiveTeams,
       setActiveSessions,
-      setDecisionRule,
-      setRepeatCount,
-      setTimeElapsed,
-      setDecisionDeadline,
-      setTimeElapsedUnit,
-      setDecisionDeadlineUnit,
+      setDecisionStructure,
+      setDecisionConfirmation,
+      setDeadlockRepeat,
+      setDeadlockDays,
+      setExtraWorkPrinciple,
+      setExtraWorkPriority,
+      setMotivationChoices,
+      setWorkType,
+      setBoundaryTasks,
+      setAllocationRule,
+      setBurdenTasks,
+      setConflictRepeat,
+      setConflictWeeks,
+      setAgendaOwners,
+      setCustomAgendaName,
+      setCustomAgendaOwner,
+      setExitRecoveryItems,
+      setHandoverMethod,
+      setExitCleanupHours,
+      setExitCleanupDays,
       setDepartment,
       setRole,
-      setDecisionMaker,
       progress
     }),
     [
       state,
       setActiveTeams,
       setActiveSessions,
-      setDecisionRule,
-      setRepeatCount,
-      setTimeElapsed,
-      setDecisionDeadline,
-      setTimeElapsedUnit,
-      setDecisionDeadlineUnit,
+      setDecisionStructure,
+      setDecisionConfirmation,
+      setDeadlockRepeat,
+      setDeadlockDays,
+      setExtraWorkPrinciple,
+      setExtraWorkPriority,
+      setMotivationChoices,
+      setWorkType,
+      setBoundaryTasks,
+      setAllocationRule,
+      setBurdenTasks,
+      setConflictRepeat,
+      setConflictWeeks,
+      setAgendaOwners,
+      setCustomAgendaName,
+      setCustomAgendaOwner,
+      setExitRecoveryItems,
+      setHandoverMethod,
+      setExitCleanupHours,
+      setExitCleanupDays,
       setDepartment,
       setRole,
-      setDecisionMaker,
       progress
     ]
   );

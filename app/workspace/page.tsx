@@ -24,13 +24,26 @@ export default function WorkspaceHubPage() {
     department,
     role,
     progress,
-    decisionRule,
-    repeatCount,
-    timeElapsed,
-    timeElapsedUnit,
-    decisionDeadline,
-    decisionDeadlineUnit,
-    decisionMaker
+    decisionStructure,
+    decisionConfirmation,
+    deadlockRepeat,
+    deadlockDays,
+    extraWorkPrinciple,
+    extraWorkPriority,
+    motivationChoices,
+    workType,
+    boundaryTasks,
+    allocationRule,
+    burdenTasks,
+    conflictRepeat,
+    conflictWeeks,
+    agendaOwners,
+    customAgendaName,
+    customAgendaOwner,
+    exitRecoveryItems,
+    handoverMethod,
+    exitCleanupHours,
+    exitCleanupDays
   } = useAppState();
   const { user, loading } = useAuth();
   const { teams, loading: teamsLoading, error: teamsError } = useTeams();
@@ -39,7 +52,7 @@ export default function WorkspaceHubPage() {
   }
   const router = useRouter();
   const [teamCode, setTeamCode] = useState("");
-  const [joinHint, setJoinHint] = useState("팀원에게 팀 코드를 받아 입력해주세요.");
+  const [joinHint, setJoinHint] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
   const [foundTeam, setFoundTeam] = useState<{
     id: string;
@@ -120,13 +133,26 @@ export default function WorkspaceHubPage() {
       lastActiveTeamId: foundTeam.id
     });
     const answers = {
-      repeatCount,
-      timeElapsed,
-      timeElapsedUnit,
-      decisionDeadline,
-      decisionDeadlineUnit,
-      decisionRule,
-      decisionMaker
+      decisionStructure,
+      decisionConfirmation,
+      deadlockRepeat,
+      deadlockDays,
+      extraWorkPrinciple,
+      extraWorkPriority,
+      motivationChoices,
+      workType,
+      boundaryTasks,
+      allocationRule,
+      burdenTasks,
+      conflictRepeat,
+      conflictWeeks,
+      agendaOwners,
+      customAgendaName,
+      customAgendaOwner,
+      exitRecoveryItems,
+      handoverMethod,
+      exitCleanupHours,
+      exitCleanupDays
     };
     await setDoc(
       doc(db, "teams", foundTeam.id, "members", user.uid),
@@ -172,14 +198,14 @@ export default function WorkspaceHubPage() {
           </Link>
           <div className="card workspace-card compact">
             <h3>팀 코드로 참가하기</h3>
-            <p>전달받은 초대 코드를 입력하세요</p>
+            <p>팀원에게 전달받은 초대코드를 입력하세요</p>
             <input
               className="code-input"
               value={teamCode}
               onChange={(event) => setTeamCode(event.target.value)}
               placeholder="예: HJM-LYS-JJH"
             />
-            <div className="hint">{joinHint}</div>
+            {joinHint && <div className="hint">{joinHint}</div>}
             <button className="btn btn-primary" type="button" onClick={handleJoinSearch}>
               참가하기
             </button>
@@ -192,23 +218,18 @@ export default function WorkspaceHubPage() {
             전체보기
           </Link>
         </div>
-        <div className="dashboard-row">
-          <div className="session-list">
-            {teamsLoading && <div className="card session-card compact">로딩 중...</div>}
-            {!teamsLoading && teams.length === 0 && (
-              <div className="card session-card compact">아직 속한 팀이 없습니다.</div>
-            )}
-            {!teamsLoading &&
-              teams.map((team) => (
-                <TeamSessionCard key={team.id} team={team} canViewReport={(team.progress ?? 0) >= 100} />
-              ))}
-          </div>
-          <div className="gap-list">
-            {!teamsLoading &&
-              teams.map((team) => (
-                <TeamGapSlot key={`${team.id}-gap`} team={team} />
-              ))}
-          </div>
+        <div className="team-list">
+          {teamsLoading && <div className="card session-card compact">로딩 중...</div>}
+          {!teamsLoading && teams.length === 0 && (
+            <div className="card session-card compact">아직 속한 팀이 없습니다.</div>
+          )}
+          {!teamsLoading &&
+            teams.map((team) => (
+              <div className="team-row" key={team.id}>
+                <TeamSessionCard team={team} canViewReport={(team.progress ?? 0) >= 100} />
+                {(team.progress ?? 0) >= 100 && <TeamGapSlot team={team} />}
+              </div>
+            ))}
         </div>
       </section>
 

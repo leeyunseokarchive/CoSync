@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -106,63 +106,157 @@ export default function GapReportPage() {
     }>;
     const left = selectedPair.a.answers ?? {};
     const right = selectedPair.b.answers ?? {};
+
+    const formatDeadlock = (answers: typeof left) => {
+      if (answers.deadlockRepeat || answers.deadlockDays) {
+        return `동일 안건 ${answers.deadlockRepeat || 0}회 또는 ${answers.deadlockDays || 0}일 경과`;
+      }
+      return "미입력";
+    };
+    const formatConflict = (answers: typeof left) => {
+      if (answers.conflictRepeat || answers.conflictWeeks) {
+        return `동일 문제 ${answers.conflictRepeat || 0}회 또는 ${answers.conflictWeeks || 0}주`;
+      }
+      return "미입력";
+    };
+    const formatExitCleanup = (answers: typeof left) => {
+      if (answers.exitCleanupHours || answers.exitCleanupDays) {
+        return `이탈 확정 후 ${answers.exitCleanupHours || 0}시간 또는 ${answers.exitCleanupDays || 0}일 이내`;
+      }
+      return "미입력";
+    };
+    const joinList = (list?: string[]) => (list && list.length ? list.join(", ") : "미입력");
+
     return [
       {
+        id: "decision-structure",
+        label: "결정 구조",
+        conflict: (left.decisionStructure ?? "") !== (right.decisionStructure ?? ""),
+        leftValue: left.decisionStructure || "미입력",
+        rightValue: right.decisionStructure || "미입력",
+        insight: "의사결정 구조가 다르면 책임 배분과 실행 속도에서 마찰이 생길 수 있습니다."
+      },
+      {
+        id: "decision-confirm",
+        label: "확정 방식",
+        conflict: (left.decisionConfirmation ?? "") !== (right.decisionConfirmation ?? ""),
+        leftValue: left.decisionConfirmation || "미입력",
+        rightValue: right.decisionConfirmation || "미입력",
+        insight: "안건 확정 방식이 다르면 승인 루트가 달라져 충돌이 발생할 수 있습니다."
+      },
+      {
         id: "deadlock",
-        label: "교착 판단 기준",
+        label: "교착 기준",
+        conflict: formatDeadlock(left) !== formatDeadlock(right),
+        leftValue: formatDeadlock(left),
+        rightValue: formatDeadlock(right),
+        insight: "교착 기준이 다르면 합의 시점이 달라져 실행 우선순위가 어긋날 수 있습니다."
+      },
+      {
+        id: "work-principle",
+        label: "업무 처리 원칙",
+        conflict: (left.extraWorkPrinciple ?? "") !== (right.extraWorkPrinciple ?? ""),
+        leftValue: left.extraWorkPrinciple || "미입력",
+        rightValue: right.extraWorkPrinciple || "미입력",
+        insight: "추가 업무 처리 원칙이 다르면 역할 기대치가 흔들릴 수 있습니다."
+      },
+      {
+        id: "work-priority",
+        label: "업무 우선 기준",
         conflict:
-          `${left.repeatCount ?? ""}|${left.timeElapsed ?? ""}|${left.timeElapsedUnit ?? ""}` !==
-          `${right.repeatCount ?? ""}|${right.timeElapsed ?? ""}|${right.timeElapsedUnit ?? ""}`,
-        leftValue:
-          left.repeatCount || left.timeElapsed
-            ? `동일 의견 ${left.repeatCount || 0}회 또는 ${left.timeElapsed || 0}${left.timeElapsedUnit || "시간"}`
-            : "미입력",
-        rightValue:
-          right.repeatCount || right.timeElapsed
-            ? `동일 의견 ${right.repeatCount || 0}회 또는 ${right.timeElapsed || 0}${right.timeElapsedUnit || "시간"}`
-            : "미입력",
-        insight:
-          "교착 판단 기준이 다르면 합의 시점이 달라져 실행 우선순위가 어긋날 수 있습니다."
+          `${left.extraWorkPriority ?? ""}|${left.allocationRule ?? ""}|${left.workType ?? ""}` !==
+          `${right.extraWorkPriority ?? ""}|${right.allocationRule ?? ""}|${right.workType ?? ""}`,
+        leftValue: [left.extraWorkPriority, left.allocationRule, left.workType].filter(Boolean).join(" / ") || "미입력",
+        rightValue: [right.extraWorkPriority, right.allocationRule, right.workType].filter(Boolean).join(" / ") || "미입력",
+        insight: "업무 분배 기준이 다르면 공정성 인식과 책임 범위에서 갈등이 생길 수 있습니다."
       },
       {
-        id: "deadline",
-        label: "결정 기한",
+        id: "role-boundary",
+        label: "역할 경계/부담",
         conflict:
-          `${left.decisionDeadline ?? ""}|${left.decisionDeadlineUnit ?? ""}` !==
-          `${right.decisionDeadline ?? ""}|${right.decisionDeadlineUnit ?? ""}`,
-        leftValue: left.decisionDeadline
-          ? `판단 후 ${left.decisionDeadline}${left.decisionDeadlineUnit || "시간"} 이내`
-          : "미입력",
-        rightValue: right.decisionDeadline
-          ? `판단 후 ${right.decisionDeadline}${right.decisionDeadlineUnit || "시간"} 이내`
-          : "미입력",
-        insight:
-          "결정 기한이 다르면 리스크 감수 수준과 실행 속도에서 충돌이 발생합니다."
+          `${joinList(left.boundaryTasks)}|${joinList(left.burdenTasks)}|${joinList(left.motivationChoices)}|${formatConflict(left)}` !==
+          `${joinList(right.boundaryTasks)}|${joinList(right.burdenTasks)}|${joinList(right.motivationChoices)}|${formatConflict(right)}`,
+        leftValue: `${joinList(left.boundaryTasks)} / ${joinList(left.burdenTasks)} / ${formatConflict(left)}`,
+        rightValue: `${joinList(right.boundaryTasks)} / ${joinList(right.burdenTasks)} / ${formatConflict(right)}`,
+        insight: "역할 경계 인식이 다르면 반복 업무에서 부담이 편중될 수 있습니다."
       },
       {
-        id: "rule",
-        label: "의사결정 규칙",
-        conflict: (left.decisionRule ?? "") !== (right.decisionRule ?? ""),
-        leftValue: left.decisionRule || "미입력",
-        rightValue: right.decisionRule || "미입력",
-        insight:
-          "의사결정 규칙이 다르면 책임 범위와 권한 설정에서 갈등 가능성이 높습니다."
+        id: "exit-recover",
+        label: "회수·정리 항목",
+        conflict: joinList(left.exitRecoveryItems) !== joinList(right.exitRecoveryItems),
+        leftValue: joinList(left.exitRecoveryItems),
+        rightValue: joinList(right.exitRecoveryItems),
+        insight: "이탈 시 회수 항목이 다르면 권한 공백이나 자산 유실 위험이 생깁니다."
       },
       {
-        id: "maker",
-        label: "결정권자",
-        conflict: (left.decisionMaker ?? "") !== (right.decisionMaker ?? ""),
-        leftValue: left.decisionMaker || "미입력",
-        rightValue: right.decisionMaker || "미입력",
-        insight:
-          "결정권자에 대한 인식 차이는 실행 지연과 책임 회피로 이어질 수 있습니다."
+        id: "handover",
+        label: "인수인계 방식",
+        conflict: (left.handoverMethod ?? "") !== (right.handoverMethod ?? ""),
+        leftValue: left.handoverMethod || "미입력",
+        rightValue: right.handoverMethod || "미입력",
+        insight: "인수인계 방식이 다르면 업무 공백 기간이 길어질 수 있습니다."
+      },
+      {
+        id: "cleanup",
+        label: "권한 정리 기한",
+        conflict: formatExitCleanup(left) !== formatExitCleanup(right),
+        leftValue: formatExitCleanup(left),
+        rightValue: formatExitCleanup(right),
+        insight: "정리 기한이 다르면 리스크 대응 속도와 책임 범위에서 충돌이 발생합니다."
       }
     ];
   }, [selectedPair]);
 
-  const diffLabels = useMemo(() => {
-    return issues.filter((issue) => issue.conflict).map((issue) => issue.label);
+  const diffIssues = useMemo(() => {
+    return issues.filter((issue) => issue.conflict);
   }, [issues]);
+
+  const teamInsight = useMemo(() => {
+    if (!members.length) {
+      return {
+        gapCount: 0,
+        gapScore: "LOW" as const,
+        text: "아직 팀 데이터가 충분하지 않습니다. 온보딩 진단을 완료하면 팀 인사이트가 생성됩니다."
+      };
+    }
+    const memberAnswers = members.map((member) => member.answers ?? {});
+    const { gapCount, gapScore } = computeGapSummary(memberAnswers);
+    const counts = {
+      decision: issues.slice(0, 3).filter((issue) => issue.conflict).length,
+      role: issues.slice(3, 6).filter((issue) => issue.conflict).length,
+      exit: issues.slice(6, 9).filter((issue) => issue.conflict).length
+    };
+    const sorted = [
+      { key: "decision", label: "의사결정/권한", count: counts.decision },
+      { key: "role", label: "역할/책임", count: counts.role },
+      { key: "exit", label: "이탈/권한정리", count: counts.exit }
+    ].sort((a, b) => b.count - a.count);
+    const top = sorted[0];
+    const second = sorted[1];
+
+    const leadSentence = (() => {
+      if (gapScore === "HIGH") return "합의 기준에서 차이가 크게 확인됩니다.";
+      if (gapScore === "MID") return "전반적인 기준은 맞아가고 있으나 일부 영역에서 차이가 보입니다.";
+      return "합의 기준이 전반적으로 잘 맞습니다.";
+    })();
+
+    const detailSentence = (() => {
+      if (gapScore === "LOW") return "현재 흐름을 유지하며 필요한 부분만 보완하는 것이 적절합니다.";
+      if (top.count === 0) return "추가 논의가 필요한 영역을 빠르게 정리하면 실행 안정성이 높아집니다.";
+      if (second.count > 0 && top.count === second.count) {
+        return `${top.label}과 ${second.label}에서 유사한 수준의 조율 필요성이 확인됩니다.`;
+      }
+      return `${top.label}에서 조율 필요성이 가장 크게 나타납니다.`;
+    })();
+
+    return { gapCount, gapScore, text: `${leadSentence} ${detailSentence}` };
+  }, [members, issues]);
+
+  const alignmentScore = useMemo(() => {
+    if (teamInsight.gapScore === "HIGH") return 42;
+    if (teamInsight.gapScore === "MID") return 64;
+    return 86;
+  }, [teamInsight.gapScore]);
 
   const slides = [
     { title: "합의 세션", src: "/preview/agreement-confirm.png" },
@@ -178,10 +272,15 @@ export default function GapReportPage() {
       <TopNav links={[{ label: "대시보드", href: "/workspace" }]} active="리포트" />
 
       <section className="container gap-wrap">
-        <div className="gap-header">
+        <div className="gap-hero">
           <div>
-            <h1 className="section-title">{teamName} 격차 리포트</h1>
-            <p className="section-sub">팀 생성자와 팀원 간 1:1 격차 리포트</p>
+            <div className="gap-breadcrumb">분석 결과 · 인식 격차 리포트</div>
+            <h1 className="section-title">격차 리포트</h1>
+            {selectedPair && (
+              <div className="gap-pair-label">
+                비교 대상: {selectedPair.a.name} · {selectedPair.b.name}
+              </div>
+            )}
           </div>
           {isCreator && selectedPairId && (
             <button className="btn btn-ghost small" onClick={() => setSelectedPairId(null)} type="button">
@@ -189,7 +288,6 @@ export default function GapReportPage() {
             </button>
           )}
         </div>
-
         {isCreator && !selectedPair && (
           <div className="gap-pair-grid">
             {membersLoading && <div className="card gap-summary">요약 카드 준비 중...</div>}
@@ -228,83 +326,71 @@ export default function GapReportPage() {
 
         {selectedPair && (
           <>
-            <div className="card gap-summary">
-              <div>
-                <div className="summary-title">비교 대상</div>
-                <div className="summary-value">
-                  {selectedPair.a.name} · {selectedPair.b.name}
+            <div className="card gap-status">
+              <div className="status-grid">
+                <div className="status-col">
+                  <span className="status-label">공식 합의</span>
+                  <div className="status-value">미확정</div>
+                </div>
+                <div className="status-col">
+                  <span className="status-label">버전 기록</span>
+                  <div className="status-value">없음</div>
+                </div>
+                <div className="status-col">
+                  <span className="status-label">합의 조항</span>
+                  <div className="status-value muted">생성되지 않음</div>
                 </div>
               </div>
-              <div>
-                <div className="summary-title">결정 기준</div>
-                <div className="summary-value">
-                  {selectedPair.a.answers?.decisionRule || "미입력"} / {selectedPair.b.answers?.decisionRule || "미입력"}
-                </div>
-              </div>
-              <div>
-                <div className="summary-title">이해차이 항목</div>
-                <div className="summary-value">{diffLabels.length}개</div>
-              </div>
-              <div className="summary-note">
-                {diffLabels.length > 0
-                  ? `핵심 이슈: ${diffLabels.join(", ")}`
-                  : "현재 큰 격차가 발견되지 않았습니다."}
+              <div className="status-note">
+                <span className="pulse-dot" />
+                <span>현재 팀 기준은 문서로 고정되지 않았습니다. 아래의 격차를 먼저 확인하세요.</span>
               </div>
             </div>
 
-            <div className="card gap-insight detail">
-              <div className="insight-left">
-                <div className="donut">
-                  <span>{selectedPair.gapScore}</span>
+            <h2>팀 인사이트 요약</h2>
+            <div className="card gap-insight-summary">
+              <div className="insight-gauge">
+                <div className="gauge-shell">
+                  <div className="gauge-fill" style={{ "--fill": `${alignmentScore}` } as CSSProperties} />
+                  <div className="gauge-core">
+                    <div className="gauge-value">{alignmentScore}%</div>
+                    <div className="gauge-label">Alignment Score</div>
+                  </div>
                 </div>
-                <div className="pill">GAP SCORE</div>
+                <div className={`score-pill ${teamInsight.gapScore.toLowerCase()}`}>
+                  {teamInsight.gapScore === "HIGH" && "주의 단계: 조율 필요"}
+                  {teamInsight.gapScore === "MID" && "점검 단계: 조율 필요"}
+                  {teamInsight.gapScore === "LOW" && "안정 단계: 양호"}
+                </div>
               </div>
-              <div className="insight-body">
-                <p>
-                  {diffLabels.length > 0
-                    ? `현재 ${diffLabels.join(", ")}에서 관점 차이가 확인됩니다. 합의 세션 전, 서로의 기준을 정렬하세요.`
-                    : "현재 큰 격차가 발견되지 않았습니다. 합의 내용을 문서화해 팀 기준을 고정하세요."}
-                </p>
-                <div className="focus-grid">
-                {diffLabels.length === 0 && (
-                  <div className="focus-item">
-                    <span className="focus-id">01</span>
-                    <div>
-                      <div className="focus-title">합의 문서화</div>
-                      <div className="focus-sub">현재 합의된 기준을 문서로 확정</div>
-                    </div>
-                  </div>
-                )}
-                {diffLabels.map((label, idx) => (
-                  <div className="focus-item" key={label}>
-                    <span className="focus-id">{String(idx + 1).padStart(2, "0")}</span>
-                    <div>
-                      <div className="focus-title">{label}</div>
-                      <div className="focus-sub">팀 내 기준 차이를 좁히는 합의 필요</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="insight-copy">
+                <div className="insight-tag">AI ANALYSIS SUMMARY</div>
+                <p className="insight-text">{teamInsight.text}</p>
+                <div className="insight-tip">팁: 인식 차이가 큰 항목부터 우선적으로 논의하세요.</div>
               </div>
             </div>
 
             <div className="card gap-matrix">
               <div className="matrix-head">
-                <h3>영역별 상세 데이터 시각화</h3>
+                <h2>영역별 상세 데이터 시각화</h2>
                 <div className="legend">
                   <span className="dot green" /> Alignment
                   <span className="dot purple" /> Conflict
                 </div>
               </div>
+              <p className="matrix-note">
+                각 매트릭스 영역을 탭하여 해당 항목의 답변 비교를 확인할 수 있습니다.
+              </p>
               <div className="matrix-table">
                 <div className="matrix-spacer" />
                 <div className="matrix-x">
-                  <span>권한 분배</span>
-                  <span>결정 책임자</span>
+                  <span>결정 구조</span>
+                  <span>업무 분배</span>
+                  <span>권한 정리</span>
                 </div>
                 <div className="matrix-row">
-                  <div className="matrix-y">의사결정 속도</div>
-                  {issues.slice(0, 2).map((issue) => (
+                  <div className="matrix-y">의사결정/권한</div>
+                  {issues.slice(0, 3).map((issue) => (
                     <button
                       key={issue.id}
                       type="button"
@@ -314,8 +400,19 @@ export default function GapReportPage() {
                   ))}
                 </div>
                 <div className="matrix-row">
-                  <div className="matrix-y">교착 판단 방식</div>
-                  {issues.slice(2, 4).map((issue) => (
+                  <div className="matrix-y">역할/책임</div>
+                  {issues.slice(3, 6).map((issue) => (
+                    <button
+                      key={issue.id}
+                      type="button"
+                      className={`matrix-cell ${issue.conflict ? "mid" : "good"}`}
+                      onClick={() => issue.conflict && setSelectedIssue(issue.id)}
+                    />
+                  ))}
+                </div>
+                <div className="matrix-row">
+                  <div className="matrix-y">이탈/권한정리</div>
+                  {issues.slice(6, 9).map((issue) => (
                     <button
                       key={issue.id}
                       type="button"
@@ -327,13 +424,13 @@ export default function GapReportPage() {
               </div>
             </div>
 
-            <div className="card gap-cta">
-              <div>
-                <h3>합의 세션을 진행하고 계약서를 생성하세요.</h3>
-                <p>팀원의 편차를 줄이고 더욱 단단한 팀을 만듭니다.</p>
+            <div className="card gap-cta highlight">
+              <div className="cta-content">
+                <h3>진행하고 계약서를 생성하세요</h3>
+                <p>핵심 기준을 정렬하고 팀의 실행력을 강화할 수 있습니다.</p>
               </div>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary cta-btn"
                 type="button"
                 onClick={() => setShowSubscribe(true)}
               >
@@ -357,10 +454,10 @@ export default function GapReportPage() {
             >
               ✕
             </button>
-            <h3>프리미엄 플랜으로 팀을 완성하세요</h3>
+            <h3>프리미엄 플로우로 합의를 완성하세요</h3>
             <p>
-              AI 합의 세션, 히스토리 관리, 계약서 생성까지 이어지는 프리미엄
-              플랜으로 팀의 합의를 완성하세요.
+              계약서 생성, 버전 히스토리, 합의 확정까지 이어지는 프리미엄
+              워크플로우가 곧 제공됩니다.
             </p>
             <div className="preview-slider">
               <Swiper

@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { Footer } from "../components/Footer";
+import { useAuth } from "../components/AuthContext";
+import { useUserProfile } from "../components/useUserProfile";
 
 export default function OnboardingIntroPage() {
+  const { user } = useAuth();
+  const { profile } = useUserProfile();
+  const hasCompletedOnboarding = Boolean(user && profile?.department && profile?.role);
+
   return (
     <main className="page onboarding-page">
       <div className="onboarding-shell">
@@ -67,8 +75,11 @@ export default function OnboardingIntroPage() {
             </div>
           </div>
 
-          <Link className="btn btn-primary" href="/onboarding/diagnosis">
-            무료 진단 시작하기 →
+          <Link
+            className="btn btn-primary"
+            href={hasCompletedOnboarding ? "/gap-report" : "/onboarding/diagnosis"}
+          >
+            {hasCompletedOnboarding ? "내 결과 보러가기 →" : "무료 진단 시작하기 →"}
           </Link>
           <div className="hint">✓ 약 3분 소요</div>
         </section>

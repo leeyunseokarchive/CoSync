@@ -25,7 +25,7 @@ export function TeamSessionCard({ team, canViewReport }: { team: Team; canViewRe
   };
 
   const handleCardClick = () => {
-    router.push(`/team-setting/${team.id}`);
+    router.push(`/team-setting?teamId=${team.id}`);
   };
 
   return (
@@ -75,7 +75,7 @@ export function TeamSessionCard({ team, canViewReport }: { team: Team; canViewRe
         {isSolo ? (
           <Link
             className="btn btn-primary full"
-            href={`/team-setting/${team.id}`}
+            href={`/team-setting?teamId=${team.id}`}
             onClick={(event) => event.stopPropagation()}
           >
             팀원 초대하기

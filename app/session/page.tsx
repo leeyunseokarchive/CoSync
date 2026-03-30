@@ -22,23 +22,18 @@ export default function SessionHomePage() {
             <div className="section-sub">MY TEAMS</div>
             <h2>내가 속한 팀</h2>
           </div>
-          <div className="dashboard-row">
-            <div className="session-list">
-              {loading && <div className="card session-card compact">로딩 중...</div>}
-              {!loading && teams.length === 0 && (
-                <div className="card session-card compact">아직 속한 팀이 없습니다.</div>
-              )}
-              {!loading &&
-                teams.map((team) => (
-                  <TeamSessionCard key={team.id} team={team} canViewReport={(team.progress ?? 0) >= 100} />
-                ))}
-            </div>
-            <div className="gap-list">
-              {!loading &&
-                teams.map((team) => (
-                  <TeamGapSlot key={`${team.id}-gap`} team={team} />
-                ))}
-            </div>
+          <div className="team-list">
+            {loading && <div className="card session-card compact">로딩 중...</div>}
+            {!loading && teams.length === 0 && (
+              <div className="card session-card compact">아직 속한 팀이 없습니다.</div>
+            )}
+            {!loading &&
+              teams.map((team) => (
+                <div className="team-row" key={team.id}>
+                  <TeamSessionCard team={team} canViewReport={(team.progress ?? 0) >= 100} />
+                  {(team.progress ?? 0) >= 100 && <TeamGapSlot team={team} />}
+                </div>
+              ))}
           </div>
         </div>
       </section>

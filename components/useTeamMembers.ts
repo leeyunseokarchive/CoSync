@@ -11,13 +11,26 @@ type TeamMember = {
   status: string;
   progress: number;
   answers?: {
-    repeatCount?: number | string;
-    timeElapsed?: number | string;
-    timeElapsedUnit?: string;
-    decisionDeadline?: number | string;
-    decisionDeadlineUnit?: string;
-    decisionRule?: string;
-    decisionMaker?: string;
+    decisionStructure?: string;
+    decisionConfirmation?: string;
+    deadlockRepeat?: string;
+    deadlockDays?: string;
+    extraWorkPrinciple?: string;
+    extraWorkPriority?: string;
+    motivationChoices?: string[];
+    workType?: string;
+    boundaryTasks?: string[];
+    allocationRule?: string;
+    burdenTasks?: string[];
+    conflictRepeat?: string;
+    conflictWeeks?: string;
+    agendaOwners?: Record<string, { lead: string; approver: string }>;
+    customAgendaName?: string;
+    customAgendaOwner?: { lead: string; approver: string };
+    exitRecoveryItems?: string[];
+    handoverMethod?: string;
+    exitCleanupHours?: string;
+    exitCleanupDays?: string;
   };
 };
 
