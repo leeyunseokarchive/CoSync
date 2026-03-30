@@ -105,3 +105,115 @@ npm start
 - 실시간 협업 기능
 - 팀 성과 시각화
 - 사용자 인증 (Auth)
+
+# CoSync
+
+---
+
+## 1. 개발 환경 실행 (Development)
+
+### 1) 패키지 설치
+```
+npm install
+```
+
+### 2) 환경 변수 설정
+`.env.local` 파일 생성 후 Firebase 값 입력
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+```
+
+### 3) 개발 서버 실행
+```
+npm run dev
+```
+
+→ http://localhost:3000
+
+---
+
+## 2. 코드 수정 방법
+
+### 페이지 수정
+- 위치: `app/`
+
+### UI 수정
+- 위치: `components/`
+
+### 로직 수정
+- 위치: `lib/`
+- 주요 파일:
+  - `gap.ts` → 격차 분석 로직
+  - `firebase.ts` → Firebase 설정
+
+---
+
+## 3. 빌드
+
+```
+npm run build
+```
+
+---
+
+## 4. Firebase 배포
+
+### 1) Firebase CLI 설치
+```
+npm install -g firebase-tools
+```
+
+### 2) 로그인
+```
+firebase login
+```
+
+### 3) 프로젝트 초기화
+```
+firebase init
+```
+
+설정:
+```
+Hosting 선택
+public directory → out
+single-page app → No
+```
+
+---
+
+### 4) Next.js 정적 export 설정
+
+`next.config.mjs`
+
+```js
+const nextConfig = {
+  output: 'export'
+};
+
+export default nextConfig;
+```
+
+---
+
+### 5) 빌드
+```
+npm run build
+```
+
+---
+
+### 6) 배포
+```
+firebase deploy
+```
+
+---
+
+## 5. 주의사항
+
+- `.next`, `node_modules`는 Git에 포함 금지
+- Firebase 설정 없으면 실행 불가
