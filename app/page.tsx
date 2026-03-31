@@ -47,6 +47,37 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 1.5 Empathy Section */}
+      <section className="section" style={{ backgroundColor: "#ffffff" }}>
+        <div className="container">
+          <div className="section-header animate-fade-up">
+            <h2 className="section-title">
+              이런 고민,<br />미루고 계시지 않으셨습니까?
+            </h2>
+            <p className="section-sub">
+              지분과 수익 분배는 민감해서 먼저 꺼내기 어렵고, 역할과 책임은 나눴어도 기준은 여전히 흐릿할 수 있습니다.
+              <br />
+              무엇을 어디까지 합의해야 하는지 막막한 상태로 팀이 출발하는 경우도 많습니다.
+            </p>
+          </div>
+
+          <div className="empathy-visual-container animate-fade-up delay-1">
+            <div className="empathy-visual">
+              <Image 
+                src="/images/founder-silhouettes.png" 
+                alt="Founders contemplating" 
+                width={500} 
+                height={500} 
+                className="silhouette-img" 
+              />
+              <div className="thought-card tc-1">지분 이야기는 언제 꺼내야 할까?</div>
+              <div className="thought-card tc-2">역할은 나눴는데 책임 기준은?</div>
+              <div className="thought-card tc-3">수익 분배는 어떤 기준으로 정하지?</div>
+              <div className="thought-card tc-4">누군가 나가면 어떻게 정리하지?</div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* 2. Problem */}
       <section className="section bg-soft">
         <div className="container">
@@ -60,7 +91,7 @@ export default function LandingPage() {
               <br />
               합의된 기준이 없다면, 중요한 순간마다 해석 차이와 불필요한 재논의가 반복됩니다.
               <br />
-              <strong>진짜 문제는 갈등 자체가 아니라, 명확한 기준 없이 팀이 운영된다는 점입니다.</strong>
+              <strong style={{ color: "var(--brand)" }}>진짜 문제는 갈등 자체가 아니라, 명확한 기준 없이 팀이 운영된다는 점입니다.</strong>
             </p>
           </div>
 
