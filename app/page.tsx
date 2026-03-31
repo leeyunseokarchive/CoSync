@@ -19,13 +19,12 @@ export default function LandingPage() {
             </span>
             <h1 className="hero-title">
               지분 나누기 전에, <br />
-              <span className="accent">기준부터 맞추십시오</span>
+              <span className="accent">기준부터 정리하세요</span>
             </h1>
             <p className="hero-sub">
-              지분을 논하기 전, 서로가 생각하는 역할과 권리의 기준을 먼저 확인해야 합니다.
+              지분, 역할, 보상, 이탈 기준은 서로 연결되어 있습니다.
               <br />
-              CoSync는 공동창업자 간 기준 차이를 비교하고,<br />
-              이를 하나의 합의된 팀 운영 문서로 정리하는 서비스입니다.
+              CoSync는 공동창업자 간 기준 차이를 비교하고, 팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
             </p>
             <div className="hero-actions">
               <Link href="/onboarding" className="btn btn-primary btn-lg">
@@ -126,26 +125,26 @@ export default function LandingPage() {
           </div>
 
           <div className="empathy-blocks animate-fade-up delay-1">
-            <h3 className="empathy-title">이런 차이는 실제로 자주 발생합니다</h3>
-            <div className="grid-3">
-              <div className="card empathy-card">
-                <span className="badge">기여 기준</span>
-                <div className="bubble left animate-fade-up delay-1">“내가 영업과 운영을 다 맡고 있는데, 기여도가 더 큰 것 아닌가?”</div>
-                <div className="bubble right animate-fade-up delay-3">“제품이 없으면 아무것도 진행되지 않는데, 개발 기여가 더 핵심 아닌가?”</div>
+            <h3 className="empathy-title">이런 차이, 생각보다 자주 있습니다</h3>
+            <div className="grid-3 empathy-cardless-grid">
+              <div className="empathy-column">
+                <div className="badge-wrapper"><span className="badge">기여 기준</span></div>
+                <div className="bubble left animate-fade-up delay-1"><span className="tiny-speaker">A</span>“내가 영업과 운영을 다 맡고 있는데, 기여도가 더 큰 것 아닌가?”</div>
+                <div className="bubble right animate-fade-up delay-3">“제품이 없으면 아무것도 진행되지 않는데, 개발 기여가 더 핵심 아닌가?”<span className="tiny-speaker">B</span></div>
               </div>
-              <div className="card empathy-card delay-1">
-                <span className="badge">근무 기준</span>
-                <div className="bubble left animate-fade-up delay-2">“초기에는 풀타임으로 몰입하는 게 당연하지 않나?”</div>
-                <div className="bubble right animate-fade-up delay-4">“지속 가능하게 가려면 근무 강도와 방식부터 맞춰야 하지 않나?”</div>
+              <div className="empathy-column delay-1">
+                <div className="badge-wrapper"><span className="badge">근무 기준</span></div>
+                <div className="bubble left animate-fade-up delay-2"><span className="tiny-speaker">A</span>“초기에는 풀타임으로 몰입하는 게 당연하지 않나?”</div>
+                <div className="bubble right animate-fade-up delay-4">“지속 가능하게 가려면 근무 강도와 방식부터 맞춰야 하지 않나?”<span className="tiny-speaker">B</span></div>
               </div>
-              <div className="card empathy-card delay-2">
-                <span className="badge">이탈 기준</span>
-                <div className="bubble left animate-fade-up delay-3">“중간에 나가면 지분은 다시 정리해야 하는 것 아닌가?”</div>
-                <div className="bubble right animate-fade-up delay-4">“그동안의 기여가 있는데 아무 권리도 남지 않는 건 이상하지 않나?”</div>
+              <div className="empathy-column delay-2">
+                <div className="badge-wrapper"><span className="badge">이탈 기준</span></div>
+                <div className="bubble left animate-fade-up delay-3"><span className="tiny-speaker">A</span>“중간에 나가면 지분은 다시 정리해야 하는 것 아닌가?”</div>
+                <div className="bubble right animate-fade-up delay-4">“그동안의 기여가 있는데 아무 권리도 남지 않는 건 이상하지 않나?”<span className="tiny-speaker">B</span></div>
               </div>
             </div>
             <p className="empathy-closing animate-fade-up delay-4">
-              CoSync는 이런 기준 차이를 먼저 드러내고, 팀이 실제로 채택할 기준으로 정리하도록 돕습니다.
+              CoSync는 이런 기준 차이를 먼저 드러내고, 팀의 합의안으로 정리합니다.
             </p>
           </div>
         </div>
@@ -260,18 +259,18 @@ export default function LandingPage() {
               </p>
               
               <div className="grid-3" style={{ gridTemplateColumns: "1fr", marginTop: 40, gap: 16 }}>
-                <div className="card feature-card dark-card" style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
-                  <div className="card-icon check-icon" style={{ marginBottom: 0, width: 36, height: 36, fontSize: 18 }}>✓</div>
+                <div className="card feature-card dark-card" style={{ padding: "20px 24px", display: "flex", flexDirection: "row", alignItems: "center", textAlign: "left", gap: 16 }}>
+                  <div className="card-icon check-icon" style={{ marginBottom: 0, width: 36, height: 36, fontSize: 18, flexShrink: 0 }}>✓</div>
                   <div>
                     <h4 style={{ marginBottom: 4, fontSize: 16 }}>합의 내용 문서화</h4>
-                    <p style={{ fontSize: 13 }}>조율된 기준이 문서 형태로 정리됩니다</p>
+                    <p style={{ fontSize: 13, margin: 0 }}>조율된 기준이 문서 형태로 정리됩니다</p>
                   </div>
                 </div>
-                <div className="card feature-card dark-card" style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
-                  <div className="card-icon check-icon" style={{ marginBottom: 0, width: 36, height: 36, fontSize: 18 }}>✓</div>
+                <div className="card feature-card dark-card" style={{ padding: "20px 24px", display: "flex", flexDirection: "row", alignItems: "center", textAlign: "left", gap: 16 }}>
+                  <div className="card-icon check-icon" style={{ marginBottom: 0, width: 36, height: 36, fontSize: 18, flexShrink: 0 }}>✓</div>
                   <div>
                     <h4 style={{ marginBottom: 4, fontSize: 16 }}>팀원별 최종 확인</h4>
-                    <p style={{ fontSize: 13 }}>누가 어떤 기준에 동의했는지 기록</p>
+                    <p style={{ fontSize: 13, margin: 0 }}>누가 어떤 기준에 동의했는지 기록</p>
                   </div>
                 </div>
               </div>
@@ -301,12 +300,12 @@ export default function LandingPage() {
               <p>일정과 업무를 관리하는 것이 아니라, 팀의 기준과 권리관계를 정리합니다.</p>
             </div>
             <div className="diff-item delay-1">
-              <h4>단순 계산기와 다릅니다</h4>
-              <p>숫자만 제시하는 것이 아니라, 역할·보상·이탈 기준을 함께 비교하고 정리합니다.</p>
+              <h4>지분 계산기가 아닙니다</h4>
+              <p>지분 숫자보다 먼저, 그 기준부터 맞춥니다.</p>
             </div>
             <div className="diff-item delay-2">
-              <h4>법률 서비스와도 다릅니다</h4>
-              <p>계약을 대신 작성하는 서비스가 아니라, 법률 검토 이전 단계에서 팀 내부 기준을 먼저 정리하도록 돕는 서비스입니다.</p>
+              <h4>법률 서비스가 아닙니다</h4>
+              <p>다만 실제 법률 전문가 자문을 바탕으로, 공동창업팀의 핵심 쟁점을 반영해 설계했습니다.</p>
             </div>
           </div>
           <p className="diff-closing animate-fade-up delay-3">
@@ -327,7 +326,7 @@ export default function LandingPage() {
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 법적인 효력이 있는 계약서인가요?</div>
-              <div className="faq-a">A. 아닙니다. CoSync의 결과물은 팀 내부의 운영 기준과 상호 약속을 정리한 합의안 문서입니다. 필요 시 이를 바탕으로 후속 법률 문서를 준비할 수 있습니다.</div>
+              <div className="faq-a">A. 아닙니다. CoSync의 결과물은 팀 내부 기준을 정리한 합의안 문서이며, 필요 시 후속 법률 문서 작성의 기초 자료로 활용할 수 있습니다.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 아직 지분을 정할 단계가 아닌데도 사용할 수 있나요?</div>

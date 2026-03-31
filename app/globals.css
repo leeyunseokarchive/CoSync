@@ -2664,11 +2664,7 @@ button {
   flex-direction: column;
 }
 
-.feature-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 32px rgba(255, 107, 0, 0.1);
-  border-color: #ffd8bd;
-}
+
 
 .feature-card h4 {
   font-size: 21px;
@@ -2725,7 +2721,7 @@ button {
 
 /* Empathy */
 .empathy-blocks {
-  background: var(--surface-soft);
+  background: #fdfdfe;
   border-radius: 30px;
   padding: 60px;
   text-align: center;
@@ -2737,15 +2733,43 @@ button {
   margin-bottom: 40px;
 }
 
-.empathy-card {
-  padding: 30px 20px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: var(--shadow-soft);
+.empathy-cardless-grid {
+  gap: 40px;
+}
+
+.empathy-column {
+  position: relative;
+  text-align: left;
+}
+
+.empathy-column:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 10%;
+  height: 80%;
+  right: -20px;
+  width: 1px;
+  background: rgba(91, 91, 231, 0.15); /* Subtle vertical divider */
+}
+
+@media (max-width: 900px) {
+  .empathy-column:not(:last-child)::after {
+    display: none;
+  }
+}
+
+.badge-wrapper {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.empathy-column .bubble {
+  box-shadow: 0 12px 24px rgba(29, 35, 63, 0.04);
 }
 
 .bubble {
-  background: #f1f3fb;
+  background: #ffffff;
+  border: 1px solid #f0f2f8;
   border-radius: 16px;
   padding: 14px 18px;
   font-size: 14px;
@@ -2760,10 +2784,30 @@ button {
 }
 
 .bubble.right {
-  background: rgba(91, 91, 231, 0.1);
+  background: #f0f3ff;
+  border-color: #e6ebfa;
   color: var(--brand-dark);
   border-bottom-right-radius: 4px;
   text-align: right;
+}
+
+.tiny-speaker {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #a2a8b5;
+  background: #f1f3f8;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.bubble.right .tiny-speaker {
+  color: var(--brand);
+  background: #e6ebfa;
+  margin-right: 0;
+  margin-left: 8px;
 }
 
 .empathy-closing {
@@ -3003,7 +3047,8 @@ button {
 .diff-item h4 {
   font-size: 18px;
   color: var(--brand);
-  min-width: 180px;
+  min-width: 220px;
+  white-space: nowrap;
 }
 
 .diff-item p {
