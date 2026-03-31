@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5C4FE5",
+                        "deep-purple": "#5C4FE5",
+                        "background-neutral": "#F9FAFB",
+                        "emerald-soft": "#10B981",
+                        "neutral-gray": "#F9FAFB",
+                        "team-summary-bg": "#F0EEFF",
+                        "dark-text": "#111827",
+                    },
+                    fontFamily: {
+                        "sans": ["'NanumSquareNeo'", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "card": "40px",
+                        "pill": "9999px"
+                    },
+                    boxShadow: {
+                        'boutique': '0 20px 40px -15px rgba(92, 79, 229, 0.15)',
+                        'soft-deep': '0 15px 30px -5px rgba(92, 79, 229, 0.4)',
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquareNeo', sans-serif;
+                background-color: #F9FAFB;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                color: #111827;
+                position: relative;
+                overflow-x: hidden;
+            }
+        }
+        .bg-accent-1 {
+            position: fixed;
+            top: -10%;
+            right: -5%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(92, 79, 229, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .bg-accent-2 {
+            position: fixed;
+            bottom: 5%;
+            left: -10%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(147, 197, 253, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .sidebar-item-active {
+            color: #5C4FE5;
+            position: relative;
+        }
+        .sidebar-item-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background-color: #5C4FE5;
+            border-radius: 0 4px 4px 0;
+        }
+        .sidebar-item-active .material-symbols-outlined {
+            color: #5C4FE5;
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .btn-l {
+            height: 56px;
+            border-radius: 9999px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+        .main-card {
+            border-radius: 40px;
+            border: 1.5px solid #E2E8F0;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04);
+            background-color: white;
+        }
+        .chip-token {
+            height: 28px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            gap: 4px;
+        }
+        .permission-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 0.85rem;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .table-row-hover:hover {
+            background-color: rgba(92, 79, 229, 0.015);
+        }
+        .app-bar-nav-link {
+            font-weight: 700;
+            font-size: 15px;
+            color: #64748b;
+            transition: all 0.2s;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+        }
+        .app-bar-nav-link:hover {
+            color: #5C4FE5;
+            background-color: rgba(92, 79, 229, 0.05);
+        }
+        .app-bar-nav-link.active {
+            color: #5C4FE5;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="bg-neutral-gray font-sans text-dark-text min-h-screen">
+<div class="bg-accent-1"></div>
+<div class="bg-accent-2"></div>
+<header class="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-50 w-full">
+<div class="flex items-center gap-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-md shadow-primary/20">
+<span class="material-symbols-outlined font-bold text-lg">sync</span>
+</div>
+<h1 class="text-lg font-extrabold tracking-tight text-dark-text">CoSync</h1>
+</div>
+<nav class="flex items-center gap-4">
+<a class="app-bar-nav-link" href="#">대시보드</a>
+<a class="app-bar-nav-link" href="#">합의 히스토리</a>
+<a class="app-bar-nav-link active" href="#">설정</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2ljs2_2VVPmKryClXo5zYx8oZLn7zOdaGBF40VgQfUU1Yp9AjHabgzAbUCcTnjOG4jladZgHGtaEA3P3uDxCYVc8m4Sp8XXLSav7w7mQ5WDlQWFjVD9uYh_FODEw1pUx36eR_ZNuWJhZPd6gnooG7n7HG5F6yFhzDpJQyMrnwT9yP94c5nzhJuY1P_6uwJkKj7XN4UZwALN4XqQnvpgzQE6isv-rA9RcDgYc1U_bN6U1LGZAhUDHtMe2_y-awyL4nHQt0PcHedDI"/>
+</div>
+<div class="text-left hidden sm:block">
+<p class="text-[14px] font-extrabold text-dark-text">황주명</p>
+</div>
+</div>
+</div>
+</header>
+<div class="flex">
+<aside class="w-64 bg-white/40 backdrop-blur-md border-r border-slate-100 flex flex-col py-12 sticky top-16 h-[calc(100vh-64px)] shrink-0 z-10">
+<nav class="flex flex-col gap-6">
+<a class="flex items-center gap-3 px-8 py-3 text-slate-400 hover:text-slate-600 transition-all group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-slate-500">info</span>
+<span class="font-bold text-[14px]">팀 정보</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 sidebar-item-active transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]">group</span>
+<span class="font-extrabold text-[14px]">멤버 관리</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 text-slate-400 hover:text-slate-600 transition-all group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-slate-500">shield_person</span>
+<span class="font-bold text-[14px]">보안</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 text-slate-400 hover:text-slate-600 transition-all group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-slate-500">credit_card</span>
+<span class="font-bold text-[14px]">플랜</span>
+</a>
+</nav>
+<div class="mt-auto px-8">
+<div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden ring-2 ring-white">
+<img alt="Team Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_pHdgKEworSIacM3xwvXZsMN7KqL-cF2a6PxRC4isVzztBdML4rgQIe3WXsZ5JAo0wdez2lQwTdxbuYnu6Hk8aCvVBUehIBlbi3Hzh9lA95qZWn9ttJ50L09i4ZAEtZHHNBMZQsCezS2XarSWGpk8OyE2RsCIg4te5Ns9ibXX4LVYS_vY-f1DXiIua7miWxlZO3Bvgta0xklDladcPDi6bkCgVrZVWkvHLBtM_-pr0L1DmxCououickQwCjWR5U5eMFTk2BZTA-Y"/>
+</div>
+<span class="text-xs font-bold text-slate-600">CoSync HQ</span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 p-12 max-w-7xl mx-auto w-full">
+<header class="flex justify-between items-end mb-14">
+<div>
+<h2 class="text-4xl font-extrabold text-dark-text tracking-tight">팀 설정</h2>
+<p class="text-slate-500 mt-2 font-bold">팀 멤버와 권한, 초대 코드를 관리합니다.</p>
+</div>
+<button class="btn-l bg-primary text-white px-10 hover:translate-y-[-2px] hover:shadow-soft-deep active:scale-95 transition-all shadow-soft-deep">
+<span class="material-symbols-outlined text-xl">person_add</span>
+<span>멤버 초대</span>
+</button>
+</header>
+<div class="grid grid-cols-1 gap-10">
+<div class="main-card px-12 py-12 relative bg-white">
+<div class="flex flex-col gap-2 w-full">
+<h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">코드로 팀원 초대하기</h3>
+<div class="flex items-center gap-4 mt-2">
+<span class="text-4xl font-black text-dark-text tracking-wider font-mono">CS-829-QX</span>
+<div class="flex items-center gap-3 relative">
+<button class="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 text-primary hover:bg-primary/5 transition-all active:scale-90 group" title="복사">
+<span class="material-symbols-outlined text-[26px] font-bold group-hover:scale-110">content_copy</span>
+</button>
+<div class="flex items-center gap-1.5 bg-white border border-[#10B981]/20 px-4 py-2 rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-[#10B981] fill-1">check_circle</span>
+<span class="text-[12px] font-extrabold text-[#10B981] whitespace-nowrap">복사 완료!</span>
+</div>
+</div>
+</div>
+<p class="text-slate-400 text-[13px] font-bold px-1 mt-2">이 코드를 공유하면 팀원이 바로 합류할 수 있습니다.</p>
+</div>
+<button class="absolute bottom-12 right-12 text-[12px] font-bold text-slate-400 hover:text-primary transition-colors underline underline-offset-4 decoration-slate-200 hover:decoration-primary/30">
+                        코드 재생성
+                    </button>
+</div>
+<div class="main-card overflow-hidden bg-white">
+<div class="p-10 border-b border-slate-50">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-2xl font-extrabold text-dark-text">멤버 관리</h3>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">search</span>
+<input class="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-full text-sm font-bold text-dark-text placeholder:text-slate-400 focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all w-80 outline-none" placeholder="멤버 이름 또는 이메일 검색..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-[11px] font-black text-slate-400 uppercase tracking-widest min-w-[40px]">상태</span>
+<div class="flex gap-2">
+<button class="chip-token bg-primary text-white shadow-lg shadow-primary/20">전체</button>
+<button class="chip-token bg-white text-slate-500 border border-slate-100 hover:border-slate-300 transition-colors">활성</button>
+<button class="chip-token bg-white text-slate-500 border border-slate-100 hover:border-slate-300 transition-colors">대기</button>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left table-fixed min-w-[900px]">
+<thead>
+<tr class="bg-slate-50/30">
+<th class="px-10 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] w-[30%]">이름 / 프로필</th>
+<th class="px-10 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] w-[35%]">이메일 주소</th>
+<th class="px-10 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] w-[25%]">권한 설정</th>
+<th class="px-10 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] w-[15%]">상태</th>
+<th class="px-10 py-5 w-[10%]"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<tr class="table-row-hover transition-colors group">
+<td class="px-10 py-4">
+<div class="flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-primary/5 flex items-center justify-center font-extrabold text-primary shrink-0 text-sm border border-primary/10">황</div>
+<span class="font-extrabold text-dark-text text-[16px]">황주명</span>
+</div>
+</td>
+<td class="px-10 py-4">
+<span class="text-slate-500 font-bold">hwang@cosync.com</span>
+</td>
+<td class="px-10 py-4">
+<div class="chip-token bg-slate-100/50 text-slate-500 border border-slate-200/50">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span class="uppercase tracking-wider">OWNER</span>
+</div>
+</td>
+<td class="px-10 py-4">
+<div class="chip-token bg-emerald-50 text-emerald-600 border border-emerald-100">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>활성</span>
+</div>
+</td>
+<td class="px-10 py-4 text-right">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all ml-auto">
+<span class="material-symbols-outlined text-[24px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="table-row-hover transition-colors group">
+<td class="px-10 py-4">
+<div class="flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-orange-50 flex items-center justify-center font-extrabold text-orange-500 shrink-0 text-sm border border-orange-100">이</div>
+<span class="font-extrabold text-dark-text text-[16px]">이윤석</span>
+</div>
+</td>
+<td class="px-10 py-4">
+<span class="text-slate-500 font-bold">lee@cosync.com</span>
+</td>
+<td class="px-10 py-4">
+<select class="permission-select bg-slate-50 border border-slate-200 text-[11px] font-black text-slate-600 py-1.5 pl-4 pr-10 rounded-full focus:ring-2 focus:ring-primary/20 focus:border-primary/20 cursor-pointer min-w-[120px] hover:bg-white transition-all outline-none">
+<option>MEMBER</option>
+<option>ADMIN</option>
+</select>
+</td>
+<td class="px-10 py-4">
+<div class="chip-token bg-emerald-50 text-emerald-600 border border-emerald-100">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>활성</span>
+</div>
+</td>
+<td class="px-10 py-4 text-right">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all ml-auto">
+<span class="material-symbols-outlined text-[24px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-8 bg-slate-50/30 flex justify-center border-t border-slate-50">
+<button class="text-slate-400 font-extrabold text-[13px] hover:text-primary transition-colors flex items-center gap-2 group">
+<span class="material-symbols-outlined text-[20px] group-hover:fill-1">check_circle</span>
+                            모든 멤버 확인 완료
+                        </button>
+</div>
+</div>
+<div class="mt-4">
+<details class="group main-card overflow-hidden bg-white">
+<summary class="p-10 flex items-center justify-between cursor-pointer hover:bg-slate-50/30 transition-colors list-none">
+<div>
+<p class="text-lg font-black text-dark-text">고급 설정 및 워크스페이스 삭제</p>
+<p class="text-sm text-slate-400 mt-1 font-bold">중요한 보안 설정 및 팀 관리 도구</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 transition-transform group-open:rotate-180 text-[28px]">expand_more</span>
+</summary>
+<div class="px-10 pb-10 pt-4 border-t border-slate-50">
+<div class="bg-red-50/30 border-[1.5px] border-red-100/50 rounded-[30px] p-8 flex items-center justify-between">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-red-500 mt-0.5">warning</span>
+<div>
+<p class="text-base font-black text-red-600">워크스페이스 영구 삭제</p>
+<p class="text-sm text-red-400 mt-1 font-bold leading-relaxed max-w-md">워크스페이스의 모든 데이터가 영구적으로 삭제되며 복구가 불가능합니다.</p>
+</div>
+</div>
+<button class="h-11 px-8 rounded-full border border-red-200 text-red-600 font-black text-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all">
+                                    워크스페이스 영구 삭제
+                                </button>
+</div>
+</div>
+</details>
+</div>
+</div>
+<footer class="mt-24 pt-10 border-t border-slate-100 flex justify-between items-center text-slate-400 text-xs font-bold mb-12">
+<p>© 2024 CoSync Inc. All rights reserved.</p>
+<div class="flex gap-10">
+<a class="hover:text-dark-text transition-colors" href="#">이용약관</a>
+<a class="hover:text-dark-text transition-colors" href="#">개인정보처리방침</a>
+<a class="hover:text-dark-text transition-colors" href="#">고객지원</a>
+</div>
+</footer>
+</main>
+</div>
+
+</body></html>

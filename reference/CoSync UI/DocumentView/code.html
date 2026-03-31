@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>합의서 상세 보기 | CoSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4F46E5",
+                        "deep-purple": "#4338CA",
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#111827",
+                        "emerald-soft": "#10B981",
+                        "neutral-gray": "#F9FAFB"
+                    },
+                    fontFamily: {
+                        "sans": ["'NanumSquareNeo'", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'NanumSquareNeo', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm;
+            margin: 0 auto;
+        }
+        @media print {
+            .no-print { display: none; }
+            .a4-container { margin: 0; box-shadow: none; width: 100%; }
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-neutral-gray dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-6 py-3 dark:border-slate-800 dark:bg-background-dark/80">
+<div class="flex items-center gap-2.5">
+<div class="flex items-center justify-center">
+<div class="relative flex h-8 w-8 items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl absolute opacity-70" style="font-variation-settings: 'FILL' 1;">sync</span>
+<span class="material-symbols-outlined text-primary text-2xl relative" style="font-variation-settings: 'FILL' 1;">link</span>
+</div>
+</div>
+<h1 class="text-xl font-black tracking-tight text-primary">CoSync</h1>
+</div>
+<div class="flex items-center gap-8">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-bold text-slate-600 hover:text-primary transition-colors" href="#">대시보드</a>
+<a class="text-sm font-extrabold text-primary relative after:absolute after:-bottom-5 after:left-0 after:h-0.5 after:w-full after:bg-primary" href="#">합의 히스토리</a>
+<a class="text-sm font-bold text-slate-600 hover:text-primary transition-colors" href="#">설정</a>
+</nav>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex items-center gap-4">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-1">
+<span class="text-sm font-extrabold text-slate-700 dark:text-slate-200">황주명</span>
+<div class="h-9 w-9 rounded-full bg-primary/10 border-2 border-primary/20 overflow-hidden ring-2 ring-slate-50 dark:ring-slate-800">
+<img alt="User Profile" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6LrWsOCMH1f7CppkTy5qZhes3M44zFBo6fozZTRKwIEsT2SVDUXXPi4Ituxli08AmssY30dz-23THqHG9EuI-782JALCme3cF_vjQoL3ylE6eMoJsnmrGiJRHv8Dk1kt0qdajDn124cHi4HaFQ--PFSbmvSM5eoFC-ctxJIRNF94mWI6zafmRGlABrsBF5PAXwdDYFHRB2EL5qSD0pmXDCyyaakonqOPSlx14nHh3EcBuE39OJ22WwLjxGmJ1U-NBtuFMHsSYYQ"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<aside class="no-print hidden lg:flex w-72 flex-col border-r border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-background-dark overflow-y-auto">
+<div class="mb-8">
+<p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Document Map</p>
+<h3 class="mt-1 text-sm font-extrabold text-slate-900 dark:text-white">합의서 목차</h3>
+</div>
+<nav class="space-y-1">
+<a class="group flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-extrabold text-primary transition-all" href="#operating-rules">
+<span class="material-symbols-outlined text-[20px]">handshake</span>
+<div>
+                        운영 규칙
+                        <span class="block text-[10px] font-bold text-slate-400 group-hover:text-primary/70">Operating Rules</span>
+</div>
+</a>
+<a class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800 transition-all" href="#decision-making">
+<span class="material-symbols-outlined text-[20px]">balance</span>
+<div>
+                        의사결정 및 권한
+                        <span class="block text-[10px] font-bold text-slate-400">Decision-Making &amp; Authority</span>
+</div>
+</a>
+<a class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800 transition-all" href="#roles-responsibilities">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<div>
+                        역할 및 책임
+                        <span class="block text-[10px] font-bold text-slate-400">Roles &amp; Responsibilities</span>
+</div>
+</a>
+<a class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800 transition-all" href="#finance-funding">
+<span class="material-symbols-outlined text-[20px]">pie_chart</span>
+<div>
+                        자금 및 재무
+                        <span class="block text-[10px] font-bold text-slate-400">Finance &amp; Funding</span>
+</div>
+</a>
+<a class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800 transition-all" href="#exit-strategy">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<div>
+                        투자 회수 및 종료
+                        <span class="block text-[10px] font-bold text-slate-400">Exit Strategy</span>
+</div>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-slate-100 dark:border-slate-800">
+<div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900/50">
+<p class="text-xs font-bold text-slate-500 mb-2">보안 문서 정보</p>
+<p class="text-[11px] font-mono text-slate-400 break-all leading-relaxed">ID: SHA-256:7f8e...3b21</p>
+</div>
+</div>
+</aside>
+<div class="flex-1 overflow-y-auto bg-neutral-gray p-8 dark:bg-slate-950">
+<div class="mx-auto max-w-[900px]">
+<div class="no-print mb-6 flex items-center gap-2 text-sm text-slate-500">
+<span class="material-symbols-outlined text-sm text-slate-400">folder_open</span>
+<span class="font-bold">합의 히스토리</span>
+<span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+<span class="font-extrabold text-slate-900 dark:text-slate-300">창업 팀 간 구조적 합의안</span>
+</div>
+<div class="a4-container relative bg-white shadow-[0_20px_50px_rgba(0,0,0,0.08)] rounded-sm dark:bg-white dark:text-slate-900">
+<div class="absolute right-12 top-12 flex flex-col items-center">
+<div class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-emerald-soft/40 p-1 rotate-12">
+<div class="flex h-full w-full flex-col items-center justify-center rounded-full border-2 border-dashed border-emerald-soft text-emerald-soft bg-emerald-soft/5">
+<span class="material-symbols-outlined text-2xl font-bold">verified</span>
+<span class="text-[10px] font-black uppercase tracking-tighter leading-none">Official</span>
+<span class="text-[8px] font-extrabold">합의 완료</span>
+</div>
+</div>
+</div>
+<div class="mb-16 border-b-2 border-slate-900 pb-8">
+<h2 class="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 mb-2">창업 팀 간 구조적 합의안</h2>
+<p class="text-sm text-slate-500 font-extrabold tracking-[0.1em]">STRUCTURAL FOUNDING TEAM AGREEMENT</p>
+</div>
+<div class="space-y-12 text-[15px] leading-[1.8] text-slate-800 font-bold">
+<section id="operating-rules">
+<h4 class="mb-4 text-lg font-extrabold text-slate-900 flex items-center gap-2">
+<span class="w-8 h-[2px] bg-slate-900"></span>
+                                제1장. 운영 규칙
+                            </h4>
+<div class="pl-10 space-y-4">
+<p>① 본 합의안은 창업 팀 멤버 간의 상호 신뢰와 존중을 바탕으로 공정한 거버넌스를 구축하며, 회사의 지속 가능한 성장을 최우선 가치로 둔다.</p>
+<p>② 모든 창업 팀원은 투명한 정보 공유와 열린 소통의 원칙을 준수하며, 갈등 발생 시 본 합의안에 명시된 절차에 따라 평화적이고 합리적으로 해결한다.</p>
+</div>
+</section>
+<section id="decision-making">
+<h4 class="mb-4 text-lg font-extrabold text-slate-900 flex items-center gap-2">
+<span class="w-8 h-[2px] bg-slate-900"></span>
+                                제2장. 의사결정 및 권한
+                            </h4>
+<div class="pl-10 space-y-4">
+<p>① 일상적인 경영 및 운영 사안은 대표이사(CEO)의 직권으로 결정한다. 단, 각 부문 책임자는 해당 영역의 전문적 의사결정권을 보유한다.</p>
+<p>② 다음의 중대 경영 사안은 창업 팀 전원 합의 또는 발행주식 총수의 3/4 이상의 찬성을 요한다.</p>
+<ul class="list-decimal pl-5 space-y-1 marker:font-extrabold">
+<li>회사의 합병, 분할, 양도 및 중요한 계약 체결</li>
+<li>자본금 변동 및 추가 투자의 유치 조건 확정</li>
+<li>핵심 인력의 채용 및 주요 보상 체계 변경</li>
+</ul>
+</div>
+</section>
+<section id="roles-responsibilities">
+<h4 class="mb-4 text-lg font-extrabold text-slate-900 flex items-center gap-2">
+<span class="w-8 h-[2px] bg-slate-900"></span>
+                                제3장. 역할 및 책임
+                            </h4>
+<div class="pl-10 space-y-4">
+<p>각 창업 팀원은 다음과 같이 전문 영역별 역할을 담당하며, 부여된 책임 범위 내에서 최선의 성과를 도출할 의무를 가진다.</p>
+<ul class="list-disc pl-5 space-y-1 marker:text-slate-400">
+<li><strong class="font-extrabold">팀원 A:</strong> 총괄 경영, 투자 유치 및 대외 전략 수립</li>
+<li><strong class="font-extrabold">팀원 B:</strong> 기술 개발 총괄, 아키텍처 설계 및 기술 로드맵 관리</li>
+<li><strong class="font-extrabold">팀원 C:</strong> 사업 운영, 마케팅 및 고객 경험 프로세스 최적화</li>
+</ul>
+</div>
+</section>
+<section id="finance-funding">
+<h4 class="mb-4 text-lg font-extrabold text-slate-900 flex items-center gap-2">
+<span class="w-8 h-[2px] bg-slate-900"></span>
+                                제4장. 자금 및 재무
+                            </h4>
+<div class="pl-10 space-y-4">
+<p>① 창업 팀은 설립 자본금의 출연 비중에 따라 초기 지분을 배분하며, 각자의 기여도에 따라 베스팅(Vesting) 조건을 적용한다.</p>
+<p>② 베스팅 조건은 총 48개월(4년)로 설정하며, 1년의 Cliff 기간을 둔다. 기간 내 중도 이탈 시 미베스팅 지분은 회사에 귀속되거나 나머지 팀원에게 액면가로 양도된다.</p>
+</div>
+</section>
+<section id="exit-strategy">
+<h4 class="mb-4 text-lg font-extrabold text-slate-900 flex items-center gap-2">
+<span class="w-8 h-[2px] bg-slate-900"></span>
+                                제5장. 투자 회수 및 종료
+                            </h4>
+<div class="pl-10 space-y-4">
+<p>① 팀원의 자발적 퇴사 또는 부득이한 사유로 인한 업무 수행 불가 시, 지분 정리 및 인수인계 절차는 본 장의 규정에 따른다.</p>
+<p>② 회사의 해산 또는 청산 시 잔여 재산의 분배는 기여도와 지분율을 종합적으로 고려하여 공정하게 집행한다.</p>
+</div>
+</section>
+<div class="mt-24 pt-16 border-t border-slate-200 text-center">
+<div class="inline-flex items-center gap-2 px-6 py-4 bg-slate-50 rounded-xl border border-slate-100">
+<span class="material-symbols-outlined text-emerald-soft">verified</span>
+<p class="text-base font-extrabold text-slate-900">
+                                    본 합의안은 팀원 전원의 합의를 통해 확정되었습니다.
+                                </p>
+</div>
+</div>
+</div>
+<div class="mt-20 text-center text-[10px] font-extrabold text-slate-300 uppercase tracking-[0.3em]">
+                        Generated by CoSync Security Protocol v2.4
+                    </div>
+</div>
+</div>
+</div>
+<aside class="no-print hidden xl:flex w-80 flex-col border-l border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-background-dark overflow-y-auto">
+<div class="space-y-6">
+<div class="rounded-xl border border-emerald-soft/20 bg-emerald-soft/5 p-5">
+<div class="flex items-center gap-2 text-emerald-soft mb-3">
+<span class="material-symbols-outlined text-lg">verified_user</span>
+<span class="text-sm font-extrabold">최종 확정됨</span>
+</div>
+<div class="space-y-3">
+<div>
+<p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">문서 버전</p>
+<p class="text-sm font-extrabold text-slate-900 dark:text-white">v2.0 Final</p>
+</div>
+</div>
+</div>
+<div class="rounded-xl border border-slate-200 bg-slate-50/50 p-5 dark:border-slate-800 dark:bg-slate-900/30">
+<h4 class="text-xs font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">history_edu</span>
+                        최종 확정 로그
+                    </h4>
+<div class="space-y-4">
+<div>
+<p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">히스토리</p>
+<div class="space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-slate-300 text-[14px] mt-0.5">add_circle</span>
+<span class="text-[11px] font-bold text-slate-600 dark:text-slate-400">버전 생성: 2024.11.20 10:15</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-emerald-soft text-[14px] mt-0.5">check_circle</span>
+<span class="text-[11px] font-bold text-slate-600 dark:text-slate-400">합의 확정: 2024.11.20 14:30</span>
+</div>
+</div>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">합의 참여자</p>
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<div class="flex -space-x-1.5">
+<img alt="황주명" class="h-6 w-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxnhLGlQbZBCYYLP4yEJUfE6hPIDq5M8jdbsBZCtbpYxCcbSrdd4zxcW7hLMHgIoJ158A8JTeauQQJVkh5fmQcnou-CYu5powQEpnRG0x2Z2NqnlysidEuiB9NjnIp32mHTikrGFTOPNMVRSYxg6rqOmQQcCUdQt7bnmxDoJqaXmt0Eh7vaa7OdkW5LBlHJNO4P8iZyx6wSBjAwoCVhC1Zeb1k4bTrsG0Fw5964Bc_sys62oNCQPDdFLUs8SazvgYyUdplZbknzA"/>
+<img alt="이윤석" class="h-6 w-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2clb4o8WzkTkdDbspu7BidXRYbcEZFW3Ko7XPv-EfajHYjO4A3BobHtmj62t95sT9ooBrAtFd1HSaS0t3r65OB5jxlyQ4Y5gry3fyoQ3Z5zQdoqVdqoaOt-UpPhKJCSdqh3bFFSn2hzAaIQxO76pBWn1kA8T-Nz7adpd-w9Kym3heliOGml2zhC9Eb1tB7zu5Ytyjx2sVgmGbSEAllp4o7sju84MvTVS9neUvpv316ftvkI8an-vr7PVIn4-8ApqXyoG9GGGPFA"/>
+<img alt="박운영" class="h-6 w-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWjgJ9os0SYkanw6thmcQr_kIeopPj331qdx4A8f74m-okWLI5kaIqOotEddFSQy52UPvr9mRixPMOQeXzKFmorC23bGJEp8AHMTv2Nffnp95YD2GftqOVy68-RI7cx1elkz4Yamf_w0cbjVnZDYnzMOx8Zq2GWmeVvs5v5EkbisBK5GMJezpnqVsAXB8yrpwkjWRBuj7f1wKcDlfkLHytobSvlFNpLtP3uf38tR0oKr8VL9EJUrP8Xf8Asc9bQJfFGc-u85OB1Q"/>
+</div>
+<p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300">황주명, 이윤석, 박운영</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 pt-2">
+<button class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-extrabold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+                        PDF 내보내기
+                    </button>
+<button class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-[12px] font-bold text-slate-500 hover:text-primary hover:border-primary/30 transition-all">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+                        파트너 전문가 검토 연계
+                    </button>
+</div>
+<div>
+<h4 class="text-xs font-extrabold text-slate-900 dark:text-white mb-4 uppercase tracking-widest">실시간 보안 상태</h4>
+<div class="space-y-5 relative before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100 dark:before:bg-slate-800">
+<div class="relative pl-7">
+<div class="absolute left-0 top-1 h-[18px] w-[18px] rounded-full bg-emerald-soft flex items-center justify-center text-white ring-4 ring-white dark:ring-background-dark">
+<span class="material-symbols-outlined text-[10px]">lock</span>
+</div>
+<p class="text-[11px] font-extrabold text-slate-900 dark:text-white">문서 읽기 전용 잠금</p>
+<p class="text-[10px] font-bold text-slate-400">합의 완료 후 수정 불가 상태</p>
+</div>
+<div class="relative pl-7">
+<div class="absolute left-0 top-1 h-[18px] w-[18px] rounded-full bg-slate-100 flex items-center justify-center text-slate-400 ring-4 ring-white dark:ring-background-dark">
+<span class="material-symbols-outlined text-[10px]">visibility</span>
+</div>
+<p class="text-[11px] font-extrabold text-slate-600">열람 기록: 황주명</p>
+<p class="text-[10px] font-bold text-slate-400">2024.11.21 09:12</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+<button class="no-print fixed bottom-8 right-8 flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-900 shadow-2xl border border-slate-100 hover:text-primary lg:bottom-12 transition-all active:scale-90" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+<span class="material-symbols-outlined font-bold">expand_less</span>
+</button>
+
+</body></html>

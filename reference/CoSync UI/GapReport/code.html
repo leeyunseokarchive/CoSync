@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CoSync AI Insight Gap Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#5C4FE5",
+                        "background-neutral": "#F9FAFB",
+                        charcoal: "#111827",
+                        "medium-gray": "#4B5563",
+                        "accent-emerald": "#10B981",
+                        "accent-purple-light": "#EEF2FF",
+                    },
+                    fontFamily: {
+                        sans: ["NanumSquareNeo", "sans-serif"],
+                    },
+                    borderRadius: {
+                        '4xl': '40px',
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'NanumSquareNeo', sans-serif;
+                -webkit-font-smoothing: antialiased;
+                background-color: #F9FAFB;
+                @apply text-medium-gray;
+            }
+        }
+        .title-32 {
+            font-size: 32px;
+            font-weight: 800;letter-spacing: -0.02em;
+            line-height: 1.4;
+            color: #111827;
+        }
+        .subheader-24 {
+            font-size: 24px;
+            font-weight: 800;letter-spacing: -0.01em;
+            line-height: 1.4;
+            color: #111827;
+        }
+        .subheader-18 {
+            font-size: 18px;
+            font-weight: 700;letter-spacing: -0.01em;
+            line-height: 1.4;
+            color: #111827;
+        }
+        .body-16 {
+            font-size: 16px;
+            font-weight: 400;letter-spacing: -0.01em;
+            line-height: 1.6;
+            color: #4B5563;
+        }
+        .label-14 {
+            font-size: 14px;
+            font-weight: 700;letter-spacing: -0.01em;
+            line-height: 1.5;
+            color: #4B5563;
+        }
+        .btn-text-16 {
+            font-size: 16px;
+            font-weight: 700;letter-spacing: -0.02em;
+        }
+        .card-token {
+            @apply bg-white border-[1.5px] border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-4xl;
+        }
+        .btn-primary-pill {
+            @apply h-[56px] px-8 rounded-full bg-primary text-white flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(92,79,229,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98];
+            @apply btn-text-16;
+        }
+        .gauge-semi-bg {
+            background: conic-gradient(from 270deg at 50% 100%, #F3F4F6 0deg, #F3F4F6 180deg, transparent 180deg);
+        }
+        .gauge-semi-fill {
+            background: conic-gradient(from 270deg at 50% 100%, #5C4FE5 0deg, #5C4FE5 115deg, transparent 115deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-10 py-4 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="text-white font-extrabold text-xl">C</span>
+</div>
+<span class="font-extrabold text-xl tracking-tight text-charcoal">CoSync</span>
+</div>
+<div class="hidden md:flex gap-8 label-14">
+<a class="hover:text-primary transition-colors !font-normal" href="#">대시보드</a>
+<a class="text-primary !font-bold" href="#">격차 리포트</a>
+<a class="hover:text-primary transition-colors !font-normal" href="#">질문 리스트</a>
+<a class="hover:text-primary transition-colors !font-normal" href="#">팀 설정</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="label-14 text-charcoal !font-bold">황주명</span>
+<div class="w-10 h-10 rounded-full bg-accent-purple-light border border-gray-100 flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPiNjWCWEw5tWXVyQ-8-kaZ9fvHBIomVylGWiZfL4b2o192reF4vg4nu0jtXECLmo0NgFDKNFuA4dckUqGsU1DCu-OShF94Thdd_UL1p09A1ZL5nr2qMbiAC9cogqd_HR4eWO57HXrPrSpU9X0lzToaxjAzrJNJHlG_tafwrm5ReadWfC9snYCRWtpDKG6rqKquh7_Rh1DVs3zHkDT41l2u23jszceVNfm2-DKiHV9sT_ZtRtgVdzKTpTZcLI1oN0Wuh_yTIiAQ08"/>
+</div>
+</div>
+</nav>
+<main class="max-w-6xl mx-auto px-6 py-12 space-y-10">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div>
+<nav class="flex label-14 text-gray-400 mb-2 gap-2 !font-normal">
+<span>분석 결과</span>
+<span>›</span>
+<span class="text-gray-600">인식 격차 리포트</span>
+</nav>
+<h1 class="title-32">격차 리포트</h1>
+</div>
+<div class="text-right hidden md:block">
+<p class="label-14 text-gray-400 !font-normal">AI 심층 분석 완료: 2024.05.20</p>
+</div>
+</div>
+<section class="card-token p-10 relative overflow-hidden">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
+<div class="space-y-1 border-l-4 border-primary/20 pl-6">
+<p class="label-14 text-gray-400 uppercase tracking-wider !text-[12px] !font-bold">공식 합의</p>
+<p class="subheader-24">미확정</p>
+</div>
+<div class="space-y-1 border-l-4 border-primary/20 pl-6">
+<p class="label-14 text-gray-400 uppercase tracking-wider !text-[12px] !font-bold">버전 기록</p>
+<p class="subheader-24">없음</p>
+</div>
+<div class="space-y-1 border-l-4 border-primary/20 pl-6">
+<p class="label-14 text-gray-400 uppercase tracking-wider !text-[12px] !font-bold">합의 조항</p>
+<p class="subheader-24 !text-gray-300">생성되지 않음</p>
+</div>
+</div>
+<div class="mt-10 pt-10 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+<p class="body-16">현재 팀 기준은 문서로 고정되지 않았습니다. AI가 분석한 아래의 격차를 먼저 확인하세요.</p>
+</div>
+<button class="btn-primary-pill">
+                합의안 생성하기
+                <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+</button>
+</div>
+</section>
+<section class="space-y-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">psychology</span>
+</div>
+<h2 class="subheader-24">팀 인사이트 요약</h2>
+</div>
+<div class="card-token p-12 flex flex-col items-stretch gap-10">
+<div class="flex flex-col lg:flex-row items-center gap-16">
+<div class="flex flex-col items-center shrink-0 w-[240px]">
+<div class="relative w-56 h-32 overflow-hidden flex items-end justify-center">
+<div class="absolute w-56 h-56 rounded-full gauge-semi-bg bottom-0 translate-y-1/2"></div>
+<div class="absolute w-56 h-56 rounded-full gauge-semi-fill bottom-0 translate-y-1/2"></div>
+<div class="absolute w-[180px] h-[180px] bg-white rounded-full bottom-0 translate-y-1/2 flex flex-col items-center pt-8">
+<span class="text-4xl font-extrabold text-charcoal tracking-tighter">64%</span>
+<span class="label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest mt-1">Alignment Score</span>
+</div>
+</div>
+<div class="mt-6">
+<span class="px-4 py-1.5 bg-amber-50 text-amber-600 label-14 !text-[12px] !font-bold rounded-full border border-amber-100 uppercase">주의 단계: 조율 필요</span>
+</div>
+</div>
+<div class="flex-1 space-y-6">
+<div class="inline-flex items-center gap-2 text-primary label-14 !font-bold uppercase tracking-tight">
+<span class="material-symbols-outlined text-sm">info</span>
+                        AI ANALYSIS SUMMARY
+                    </div>
+<p class="subheader-24 !font-extrabold !leading-[1.6]">
+                        전체적으로 <span class="text-primary underline decoration-primary/20 underline-offset-8">운영 방식에서는 높은 일치도</span>를 보이나, <span class="text-rose-500">의사결정권과 지분 분할</span>에 대한 근본적인 인식 차이가 확인되었습니다. 합의 세션 시작 전, 각자의 보상 기여도에 대한 명확한 대화가 권장됩니다.
+                    </p>
+<div class="flex items-center gap-3 body-16 !text-gray-400">
+<span class="material-symbols-outlined text-gray-300 text-lg">lightbulb</span>
+<span>팁: 인식 차이가 40% 이상인 항목부터 우선적으로 논의하세요.</span>
+</div>
+</div>
+</div>
+<div class="pt-10 border-t border-gray-100">
+<div class="flex items-center gap-2 mb-6">
+<span class="w-1 h-5 bg-primary rounded-full"></span>
+<h3 class="subheader-18">핵심 집중 의제</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center p-5 bg-[#F9FAFB] border border-gray-100 rounded-2xl group transition-all hover:border-primary/20">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center mr-4 shadow-sm">
+<span class="text-primary font-bold text-sm">01</span>
+</div>
+<div class="flex-1">
+<p class="body-16 !font-bold !text-charcoal">의사결정 프로세스 확립</p>
+<p class="label-14 !font-normal !text-gray-400">공동창업자 간의 결정권 충돌 방지</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div class="flex items-center p-5 bg-[#F9FAFB] border border-gray-100 rounded-2xl group transition-all hover:border-primary/20">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center mr-4 shadow-sm">
+<span class="text-primary font-bold text-sm">02</span>
+</div>
+<div class="flex-1">
+<p class="body-16 !font-bold !text-charcoal">지분 환수 조항 합의</p>
+<p class="label-14 !font-normal !text-gray-400">기여도 산정 방식의 투명한 정의</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="card-token p-12">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+<div>
+<h2 class="subheader-24 mb-2">영역별 상세 데이터 시각화 <span class="text-gray-400 font-normal text-sm ml-2">(Heatmap)</span></h2>
+<p class="body-16">팀원 간의 답변 데이터가 엇갈리는 지점을 갈등 강도별로 시각화했습니다.</p>
+</div>
+<div class="flex items-center gap-6 label-14 !text-[10px] !font-bold text-gray-400 tracking-widest bg-gray-50/50 px-4 py-2 rounded-full border border-gray-100">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 bg-accent-emerald rounded-[3px]"></div> ALIGNMENT
+                </div>
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 bg-primary rounded-[3px]"></div> CONFLICT
+                </div>
+</div>
+</div>
+<div class="max-w-sm mx-auto">
+<div class="grid grid-cols-[80px_repeat(3,1fr)] gap-2.5">
+<div></div>
+<div class="text-center pb-2 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">Operations</div>
+<div class="text-center pb-2 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">Authority</div>
+<div class="text-center pb-2 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">Role</div>
+<div class="flex items-center justify-end pr-4 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">High</div>
+<div class="aspect-square bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/10 transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-white text-[16px] font-bold">priority_high</span>
+</div>
+<div class="aspect-square bg-primary/80 rounded-lg flex items-center justify-center transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-white/90 text-[16px]">priority_high</span>
+</div>
+<div class="aspect-square bg-accent-emerald/5 rounded-lg border border-gray-50"></div>
+<div class="flex items-center justify-end pr-4 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">Moderate</div>
+<div class="aspect-square bg-primary/40 rounded-lg transition-transform hover:scale-105"></div>
+<div class="aspect-square bg-primary/20 rounded-lg transition-transform hover:scale-105"></div>
+<div class="aspect-square bg-accent-emerald/60 rounded-lg flex items-center justify-center transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-white/95 text-[16px]">check</span>
+</div>
+<div class="flex items-center justify-end pr-4 label-14 !text-[10px] !font-bold text-gray-400 uppercase tracking-widest">Low</div>
+<div class="aspect-square bg-gray-50 rounded-lg border border-gray-100"></div>
+<div class="aspect-square bg-accent-emerald/40 rounded-lg transition-transform hover:scale-105"></div>
+<div class="aspect-square bg-accent-emerald rounded-lg flex items-center justify-center shadow-lg shadow-accent-emerald/10 transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-white text-[16px] font-bold">check</span>
+</div>
+</div>
+<div class="mt-8 flex justify-center">
+<p class="label-14 !font-normal !text-gray-400">데이터 영역을 클릭하여 상세 대화 로그를 확인할 수 있습니다.</p>
+</div>
+</div>
+</section>
+<section class="card-token p-12 flex flex-col items-center text-center gap-6 !border-primary/10">
+<div class="w-14 h-14 bg-accent-purple-light rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">handshake</span>
+</div>
+<div class="space-y-3">
+<h2 class="subheader-24 !text-[28px]">합의안을 생성하고 팀 기준을 고정하세요</h2>
+<p class="body-16 max-w-2xl">
+                분석된 데이터를 바탕으로 팀의 결속력을 높일 가이드 합의 세션을 시작하세요.
+            </p>
+</div>
+<div class="pt-2">
+<button class="btn-primary-pill !px-12">합의 세션 시작하기</button>
+</div>
+</section>
+</main>
+<footer class="max-w-7xl mx-auto px-8 py-16 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gray-100 mt-10">
+<div class="flex items-center gap-2 grayscale opacity-50">
+<div class="w-6 h-6 bg-charcoal rounded flex items-center justify-center">
+<span class="text-white font-black text-xs">C</span>
+</div>
+<span class="label-14 !text-xs !font-bold">CoSync © 2024</span>
+</div>
+<div class="flex gap-8 label-14 !text-[12px] !font-bold uppercase tracking-widest !text-gray-400">
+<a class="hover:text-primary transition-colors" href="#">Personal Data Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</footer>
+
+</body></html>

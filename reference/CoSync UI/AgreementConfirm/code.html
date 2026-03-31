@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CoSync - 최종 동의 확인</title>
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-deep-purple: #4F46E5;
+            --success-emerald: #10B981;
+            --bg-neutral-gray: #F9FAFB;
+            --card-border: #E5E7EB;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --disabled-gray: #D1D5DB;
+            --divider-gray: #D1D5DB;
+        }
+        body {
+            font-family: 'NanumSquareNeo', sans-serif;
+            background-color: var(--bg-neutral-gray);
+        }
+        .unified-card {
+            background-color: #FFFFFF;
+            border: 1.5px solid var(--card-border);
+            border-radius: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+        .custom-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #D1D5DB;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .custom-checkbox:checked {
+            background-color: var(--primary-deep-purple);
+            border-color: var(--primary-deep-purple);
+        }
+        .custom-checkbox:checked::after {
+            content: 'check';
+            font-family: 'Material Symbols Outlined';
+            font-size: 16px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+        }
+        .status-badge-prominent {
+            background-color: white;
+            color: var(--primary-deep-purple);
+            padding: 8px 24px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 800;
+            border: 1.5px solid var(--primary-deep-purple);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .btn-disabled {
+            background-color: #E0E7FF;
+            color: #A5B4FC;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none !important;
+        }
+        .vertical-divider {
+            width: 1px;
+            background-color: var(--divider-gray);
+        }
+        .element-radius {
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="text-main antialiased min-h-screen flex flex-col">
+<header class="bg-white/90 backdrop-blur-md border-b border-[var(--card-border)] sticky top-0 z-50">
+<div class="max-w-[1440px] mx-auto px-10 h-20 flex items-center justify-between">
+<div class="flex items-center gap-14">
+<div class="flex items-center gap-2 text-[var(--primary-deep-purple)] font-extrabold text-2xl tracking-tight">
+<span class="material-symbols-outlined text-3xl">handshake</span>
+<span class="tracking-tighter uppercase">CoSync</span>
+</div>
+<nav class="hidden lg:flex items-center gap-10">
+<a class="text-[15px] font-bold text-[var(--primary-deep-purple)]" href="#">합의 세션</a>
+<a class="text-[15px] font-medium text-gray-400 hover:text-gray-600 transition-colors" href="#">리포트</a>
+<a class="text-[15px] font-medium text-gray-400 hover:text-gray-600 transition-colors" href="#">히스토리</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3 pr-6 border-r border-gray-200">
+<div class="text-right">
+<span class="block text-[14px] font-bold text-gray-900">황주명</span>
+<span class="block text-[11px] text-gray-400 font-bold uppercase tracking-wider">Administrator</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[13px] font-bold text-[var(--primary-deep-purple)]">JM</div>
+</div>
+<button class="text-gray-400 hover:text-gray-600 transition-colors">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-10 pt-16 pb-24 flex flex-col items-center justify-center">
+<div class="text-center mb-12 w-full">
+<div class="inline-flex items-center gap-3 mb-6 status-badge-prominent">
+            전원 확정 완료 (2/2)
+        </div>
+<h1 class="text-[36px] font-extrabold text-gray-900 leading-tight tracking-tight max-w-2xl mx-auto">
+            창업 팀 간 구조적 합의안 확정
+        </h1>
+<p class="mt-3 text-gray-500 text-lg font-medium">거버넌스 체계 구축을 위한 최종 의사결정 단계입니다.</p>
+</div>
+<div class="unified-card w-full flex overflow-hidden">
+<section class="flex-1 p-12 flex flex-col">
+<div class="flex items-start gap-3 mb-10 h-[64px]">
+<div class="w-10 h-10 element-radius bg-indigo-50 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[var(--primary-deep-purple)]">group</span>
+</div>
+<div>
+<h2 class="text-[19px] font-bold text-gray-900">참여자 확정 상태</h2>
+<p class="text-[12px] text-[var(--text-muted)] font-medium mt-1">모든 구성원 확정 완료 시 문서 생성 단계로 자동 전환됩니다.</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-6 bg-indigo-50/40 element-radius border border-[var(--primary-deep-purple)]/10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-white border border-indigo-100 flex items-center justify-center text-[var(--primary-deep-purple)] font-bold text-md shadow-sm">
+                            JM
+                        </div>
+<div>
+<div class="flex items-center gap-2 mb-0.5">
+<span class="text-[16px] font-bold text-gray-900">황주명 (나)</span>
+<span class="text-[10px] bg-indigo-100 text-[var(--primary-deep-purple)] px-2 py-0.5 element-radius font-bold uppercase tracking-wider">Founder</span>
+</div>
+<p class="text-[13px] text-gray-500 font-medium">Chief Executive Officer</p>
+</div>
+</div>
+<div class="text-right">
+<div class="flex items-center justify-end gap-1.5 text-[var(--success-emerald)] mb-0.5">
+<span class="material-symbols-outlined text-[18px] font-bold">check_circle</span>
+<span class="text-[14px] font-extrabold">확정 완료</span>
+</div>
+<p class="text-[11px] text-gray-400 font-medium tracking-tight">2024.03.21 14:30</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-6 bg-gray-50/50 element-radius border border-gray-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold text-md shadow-sm">
+                            LS
+                        </div>
+<div>
+<div class="flex items-center gap-2 mb-0.5">
+<span class="text-[16px] font-bold text-gray-900">이윤석</span>
+</div>
+<p class="text-[13px] text-gray-500 font-medium">Chief Technology Officer</p>
+</div>
+</div>
+<div class="text-right">
+<div class="flex items-center justify-end gap-1.5 text-[var(--success-emerald)] mb-0.5">
+<span class="material-symbols-outlined text-[18px] font-bold">check_circle</span>
+<span class="text-[14px] font-extrabold">확정 완료</span>
+</div>
+<p class="text-[11px] text-gray-400 font-medium tracking-tight">2024.03.21 15:12</p>
+</div>
+</div>
+</div>
+</section>
+<div class="vertical-divider my-12"></div>
+<section class="flex-1 p-12 flex flex-col">
+<div class="flex items-start gap-3 mb-10 h-[64px]">
+<div class="w-10 h-10 element-radius bg-indigo-50 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[var(--primary-deep-purple)]">verified</span>
+</div>
+<div>
+<h2 class="text-[19px] font-bold text-gray-900">최종 동의 확인</h2>
+<p class="text-[12px] text-[var(--text-muted)] font-medium mt-1">내용을 확인하고 최종 합의를 완료합니다.</p>
+</div>
+</div>
+<div class="space-y-4 mb-10">
+<label class="flex items-start gap-4 p-5 element-radius bg-white border border-gray-200 cursor-pointer hover:border-[var(--primary-deep-purple)]/40 transition-all group">
+<input class="custom-checkbox mt-0.5" type="checkbox"/>
+<span class="text-[14px] font-semibold text-gray-600 group-hover:text-gray-900 leading-relaxed transition-colors">
+                        최종 합의안 내용을 모두 검토하였으며, 내용에 이견이 없음을 확인합니다.
+                    </span>
+</label>
+<label class="flex items-start gap-4 p-5 element-radius bg-white border border-gray-200 cursor-pointer hover:border-[var(--primary-deep-purple)]/40 transition-all group">
+<input class="custom-checkbox mt-0.5" type="checkbox"/>
+<span class="text-[14px] font-semibold text-gray-600 group-hover:text-gray-900 leading-relaxed transition-colors">
+                        본 합의안을 CoSync 플랫폼 내 공식 운영 기준으로 채택하는 것에 동의합니다.
+                    </span>
+</label>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<button class="btn-disabled w-full py-4 element-radius flex items-center justify-center gap-2 font-bold transition-all">
+<span class="text-[16px] tracking-tight">최종 문서 생성하기</span>
+<span class="material-symbols-outlined text-[20px]">arrow_right_alt</span>
+</button>
+<button class="w-full bg-white text-gray-500 border-[1.5px] border-gray-200 font-bold py-4 element-radius flex items-center justify-center gap-2 hover:bg-gray-50 hover:text-gray-700 transition-all">
+<span class="text-[15px] tracking-tight">이전 단계로 돌아가서 수정하기</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+
+</body></html>
