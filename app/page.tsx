@@ -10,7 +10,7 @@ export default function LandingPage() {
     <main className="page landing-page">
       <TopNav 
         links={[
-          { label: "Why CoSync", href: "#why-cosync" },
+          { label: "Why CoSync", href: "#whycosync" },
           { label: "Key Areas", href: "#categories" },
           { label: "Preview", href: "#output" },
           { label: "FAQ", href: "#faq" }
