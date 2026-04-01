@@ -11,13 +11,15 @@ export function TopNav({
   active,
   rightLabel,
   rightName,
-  showBell
+  showBell,
+  hideAuthLinks
 }: {
   links: { label: string; href: string }[];
   active?: string;
   rightLabel?: string;
   rightName?: string;
   showBell?: boolean;
+  hideAuthLinks?: boolean;
 }) {
   const { user } = useAuth();
   const isAuthed = Boolean(user);
@@ -57,14 +59,14 @@ export function TopNav({
                 로그아웃
               </button>
             </>
-          ) : (
+          ) : !hideAuthLinks ? (
             <div className="auth-links">
               <Link href="/login">로그인</Link>
               <Link className="auth-primary" href="/register">
                 회원가입
               </Link>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

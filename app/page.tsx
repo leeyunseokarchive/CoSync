@@ -8,7 +8,15 @@ import { Footer } from "../components/Footer";
 export default function LandingPage() {
   return (
     <main className="page landing-page">
-      <TopNav links={[]} />
+      <TopNav 
+        links={[
+          { label: "Why CoSync", href: "#why-cosync" },
+          { label: "Key Areas", href: "#categories" },
+          { label: "Preview", href: "#output" },
+          { label: "FAQ", href: "#faq" }
+        ]} 
+        hideAuthLinks={true} 
+      />
 
       {/* 1. Hero */}
       <section className="section hero-section">
@@ -47,7 +55,7 @@ export default function LandingPage() {
       </section>
 
       {/* 1.5 Empathy Section */}
-      <section className="section" style={{ backgroundColor: "#ffffff" }}>
+      <section id="why-cosync" className="section" style={{ backgroundColor: "#ffffff" }}>
         <div className="container">
           <div className="section-header animate-fade-up">
             <h2 className="section-title">
@@ -78,7 +86,7 @@ export default function LandingPage() {
         </div>
       </section>
       {/* 2. Problem */}
-      <section className="section bg-soft">
+      <section id="why" className="section bg-soft">
         <div className="container">
           <div className="section-header animate-fade-up">
             <h2 className="section-title">
@@ -207,7 +215,7 @@ export default function LandingPage() {
       </section>
 
       {/* 5. Core Categories */}
-      <section className="section">
+      <section id="categories" className="section">
         <div className="container">
           <div className="section-header animate-fade-up">
             <h2 className="section-title">공동창업 전에 반드시 정리해야 할 핵심 기준</h2>
@@ -246,7 +254,7 @@ export default function LandingPage() {
       </section>
 
       {/* 6. Final Output */}
-      <section className="section bg-dark">
+      <section id="output" className="section bg-dark">
         <div className="container">
           <div className="split-layout">
             <div className="section-header dark animate-fade-up text-left" style={{ margin: 0 }}>
@@ -315,7 +323,7 @@ export default function LandingPage() {
       </section>
 
       {/* 8. FAQ */}
-      <section className="section">
+      <section id="faq" className="section">
         <div className="container faq-container animate-fade-up">
           <h2 className="section-title text-center mb-8">자주 묻는 질문</h2>
           
@@ -351,7 +359,7 @@ export default function LandingPage() {
           <Link href="/onboarding" className="btn btn-primary btn-lg">
             지금 우리 팀 기준 맞추기 시작하기
           </Link>
-          <p className="cta-hint mt-4">🔒 가입 없이 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>
+          <p className="cta-hint mt-4">🔒 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>
         </div>
       </section>
 
