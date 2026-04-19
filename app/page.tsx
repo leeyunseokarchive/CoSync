@@ -86,38 +86,111 @@ export default function LandingPage() {
         </div>
       </section>
       {/* 2. Problem */}
-      <section id="why" className="section bg-soft">
+      <section id="why" className="section bg-soft" style={{ position: 'relative', zIndex: 1, paddingBottom: '96px' }}>
         <div className="container">
           <div className="section-header animate-fade-up">
             <h2 className="section-title">
-              공동창업의 문제는<br />
-              서로 다른 기준에서 시작됩니다.
+              공동창업 갈등은 감정 문제가 아니라<br />
+              <span className="accent">기준 불일치가 만든 리스크</span>입니다.
             </h2>
-            <p className="section-sub">
-              초기 팀은 빠른 실행에 집중하느라 정작 중요한 운영 기준 합의는 뒤로 미루곤 합니다.
-              <br />
-              합의된 기준이 없다면, 중요한 순간마다 해석 차이와 불필요한 재논의가 반복됩니다.
-              <br />
-              <strong style={{ color: "var(--brand)" }}>진짜 문제는 갈등 자체가 아니라, 명확한 기준 없이 팀이 운영된다는 점입니다.</strong>
+            <p className="section-sub" style={{ marginTop: '16px' }}>
+              이 문제는 단순한 성격 차이로 시작하지 않습니다.<br />
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>기준이 맞지 않으면 갈등은 실제 비용으로 번질 수 있습니다.</strong>
             </p>
           </div>
 
-          <div className="grid-3 animate-fade-up delay-1">
-            <div className="card feature-card">
-              <div className="card-icon alert-icon">✕</div>
-              <h4>역할 기준이 없으면</h4>
-              <p>업무 범위와 책임 해석이 엇갈립니다</p>
+          <div className="conflict-flow animate-fade-up delay-1" style={{ margin: '56px auto 64px', maxWidth: '760px' }}>
+            <div className="flow-grid-override" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '16px', alignItems: 'center' }}>
+              <div style={{ background: '#fff', border: '1px solid #edf0f7', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 600, color: 'var(--ink)', boxShadow: '0 4px 20px rgba(29,35,63,0.02)', fontSize: '15.5px' }}>
+                방향성 차이
+              </div>
+              <div style={{ color: '#c0c6d4', display: 'flex', justifyContent: 'center' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #edf0f7', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 600, color: 'var(--ink)', boxShadow: '0 4px 20px rgba(29,35,63,0.02)', fontSize: '15.5px' }}>
+                권한 충돌
+              </div>
+              <div style={{ color: '#c0c6d4', display: 'flex', justifyContent: 'center' }}>
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </div>
+              <div style={{ background: 'rgba(239, 68, 68, 0.04)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 700, color: '#e45b5b', boxShadow: '0 4px 20px rgba(239,68,68,0.04)', fontSize: '15.5px' }}>
+                분리 비용 발생
+              </div>
             </div>
-            <div className="card feature-card delay-1">
-              <div className="card-icon alert-icon">✕</div>
-              <h4>보상 기준이 없으면</h4>
-              <p>지분과 기여에 대한 재논의가 반복됩니다</p>
+            
+            <style dangerouslySetInnerHTML={{__html: `
+              @media (max-width: 768px) {
+                .flow-grid-override {
+                  grid-template-columns: 1fr !important;
+                  gap: 12px !important;
+                }
+                .flow-grid-override > div:nth-child(even) svg {
+                  transform: rotate(90deg);
+                }
+                .bottom-conclusion-box {
+                  flex-direction: column !important;
+                  text-align: center !important;
+                }
+              }
+            `}} />
+          </div>
+
+          <div className="animate-fade-up delay-2" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+            gap: '24px', 
+            marginBottom: '48px',
+            maxWidth: '860px',
+            margin: '0 auto 48px'
+          }}>
+            <div className="card" style={{ padding: '48px 32px', textAlign: 'center', background: '#fff', border: '1px solid #edf0f7', borderRadius: '24px', boxShadow: '0 12px 36px rgba(29,35,63,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '170px', height: '170px', borderRadius: '50%', background: 'conic-gradient(var(--brand) 0% 71%, #f1f3f9 71% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.06)' }} />
+                <div style={{ width: '130px', height: '130px', background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                  <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--brand)', lineHeight: 1, letterSpacing: '-1.5px', transform: 'translateX(2px)' }}>
+                    71<span style={{ fontSize: '24px', color: 'var(--muted)', letterSpacing: '0' }}>%</span>
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontSize: '16px', color: 'var(--ink)', margin: 0, wordBreak: 'keep-all', lineHeight: 1.85 }}>
+                결별을 겪은 공동창업자 응답자들은<br/>
+                <span style={{ background: 'rgba(91,91,231,0.08)', color: 'var(--brand)', padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '15.5px' }}>회사 방향성 차이</span>를<br/>
+                핵심 원인으로 꼽았습니다.
+              </p>
             </div>
-            <div className="card feature-card delay-2">
-              <div className="card-icon alert-icon">✕</div>
-              <h4>이탈 기준이 없으면</h4>
-              <p>누군가 팀을 떠날 때 남은 사람과 떠나는 사람 모두가 피해를 봅니다.</p>
+            
+            <div className="card delay-1" style={{ padding: '48px 32px', textAlign: 'center', background: '#fff', border: '1px solid #edf0f7', borderRadius: '24px', boxShadow: '0 12px 36px rgba(29,35,63,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '170px', height: '170px', borderRadius: '50%', background: 'conic-gradient(var(--brand) 0% 43%, #f1f3f9 43% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.06)' }} />
+                <div style={{ width: '130px', height: '130px', background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                  <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--brand)', lineHeight: 1, letterSpacing: '-1.5px', transform: 'translateX(2px)' }}>
+                    43<span style={{ fontSize: '24px', color: 'var(--muted)', letterSpacing: '0' }}>%</span>
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontSize: '16px', color: 'var(--ink)', margin: 0, wordBreak: 'keep-all', lineHeight: 1.85 }}>
+                <span style={{ background: 'rgba(91,91,231,0.08)', color: 'var(--brand)', padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '15.5px' }}>권력다툼과 내부 갈등</span> 때문에<br/>
+                공동창업자 바이아웃을<br/>
+                겪었다고 답했습니다.
+              </p>
             </div>
+          </div>
+
+          <div className="animate-fade-up delay-3 bottom-conclusion-box" style={{ 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px',
+            margin: '0 auto', padding: '0 20px'
+          }}>
+             <div style={{ width: '42px', height: '42px', background: 'rgba(239, 68, 68, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e45b5b', flexShrink: 0 }}>
+               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+             </div>
+             <div style={{ textAlign: 'left' }}>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 4px 0' }}>
+                  합의되지 않은 기준은 단순한 의견 차이가 아니라 <span style={{ color: '#e45b5b' }}>실제 분리 비용 신호</span>입니다.
+                </p>
+                <p style={{ fontSize: '13.5px', color: 'var(--muted)', margin: 0 }}>
+                  출처: Fuel Ventures 인용 창업자 조사
+                </p>
+             </div>
           </div>
         </div>
       </section>
@@ -146,9 +219,9 @@ export default function LandingPage() {
                 <div className="bubble right animate-fade-up delay-4">“지속 가능하게 가려면 근무 강도와 방식부터 맞춰야 하지 않나?”<span className="tiny-speaker">B</span></div>
               </div>
               <div className="empathy-column delay-2">
-                <div className="badge-wrapper"><span className="badge">이탈 기준</span></div>
-                <div className="bubble left animate-fade-up delay-3"><span className="tiny-speaker">A</span>“중간에 나가면 지분은 다시 정리해야 하는 것 아닌가?”</div>
-                <div className="bubble right animate-fade-up delay-4">“그동안의 기여가 있는데 아무 권리도 남지 않는 건 이상하지 않나?”<span className="tiny-speaker">B</span></div>
+                <div className="badge-wrapper"><span className="badge">저작권 귀속 기준</span></div>
+                <div className="bubble left animate-fade-up delay-3"><span className="tiny-speaker">A</span>“법인 설립 전 혼자 만든 작업물인데, 당연히 개인 소유로 남아야 하지 않나?”</div>
+                <div className="bubble right animate-fade-up delay-4">“서비스의 핵심 자산인데, 법인에 온전히 귀속시켜야 나중에 문제가 없지 않나?”<span className="tiny-speaker">B</span></div>
               </div>
             </div>
             <p className="empathy-closing animate-fade-up delay-4">
