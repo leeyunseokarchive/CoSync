@@ -2851,6 +2851,11 @@ button {
   color: transparent;
 }
 
+.motion-headline {
+  animation: heroHeadlineDrift 7s ease-in-out infinite;
+  transform-origin: center top;
+}
+
 .hero-sub {
   font-size: clamp(16px, 2vw, 18px);
   color: var(--muted);
@@ -2876,6 +2881,10 @@ button {
   font-size: 13px;
   color: var(--teal);
   font-weight: 600;
+}
+
+.motion-cta {
+  animation: ctaPulse 3.4s ease-in-out infinite;
 }
 
 /* Grid Layouts */
@@ -3244,6 +3253,23 @@ button {
   100% { transform: translateY(0px); }
 }
 
+@keyframes heroHeadlineDrift {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes ctaPulse {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 12px 24px rgba(92, 92, 231, 0.25);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(92, 92, 231, 0.32);
+  }
+}
+
 @media (max-width: 768px) {
   .thought-card {
     font-size: 13.5px;
@@ -3408,6 +3434,16 @@ button {
 .delay-2 { animation-delay: 0.3s; }
 .delay-3 { animation-delay: 0.5s; }
 .delay-4 { animation-delay: 0.7s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .motion-headline,
+  .motion-cta,
+  .thought-card {
+    animation: none !important;
+    transform: none !important;
+  }
+}
 
 /* Interactive Hover States */
 .feature-card, .category-card, .empathy-card, .step-item {

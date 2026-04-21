@@ -1,9 +1,122 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { TopNav } from "../components/TopNav";
 import { Footer } from "../components/Footer";
+
+function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: number }) {
+  const ringRef = useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = ringRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.45
+      }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) {
+      setProgress(0);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (mediaQuery.matches) {
+      setProgress(value);
+      return;
+    }
+
+    let frameId = 0;
+    let timeoutId = 0;
+
+    timeoutId = window.setTimeout(() => {
+      const start = performance.now();
+      const duration = 1200;
+
+      const tick = (now: number) => {
+        const elapsed = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - elapsed, 3);
+        setProgress(value * eased);
+
+        if (elapsed < 1) {
+          frameId = window.requestAnimationFrame(tick);
+        }
+      };
+
+      frameId = window.requestAnimationFrame(tick);
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [delayMs, isVisible, value]);
+
+  const displayValue = Math.round(progress);
+  const fill = progress.toFixed(1);
+
+  return (
+    <div
+      ref={ringRef}
+      style={{
+        position: "relative",
+        width: "170px",
+        height: "170px",
+        borderRadius: "50%",
+        background: `conic-gradient(var(--brand) 0% ${fill}%, #f1f3f9 ${fill}% 100%)`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: "32px"
+      }}
+    >
+      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", boxShadow: "inset 0 4px 10px rgba(0,0,0,0.06)" }} />
+      <div
+        style={{
+          width: "130px",
+          height: "130px",
+          background: "#fff",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.06)"
+        }}
+      >
+        <div
+          style={{
+            fontSize: "48px",
+            fontWeight: 800,
+            color: "var(--brand)",
+            lineHeight: 1,
+            letterSpacing: "-1.5px",
+            transform: "translateX(2px)"
+          }}
+        >
+          {displayValue}
+          <span style={{ fontSize: "24px", color: "var(--muted)", letterSpacing: "0" }}>%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
@@ -25,7 +138,7 @@ export default function LandingPage() {
             <span className="pill hero-pill">
               공동창업팀의 운영 기준과 권리관계를 정리하는 합의 워크플로우
             </span>
-            <h1 className="hero-title">
+            <h1 className="hero-title motion-headline">
               지분 나누기 전에, <br />
               <span className="accent">기준부터 정리하세요</span>
             </h1>
@@ -35,7 +148,7 @@ export default function LandingPage() {
               CoSync는 공동창업자 간 기준 차이를 비교하고, 팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
             </p>
             <div className="hero-actions">
-              <Link href="/onboarding" className="btn btn-primary btn-lg">
+              <Link href="/onboarding" className="btn btn-primary btn-lg motion-cta">
                 우리 팀 기준 차이 확인하기
               </Link>
               <div className="hero-hint">✓ 현재 38개 이상 창업팀 대기 중</div>
@@ -107,14 +220,7 @@ export default function LandingPage() {
             margin: '56px auto 48px'
           }}>
             <div className="card" style={{ padding: '48px 32px', textAlign: 'center', background: '#fff', border: '1px solid #edf0f7', borderRadius: '24px', boxShadow: '0 12px 36px rgba(29,35,63,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: '170px', height: '170px', borderRadius: '50%', background: 'conic-gradient(var(--brand) 0% 71%, #f1f3f9 71% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.06)' }} />
-                <div style={{ width: '130px', height: '130px', background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                  <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--brand)', lineHeight: 1, letterSpacing: '-1.5px', transform: 'translateX(2px)' }}>
-                    71<span style={{ fontSize: '24px', color: 'var(--muted)', letterSpacing: '0' }}>%</span>
-                  </div>
-                </div>
-              </div>
+              <AnimatedStatRing value={71} />
               <p style={{ fontSize: '16px', color: 'var(--ink)', margin: 0, wordBreak: 'keep-all', lineHeight: 1.85 }}>
                 결별을 겪은 공동창업자 응답자들은<br/>
                 <span style={{ background: 'rgba(91,91,231,0.08)', color: 'var(--brand)', padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '15.5px' }}>회사 방향성 차이</span>를<br/>
@@ -123,14 +229,7 @@ export default function LandingPage() {
             </div>
             
             <div className="card delay-1" style={{ padding: '48px 32px', textAlign: 'center', background: '#fff', border: '1px solid #edf0f7', borderRadius: '24px', boxShadow: '0 12px 36px rgba(29,35,63,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: '170px', height: '170px', borderRadius: '50%', background: 'conic-gradient(var(--brand) 0% 43%, #f1f3f9 43% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.06)' }} />
-                <div style={{ width: '130px', height: '130px', background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                  <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--brand)', lineHeight: 1, letterSpacing: '-1.5px', transform: 'translateX(2px)' }}>
-                    43<span style={{ fontSize: '24px', color: 'var(--muted)', letterSpacing: '0' }}>%</span>
-                  </div>
-                </div>
-              </div>
+              <AnimatedStatRing value={43} delayMs={180} />
               <p style={{ fontSize: '16px', color: 'var(--ink)', margin: 0, wordBreak: 'keep-all', lineHeight: 1.85 }}>
                 <span style={{ background: 'rgba(91,91,231,0.08)', color: 'var(--brand)', padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '15.5px' }}>권력다툼과 내부 갈등</span> 때문에<br/>
                 공동창업자 바이아웃을<br/>
@@ -349,7 +448,7 @@ export default function LandingPage() {
             </div>
             <div className="diff-item delay-2">
               <h4>법률 서비스가 아닙니다</h4>
-              <p>다만 실제 법률 전문가 자문을 바탕으로, 공동창업팀의 핵심 쟁점을 반영해 설계했습니다.</p>
+              <p>다만 법률 전문가 자문을 바탕으로, 공동창업팀 핵심 쟁점을 반영해 설계했습니다.</p>
             </div>
           </div>
           <p className="diff-closing animate-fade-up delay-3">
