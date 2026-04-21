@@ -15,7 +15,7 @@ type Team = {
   stage?: string;
   progress?: number;
   gapCount?: number;
-  gapScore?: "LOW" | "MID" | "HIGH";
+  gapScore?: "LOW" | "MID" | "HIGH" | "CRITICAL";
   status?: string;
 };
 

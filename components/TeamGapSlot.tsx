@@ -6,7 +6,7 @@ import { useTeamMembers } from "./useTeamMembers";
 type Team = {
   id: string;
   gapCount?: number;
-  gapScore?: "LOW" | "MID" | "HIGH";
+  gapScore?: "LOW" | "MID" | "HIGH" | "CRITICAL";
 };
 
 export function TeamGapSlot({ team }: { team: Team }) {

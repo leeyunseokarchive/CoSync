@@ -4,34 +4,15 @@ import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 
+import type { OnboardingAnswers } from "../lib/gap";
+
 type TeamMember = {
   id: string;
   name: string;
   role: string;
   status: string;
   progress: number;
-  answers?: {
-    decisionStructure?: string;
-    decisionConfirmation?: string;
-    deadlockRepeat?: string;
-    deadlockDays?: string;
-    extraWorkPrinciple?: string;
-    extraWorkPriority?: string;
-    motivationChoices?: string[];
-    workType?: string;
-    boundaryTasks?: string[];
-    allocationRule?: string;
-    burdenTasks?: string[];
-    conflictRepeat?: string;
-    conflictWeeks?: string;
-    agendaOwners?: Record<string, { lead: string; approver: string }>;
-    customAgendaName?: string;
-    customAgendaOwner?: { lead: string; approver: string };
-    exitRecoveryItems?: string[];
-    handoverMethod?: string;
-    exitCleanupHours?: string;
-    exitCleanupDays?: string;
-  };
+  answers?: OnboardingAnswers;
 };
 
 export function useTeamMembers(teamId: string | undefined) {

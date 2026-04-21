@@ -5,7 +5,7 @@ import Link from "next/link";
 type Team = {
   id: string;
   gapCount?: number;
-  gapScore?: "LOW" | "MID" | "HIGH";
+  gapScore?: "LOW" | "MID" | "HIGH" | "CRITICAL";
   progress?: number;
 };
 
@@ -13,7 +13,7 @@ export function TeamGapCard({ team }: { team: Team }) {
   if ((team.progress ?? 0) < 100) return null;
   const gapCount = team.gapCount ?? 0;
   const gapScore = team.gapScore ?? "LOW";
-  const scoreLabel = gapScore === "HIGH" ? "HIGH" : gapScore === "MID" ? "MID" : "LOW";
+  const scoreLabel = gapScore === "CRITICAL" ? "CRITICAL" : gapScore === "HIGH" ? "HIGH" : gapScore === "MID" ? "MID" : "LOW";
 
   return (
     <div className="card gap-mini">

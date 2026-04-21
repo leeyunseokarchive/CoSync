@@ -47,7 +47,7 @@ export default function GapReportPage() {
       a: (typeof members)[number];
       b: (typeof members)[number];
       gapCount: number;
-      gapScore: "LOW" | "MID" | "HIGH";
+      gapScore: "LOW" | "MID" | "HIGH" | "CRITICAL";
     }>;
     const creatorMember = members.find((member) => member.id === teamCreator);
     if (!creatorMember) return [];
@@ -107,102 +107,102 @@ export default function GapReportPage() {
     const left = selectedPair.a.answers ?? {};
     const right = selectedPair.b.answers ?? {};
 
-    const formatDeadlock = (answers: typeof left) => {
-      if (answers.deadlockRepeat || answers.deadlockDays) {
-        return `동일 안건 ${answers.deadlockRepeat || 0}회 또는 ${answers.deadlockDays || 0}일 경과`;
-      }
-      return "미입력";
-    };
-    const formatConflict = (answers: typeof left) => {
-      if (answers.conflictRepeat || answers.conflictWeeks) {
-        return `동일 문제 ${answers.conflictRepeat || 0}회 또는 ${answers.conflictWeeks || 0}주`;
-      }
-      return "미입력";
-    };
-    const formatExitCleanup = (answers: typeof left) => {
-      if (answers.exitCleanupHours || answers.exitCleanupDays) {
-        return `이탈 확정 후 ${answers.exitCleanupHours || 0}시간 또는 ${answers.exitCleanupDays || 0}일 이내`;
-      }
-      return "미입력";
-    };
-    const joinList = (list?: string[]) => (list && list.length ? list.join(", ") : "미입력");
-
     return [
       {
-        id: "decision-structure",
-        label: "결정 구조",
+        id: "q1",
+        label: "의사결정 구조",
         conflict: (left.decisionStructure ?? "") !== (right.decisionStructure ?? ""),
         leftValue: left.decisionStructure || "미입력",
         rightValue: right.decisionStructure || "미입력",
-        insight: "의사결정 구조가 다르면 책임 배분과 실행 속도에서 마찰이 생길 수 있습니다."
+        insight: "의사결정 시스템에 대한 관점 차이입니다. 권한과 자율성에 대한 철학이 다릅니다."
       },
       {
-        id: "decision-confirm",
-        label: "확정 방식",
-        conflict: (left.decisionConfirmation ?? "") !== (right.decisionConfirmation ?? ""),
-        leftValue: left.decisionConfirmation || "미입력",
-        rightValue: right.decisionConfirmation || "미입력",
-        insight: "안건 확정 방식이 다르면 승인 루트가 달라져 충돌이 발생할 수 있습니다."
+        id: "q2",
+        label: "실패 대처",
+        conflict: (left.decisionFailure ?? "") !== (right.decisionFailure ?? ""),
+        leftValue: left.decisionFailure || "미입력",
+        rightValue: right.decisionFailure || "미입력",
+        insight: "실패의 리스크를 대하는 태도 차이입니다. 회사 자산과 기회비용 인식에서 갈등이 시작될 수 있습니다."
       },
       {
-        id: "deadlock",
-        label: "교착 기준",
-        conflict: formatDeadlock(left) !== formatDeadlock(right),
-        leftValue: formatDeadlock(left),
-        rightValue: formatDeadlock(right),
-        insight: "교착 기준이 다르면 합의 시점이 달라져 실행 우선순위가 어긋날 수 있습니다."
+        id: "q3",
+        label: "50:50 결단",
+        conflict: (left.actionVsConsensus ?? "") !== (right.actionVsConsensus ?? ""),
+        leftValue: left.actionVsConsensus || "미입력",
+        rightValue: right.actionVsConsensus || "미입력",
+        insight: "교착 상태에서 총대를 메는 방식에 대한 이견입니다. 강행과 타협 사이에서 감정이 상할 수 있습니다."
       },
       {
-        id: "work-principle",
-        label: "업무 처리 원칙",
+        id: "q4",
+        label: "교착 시간 인내",
+        conflict: (left.deadlockTolerance ?? "") !== (right.deadlockTolerance ?? ""),
+        leftValue: left.deadlockTolerance || "미입력",
+        rightValue: right.deadlockTolerance || "미입력",
+        insight: "시간에 대한 민감도(Urgency) 갭입니다. 업무 지연을 대하는 스트레스 임계점이 다릅니다."
+      },
+      {
+        id: "q5",
+        label: "회색지대 분담",
         conflict: (left.extraWorkPrinciple ?? "") !== (right.extraWorkPrinciple ?? ""),
         leftValue: left.extraWorkPrinciple || "미입력",
         rightValue: right.extraWorkPrinciple || "미입력",
-        insight: "추가 업무 처리 원칙이 다르면 역할 기대치가 흔들릴 수 있습니다."
+        insight: "추가 업무를 떠맡는 책임 윤리가 다릅니다. 이른바 '설거지' 업무에서 핑퐁 치며 번아웃이 유발될 수 있습니다."
       },
       {
-        id: "work-priority",
-        label: "업무 우선 기준",
-        conflict:
-          `${left.extraWorkPriority ?? ""}|${left.allocationRule ?? ""}|${left.workType ?? ""}` !==
-          `${right.extraWorkPriority ?? ""}|${right.allocationRule ?? ""}|${right.workType ?? ""}`,
-        leftValue: [left.extraWorkPriority, left.allocationRule, left.workType].filter(Boolean).join(" / ") || "미입력",
-        rightValue: [right.extraWorkPriority, right.allocationRule, right.workType].filter(Boolean).join(" / ") || "미입력",
-        insight: "업무 분배 기준이 다르면 공정성 인식과 책임 범위에서 갈등이 생길 수 있습니다."
+        id: "q6",
+        label: "기피 업무 배정",
+        conflict: (left.extraWorkPriority ?? "") !== (right.extraWorkPriority ?? ""),
+        leftValue: left.extraWorkPriority || "미입력",
+        rightValue: right.extraWorkPriority || "미입력",
+        insight: "효율주의냐 평등주의냐의 극렬한 충돌 포인트입니다."
       },
       {
-        id: "role-boundary",
-        label: "역할 경계/부담",
-        conflict:
-          `${joinList(left.boundaryTasks)}|${joinList(left.burdenTasks)}|${joinList(left.motivationChoices)}|${formatConflict(left)}` !==
-          `${joinList(right.boundaryTasks)}|${joinList(right.burdenTasks)}|${joinList(right.motivationChoices)}|${formatConflict(right)}`,
-        leftValue: `${joinList(left.boundaryTasks)} / ${joinList(left.burdenTasks)} / ${formatConflict(left)}`,
-        rightValue: `${joinList(right.boundaryTasks)} / ${joinList(right.burdenTasks)} / ${formatConflict(right)}`,
-        insight: "역할 경계 인식이 다르면 반복 업무에서 부담이 편중될 수 있습니다."
+        id: "q7",
+        label: "퍼포먼스 조치",
+        conflict: (left.underperformanceAction ?? "") !== (right.underperformanceAction ?? ""),
+        leftValue: left.underperformanceAction || "미입력",
+        rightValue: right.underperformanceAction || "미입력",
+        insight: "가장 치명적인 리스크입니다. 역량 부족 파운더를 단호하게 쳐낼지, 의리로 끌고 갈 것인지에 대한 지분 소송의 불씨입니다."
       },
       {
-        id: "exit-recover",
-        label: "회수·정리 항목",
-        conflict: joinList(left.exitRecoveryItems) !== joinList(right.exitRecoveryItems),
-        leftValue: joinList(left.exitRecoveryItems),
-        rightValue: joinList(right.exitRecoveryItems),
-        insight: "이탈 시 회수 항목이 다르면 권한 공백이나 자산 유실 위험이 생깁니다."
+        id: "q8",
+        label: "근무/근태 관리",
+        conflict: (left.workstyleConstraint ?? "") !== (right.workstyleConstraint ?? ""),
+        leftValue: left.workstyleConstraint || "미입력",
+        rightValue: right.workstyleConstraint || "미입력",
+        insight: "라이프스타일과 근태 통제를 바라보는 시각 차이입니다. 무음의 신뢰 하락을 가져옵니다."
       },
       {
-        id: "handover",
-        label: "인수인계 방식",
+        id: "q9",
+        label: "이탈 업무 인수인계",
         conflict: (left.handoverMethod ?? "") !== (right.handoverMethod ?? ""),
         leftValue: left.handoverMethod || "미입력",
         rightValue: right.handoverMethod || "미입력",
-        insight: "인수인계 방식이 다르면 업무 공백 기간이 길어질 수 있습니다."
+        insight: "이별의 순간 윤리에 대한 시각차입니다. 최악의 상황 시 회사의 자원을 악의적으로 방치할 가능성을 봅니다."
       },
       {
-        id: "cleanup",
-        label: "권한 정리 기한",
-        conflict: formatExitCleanup(left) !== formatExitCleanup(right),
-        leftValue: formatExitCleanup(left),
-        rightValue: formatExitCleanup(right),
-        insight: "정리 기한이 다르면 리스크 대응 속도와 책임 범위에서 충돌이 발생합니다."
+        id: "q10",
+        label: "우선 정리 권한",
+        conflict: (left.exitRecoveryPriority ?? "") !== (right.exitRecoveryPriority ?? ""),
+        leftValue: left.exitRecoveryPriority || "미입력",
+        rightValue: right.exitRecoveryPriority || "미입력",
+        insight: "무엇이 회사 운영의 핵심 리스크인지에 대한 판단 차이입니다. 결과물, 관리자 권한, 운영 정보, 커뮤니케이션 채널 중 무엇을 먼저 통제할지 기준이 갈립니다."
+      },
+      {
+        id: "q11",
+        label: "권한 차단 타이밍",
+        conflict: (left.exitCleanupTiming ?? "") !== (right.exitCleanupTiming ?? ""),
+        leftValue: left.exitCleanupTiming || "미입력",
+        rightValue: right.exitCleanupTiming || "미입력",
+        insight: "보안 위협의 당장 차단과 서류상 절차 유예의 심각한 대립 포인트입니다."
+      },
+      {
+        id: "q12",
+        label: "이탈 시 지분 정리",
+        conflict: (left.exitDisputeResolution ?? "") !== (right.exitDisputeResolution ?? ""),
+        leftValue: left.exitDisputeResolution || "미입력",
+        rightValue: right.exitDisputeResolution || "미입력",
+        insight: "이미 약속된 권리를 어디까지 인정할지, 남은 기여와 책임을 얼마나 반영할지에 대한 차이입니다. 공동창업자 이탈 시 가장 민감한 갈등 포인트가 될 수 있습니다."
       }
     ];
   }, [selectedPair]);
@@ -222,9 +222,9 @@ export default function GapReportPage() {
     const memberAnswers = members.map((member) => member.answers ?? {});
     const { gapCount, gapScore } = computeGapSummary(memberAnswers);
     const counts = {
-      decision: issues.slice(0, 3).filter((issue) => issue.conflict).length,
-      role: issues.slice(3, 6).filter((issue) => issue.conflict).length,
-      exit: issues.slice(6, 9).filter((issue) => issue.conflict).length
+      decision: issues.slice(0, 4).filter((issue) => issue.conflict).length,
+      role: issues.slice(4, 8).filter((issue) => issue.conflict).length,
+      exit: issues.slice(8, 12).filter((issue) => issue.conflict).length
     };
     const sorted = [
       { key: "decision", label: "의사결정/권한", count: counts.decision },
@@ -235,6 +235,7 @@ export default function GapReportPage() {
     const second = sorted[1];
 
     const leadSentence = (() => {
+      if (gapScore === "CRITICAL") return "팀 와해로 이어질 수 있는 치명적인 인식 차이가 존재합니다!";
       if (gapScore === "HIGH") return "합의 기준에서 차이가 크게 확인됩니다.";
       if (gapScore === "MID") return "전반적인 기준은 맞아가고 있으나 일부 영역에서 차이가 보입니다.";
       return "합의 기준이 전반적으로 잘 맞습니다.";
@@ -253,6 +254,7 @@ export default function GapReportPage() {
   }, [members, issues]);
 
   const alignmentScore = useMemo(() => {
+    if (teamInsight.gapScore === "CRITICAL") return 15;
     if (teamInsight.gapScore === "HIGH") return 42;
     if (teamInsight.gapScore === "MID") return 64;
     return 86;
@@ -358,6 +360,7 @@ export default function GapReportPage() {
                   </div>
                 </div>
                 <div className={`score-pill ${teamInsight.gapScore.toLowerCase()}`}>
+                  {teamInsight.gapScore === "CRITICAL" && "위험 단계: 즉시 조율 필요"}
                   {teamInsight.gapScore === "HIGH" && "주의 단계: 조율 필요"}
                   {teamInsight.gapScore === "MID" && "점검 단계: 조율 필요"}
                   {teamInsight.gapScore === "LOW" && "안정 단계: 양호"}

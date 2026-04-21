@@ -210,18 +210,18 @@ export default function LandingPage() {
             <div className="grid-3 empathy-cardless-grid">
               <div className="empathy-column">
                 <div className="badge-wrapper"><span className="badge">기여 기준</span></div>
-                <div className="bubble left animate-fade-up delay-1"><span className="tiny-speaker">A</span>“내가 영업과 운영을 다 맡고 있는데, 기여도가 더 큰 것 아닌가?”</div>
-                <div className="bubble right animate-fade-up delay-3">“제품이 없으면 아무것도 진행되지 않는데, 개발 기여가 더 핵심 아닌가?”<span className="tiny-speaker">B</span></div>
+                <div className="bubble left animate-fade-up delay-1"><span className="tiny-speaker">A</span>“영업과 운영을 다 맡고 있는데,<br />내 기여도가 더 커야 하지 않나?”</div>
+                <div className="bubble right animate-fade-up delay-3">“제품 없인 진행도 안 되는데,<br />개발 기여가 더 핵심 아닐까?”<span className="tiny-speaker">B</span></div>
               </div>
               <div className="empathy-column delay-1">
                 <div className="badge-wrapper"><span className="badge">근무 기준</span></div>
-                <div className="bubble left animate-fade-up delay-2"><span className="tiny-speaker">A</span>“초기에는 풀타임으로 몰입하는 게 당연하지 않나?”</div>
-                <div className="bubble right animate-fade-up delay-4">“지속 가능하게 가려면 근무 강도와 방식부터 맞춰야 하지 않나?”<span className="tiny-speaker">B</span></div>
+                <div className="bubble left animate-fade-up delay-2"><span className="tiny-speaker">A</span>“초기엔 다 같이 풀타임으로<br />몰입하는 게 당연하지 않나?”</div>
+                <div className="bubble right animate-fade-up delay-4">“지속 가능하려면 근무 강도와<br />방식부터 맞춰야 하지 않나?”<span className="tiny-speaker">B</span></div>
               </div>
               <div className="empathy-column delay-2">
                 <div className="badge-wrapper"><span className="badge">저작권 귀속 기준</span></div>
-                <div className="bubble left animate-fade-up delay-3"><span className="tiny-speaker">A</span>“법인 설립 전 혼자 만든 작업물인데, 당연히 개인 소유로 남아야 하지 않나?”</div>
-                <div className="bubble right animate-fade-up delay-4">“서비스의 핵심 자산인데, 법인에 온전히 귀속시켜야 나중에 문제가 없지 않나?”<span className="tiny-speaker">B</span></div>
+                <div className="bubble left animate-fade-up delay-3"><span className="tiny-speaker">A</span>“법인 설립 전에 내가 만든 건데,<br />내 소유로 남아야하는 거 아닌가?”</div>
+                <div className="bubble right animate-fade-up delay-4">“서비스 핵심 자산이니, 법인에<br />귀속해야 나중에 문제 없지!”<span className="tiny-speaker">B</span></div>
               </div>
             </div>
             <p className="empathy-closing animate-fade-up delay-4">

@@ -25,25 +25,17 @@ export default function WorkspaceHubPage() {
     role,
     progress,
     decisionStructure,
-    decisionConfirmation,
-    deadlockRepeat,
-    deadlockDays,
+    decisionFailure,
+    actionVsConsensus,
+    deadlockTolerance,
     extraWorkPrinciple,
     extraWorkPriority,
-    motivationChoices,
-    workType,
-    boundaryTasks,
-    allocationRule,
-    burdenTasks,
-    conflictRepeat,
-    conflictWeeks,
-    agendaOwners,
-    customAgendaName,
-    customAgendaOwner,
-    exitRecoveryItems,
+    underperformanceAction,
+    workstyleConstraint,
     handoverMethod,
-    exitCleanupHours,
-    exitCleanupDays
+    exitRecoveryPriority,
+    exitCleanupTiming,
+    exitDisputeResolution
   } = useAppState();
   const { user, loading } = useAuth();
   const { teams, loading: teamsLoading, error: teamsError } = useTeams();
@@ -134,25 +126,17 @@ export default function WorkspaceHubPage() {
     });
     const answers = {
       decisionStructure,
-      decisionConfirmation,
-      deadlockRepeat,
-      deadlockDays,
+      decisionFailure,
+      actionVsConsensus,
+      deadlockTolerance,
       extraWorkPrinciple,
       extraWorkPriority,
-      motivationChoices,
-      workType,
-      boundaryTasks,
-      allocationRule,
-      burdenTasks,
-      conflictRepeat,
-      conflictWeeks,
-      agendaOwners,
-      customAgendaName,
-      customAgendaOwner,
-      exitRecoveryItems,
+      underperformanceAction,
+      workstyleConstraint,
       handoverMethod,
-      exitCleanupHours,
-      exitCleanupDays
+      exitRecoveryPriority,
+      exitCleanupTiming,
+      exitDisputeResolution
     };
     await setDoc(
       doc(db, "teams", foundTeam.id, "members", user.uid),

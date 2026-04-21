@@ -763,7 +763,7 @@ button {
 
 .progress-bar {
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: #e6e9f2;
   border-radius: 999px;
   overflow: hidden;
@@ -1115,20 +1115,21 @@ button {
 .diagnosis-wrap {
   display: flex;
   justify-content: center;
-  padding: 30px 0 60px;
+  padding: 18px 0 24px;
 }
 
 .diagnosis-card {
-  width: min(760px, 92vw);
+  width: min(1180px, 94vw);
   background: #fff;
   border-radius: 24px;
-  padding: 30px 34px;
+  padding: 24px 28px;
   box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 620px;
+  min-height: calc(100vh - 150px);
+  max-height: calc(100vh - 150px);
 }
 
 .back-link {
@@ -1139,36 +1140,65 @@ button {
 
 .diagnosis-header h2 {
   font-size: 24px;
-  margin-bottom: 6px;
+  line-height: 1.2;
+  margin-bottom: 4px;
 }
 
 .diagnosis-header p {
   color: var(--muted);
   font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.diagnosis-body {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(400px, 1.08fr);
+  gap: 22px;
+  align-items: start;
+  flex: 1;
+  min-height: 0;
+  margin-top: 16px;
 }
 
 .info-box {
-  margin: 18px 0 22px;
-  background: #f0f1ff;
+  margin: 0;
+  background: linear-gradient(180deg, rgba(91, 91, 231, 0.06), rgba(91, 91, 231, 0.02));
   padding: 14px 16px;
   border-radius: 14px;
-  color: #6a6ddf;
-  font-size: 12px;
+  border: 1px solid rgba(91, 91, 231, 0.14);
+  border-left: 4px solid rgba(91, 91, 231, 0.48);
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 500;
   display: flex;
   gap: 10px;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.scenario-tag {
+  display: inline-flex;
   align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(91, 91, 231, 0.1);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .scenario-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: 18px 0 22px;
+  min-height: 0;
 }
 
 .scenario-media {
   width: 100%;
-  max-width: 520px;
+  max-width: 380px;
   margin: 0 auto;
 }
 
@@ -1180,8 +1210,13 @@ button {
 .scenario-media img {
   width: 100%;
   height: auto;
-  border-radius: 16px;
+  max-height: 220px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 20px;
   display: block;
+  mix-blend-mode: multiply;
+  filter: contrast(1.15) brightness(1.08); /* Heavily blow out near-whites */
 }
 
 .info-dot {
@@ -1204,13 +1239,41 @@ button {
 }
 
 .diag-section {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.question-header {
+  width: 100%;
+  margin-bottom: 30px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.question-step {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(91, 91, 231, 0.08);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .diag-section h4 {
-  font-size: 13px;
-  margin-bottom: 10px;
-  color: #5f6474;
+  font-size: 20px;
+  line-height: 1.35;
+  margin-bottom: 0;
+  color: #1f2430;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .input-row {
@@ -1223,22 +1286,30 @@ button {
 }
 
 .chip {
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #f3f5fb;
-  color: #7c8494;
-  font-size: 12px;
-  border: 1px solid #edf0f7;
-  display: inline-flex;
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1.5px solid #e1e4ed;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  text-align: left;
   min-width: 60px;
   cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  line-height: 1.4;
+}
+
+.chip:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
 }
 
 .chip:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 0 0 1px rgba(91, 91, 231, 0.25);
+  border-color: rgba(91, 91, 231, 0.34);
 }
 
 .chip-input {
@@ -1282,35 +1353,84 @@ button {
 
 .chip.active {
   background: var(--brand);
-  color: #fff;
-  border-color: transparent;
+  color: #ffffff;
+  border-color: var(--brand);
+  font-weight: 500;
 }
 
 .chip-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
+}
+
+.chip-grid.is-transitioning {
+  pointer-events: none;
 }
 
 .diag-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
-  margin-top: auto;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding-top: 10px;
 }
 
-@media (max-width: 800px) {
-  .diagnosis-grid {
+.diag-footer .btn-primary {
+  margin-left: auto;
+}
+
+.diagnosis-footer-shell {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .diagnosis-body {
     grid-template-columns: 1fr;
+  }
+
+  .diagnosis-wrap {
+    padding: 24px 0 40px;
+  }
+
+  .diagnosis-card {
+    width: min(760px, 92vw);
+    padding: 30px 34px;
+    min-height: auto;
+    max-height: none;
+  }
+
+  .scenario-panel {
+    margin-bottom: 4px;
+  }
+
+  .diag-section {
+    display: block;
+  }
+
+  .question-header {
+    margin-bottom: 20px;
+  }
+
+  .diag-section h4 {
+    font-size: 17px;
+  }
+
+  .chip {
+    padding: 14px 20px;
+  }
+
+  .chip-grid {
+    gap: 12px;
+  }
+
+  .diagnosis-footer-shell {
+    display: block;
   }
 
   .scenario-media img {
     height: auto;
-  }
-
-  .diagnosis-card {
-    min-height: auto;
+    max-height: 280px;
   }
 }
 
@@ -2764,51 +2884,68 @@ button {
   margin-bottom: 24px;
 }
 
-.empathy-column .bubble {
-  box-shadow: 0 12px 24px rgba(29, 35, 63, 0.04);
+.empathy-column {
+  /* Ensure bubbles have breathing room */
+  gap: 12px;
 }
 
 .bubble {
-  background: #ffffff;
-  border: 1px solid #f0f2f8;
-  border-radius: 16px;
-  padding: 14px 18px;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-top: 16px;
   position: relative;
-  text-align: left;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+  margin-top: 16px;
+  width: 95%; /* Slight offset to look like chat */
+  letter-spacing: -0.01em;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.bubble:hover {
+  transform: translateY(-2px);
 }
 
 .bubble.left {
-  border-bottom-left-radius: 4px;
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid rgba(29, 35, 63, 0.04);
+  border-radius: 20px 20px 20px 2px;
+  margin-right: auto;
+  box-shadow: 0 8px 24px rgba(29, 35, 63, 0.03);
+  text-align: left;
 }
 
 .bubble.right {
-  background: #f0f3ff;
-  border-color: #e6ebfa;
-  color: var(--brand-dark);
-  border-bottom-right-radius: 4px;
+  background: var(--brand); /* High contrast */
+  color: #ffffff;
+  border-radius: 20px 20px 2px 20px;
+  margin-left: auto;
+  box-shadow: 0 10px 30px rgba(100, 116, 255, 0.2);
   text-align: right;
+  border: none;
 }
 
+/* Refined Tiny Speaker Badges */
 .tiny-speaker {
   display: inline-block;
   font-size: 11px;
   font-weight: 800;
-  color: #a2a8b5;
-  background: #f1f3f8;
-  border-radius: 4px;
-  padding: 2px 6px;
-  margin-right: 8px;
+  border-radius: 6px;
+  padding: 3px 8px;
   vertical-align: middle;
+}
+
+.bubble.left .tiny-speaker {
+  color: var(--brand);
+  background: rgba(100, 116, 255, 0.08);
+  margin-right: 10px;
 }
 
 .bubble.right .tiny-speaker {
   color: var(--brand);
-  background: #e6ebfa;
-  margin-right: 0;
-  margin-left: 8px;
+  background: #ffffff;
+  margin-left: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Slight pop on the primary bg */
 }
 
 .empathy-closing {
@@ -3104,7 +3241,7 @@ button {
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  background: linear-gradient(120deg, #5858e2, #777ef0);
   color: #fff;
 }
 
@@ -3114,7 +3251,7 @@ button {
 
 .cta-section .btn-primary {
   background: #fff;
-  color: var(--brand-dark);
+  color: #5858e2;
 }
 
 .cta-section .btn-primary:hover {
