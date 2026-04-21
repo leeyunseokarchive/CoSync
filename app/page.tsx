@@ -99,49 +99,12 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="conflict-flow animate-fade-up delay-1" style={{ margin: '56px auto 64px', maxWidth: '760px' }}>
-            <div className="flow-grid-override" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '16px', alignItems: 'center' }}>
-              <div style={{ background: '#fff', border: '1px solid #edf0f7', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 600, color: 'var(--ink)', boxShadow: '0 4px 20px rgba(29,35,63,0.02)', fontSize: '15.5px' }}>
-                방향성 차이
-              </div>
-              <div style={{ color: '#c0c6d4', display: 'flex', justifyContent: 'center' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-              </div>
-              <div style={{ background: '#fff', border: '1px solid #edf0f7', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 600, color: 'var(--ink)', boxShadow: '0 4px 20px rgba(29,35,63,0.02)', fontSize: '15.5px' }}>
-                권한 충돌
-              </div>
-              <div style={{ color: '#c0c6d4', display: 'flex', justifyContent: 'center' }}>
-                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-              </div>
-              <div style={{ background: 'rgba(239, 68, 68, 0.04)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '20px 24px', borderRadius: '16px', textAlign: 'center', fontWeight: 700, color: '#e45b5b', boxShadow: '0 4px 20px rgba(239,68,68,0.04)', fontSize: '15.5px' }}>
-                분리 비용 발생
-              </div>
-            </div>
-            
-            <style dangerouslySetInnerHTML={{__html: `
-              @media (max-width: 768px) {
-                .flow-grid-override {
-                  grid-template-columns: 1fr !important;
-                  gap: 12px !important;
-                }
-                .flow-grid-override > div:nth-child(even) svg {
-                  transform: rotate(90deg);
-                }
-                .bottom-conclusion-box {
-                  flex-direction: column !important;
-                  text-align: center !important;
-                }
-              }
-            `}} />
-          </div>
-
-          <div className="animate-fade-up delay-2" style={{ 
+          <div className="animate-fade-up delay-1" style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
             gap: '24px', 
-            marginBottom: '48px',
             maxWidth: '860px',
-            margin: '0 auto 48px'
+            margin: '56px auto 48px'
           }}>
             <div className="card" style={{ padding: '48px 32px', textAlign: 'center', background: '#fff', border: '1px solid #edf0f7', borderRadius: '24px', boxShadow: '0 12px 36px rgba(29,35,63,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ position: 'relative', width: '170px', height: '170px', borderRadius: '50%', background: 'conic-gradient(var(--brand) 0% 71%, #f1f3f9 71% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>

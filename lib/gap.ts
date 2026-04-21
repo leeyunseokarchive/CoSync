@@ -55,16 +55,16 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
       const q4 = getScore(a1.deadlockTolerance, a2.deadlockTolerance, [["1", "4"]], 1.0);
 
       // --- Category 2: Role (Weight 1.5) ---
-      const q5 = getScore(a1.extraWorkPrinciple, a2.extraWorkPrinciple, [["1", "3"]], 1.5);
-      const q6 = getScore(a1.extraWorkPriority, a2.extraWorkPriority, [["3", "4"]], 1.5);
+      const q5 = getScore(a1.extraWorkPriority, a2.extraWorkPriority, [["3", "4"]], 1.5);
+      const q6 = getScore(a1.extraWorkPrinciple, a2.extraWorkPrinciple, [["1", "4"]], 1.5);
       const q7 = getScore(a1.underperformanceAction, a2.underperformanceAction, [["3", "4"]], 1.5);
-      const q8 = getScore(a1.workstyleConstraint, a2.workstyleConstraint, [["1", "3"]], 1.5);
+      const q8 = getScore(a1.workstyleConstraint, a2.workstyleConstraint, [["1", "4"]], 1.5);
 
       // --- Category 3: Exit (Weight 2.0) ---
       const q9 = getScore(a1.handoverMethod, a2.handoverMethod, [["1", "4"]], 2.0);
       const q10 = getScore(a1.exitRecoveryPriority, a2.exitRecoveryPriority, [["1", "2"], ["2", "3"], ["2", "4"]], 2.0);
       const q11 = getScore(a1.exitCleanupTiming, a2.exitCleanupTiming, [["1", "4"]], 2.0);
-      const q12 = getScore(a1.exitDisputeResolution, a2.exitDisputeResolution, [["1", "2"], ["1", "4"]], 2.0);
+      const q12 = getScore(a1.exitDisputeResolution, a2.exitDisputeResolution, [["1", "4"], ["2", "4"]], 2.0);
 
       const gapsList = [q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12];
       

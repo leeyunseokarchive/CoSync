@@ -174,13 +174,13 @@ export default function OnboardingDiagnosisPage() {
         },
         {
           id: "extraWorkPrinciple",
-          label: "Q6. 창업 초기, 공동창업자 간의 '업무 몰입 시간(근무 강도)'에 대한 서로의 기대치는?",
+          label: "Q6. 창업 초기, 공동창업자 간 업무 몰입 시간에 대한 최소 기대치는 어느 정도가 가장 맞을까요?",
           type: "single",
           options: [
-            "1. 주말/휴식은 보장하고 정규 시간에 효율 내기",
-            "2. 필요 시 근무 시간 외 추가 투입도 감수",
-            "3. 강제하진 않지만, 다 같이 비슷한 정도의 시간을 투자",
-            "4. 투입 시간은 상관 안 하고, 최종 결과물 달성 여부만 평가"
+            "1. 정규 시간 안에서 집중해 일하는 정도",
+            "2. 중요한 시기엔 저녁이나 주말 추가 투입이 가능한 정도",
+            "3. 초기에는 일정 기간 높은 몰입을 기본으로 두는 정도",
+            "4. 장기간 높은 강도로 함께 일하는 것을 기본으로 보는 정도"
           ],
           value: extraWorkPrinciple,
           onSelect: setExtraWorkPrinciple,
@@ -202,13 +202,13 @@ export default function OnboardingDiagnosisPage() {
         },
         {
           id: "workstyleConstraint",
-          label: "Q8. 팀의 집중을 위해, 평소 출퇴근 시간과 근무 방식은 어떻게 운영하는 것이 좋을까요?",
+          label: "Q8. 팀의 집중을 위해, 평소 협업 운영 방식은 어떻게 두는 것이 가장 좋을까요?",
           type: "single",
           options: [
-            "1. 시간과 장소는 자율, 결과 중심으로 운영",
-            "2. 코어타임만 맞추고 나머지는 자율 운영",
-            "3. 정해진 출퇴근 시간과 근무 장소를 지킨다",
-            "4. 정기 대면일이나 공통 집중일을 두고 운영"
+            "1. 시간과 장소는 자율로 두고 결과 중심으로 운영",
+            "2. 코어타임만 맞추고 나머지는 자율로 운영",
+            "3. 주기적인 대면일이나 공통 집중일을 두고 운영",
+            "4. 정해진 출퇴근 시간과 근무 장소를 기준으로 운영"
           ],
           value: workstyleConstraint,
           onSelect: setWorkstyleConstraint,
@@ -266,13 +266,13 @@ export default function OnboardingDiagnosisPage() {
         },
         {
           id: "exitDisputeResolution",
-          label: "Q12. 공동창업자가 팀을 떠날 때, 지분은 어떤 기준으로 정리하는 것이 가장 맞을까요?",
+          label: "Q12. 공동창업자가 팀을 떠날 때, 지분 정리에서 가장 우선해야 할 기준은 무엇일까요?",
           type: "single",
           options: [
-            "1. 이미 확정된 지분은 유지하되, 남은 예정 지분은 조정",
-            "2. 함께한 기간과 실제 기여한 만큼만 반영해 정리",
-            "3. 남은 역할 수행과 인수인계 기여까지 보고 유지 범위를 판단",
-            "4. 이탈 사유와 책임 정도에 따라 정리 기준을 달리 적용"
+            "1. 이미 확정된 지분과 남은 예정 지분을 구분하는 기준",
+            "2. 함께한 기간과 누적 기여도를 반영하는 기준",
+            "3. 남은 역할 수행과 인수인계 완료 정도를 반영하는 기준",
+            "4. 이탈 사유와 책임 정도를 반영하는 기준"
           ],
           value: exitDisputeResolution,
           onSelect: setExitDisputeResolution,
@@ -434,8 +434,30 @@ export default function OnboardingDiagnosisPage() {
       <section className="container diagnosis-wrap">
         <div className="diagnosis-card">
           <div className="diagnosis-header">
-            <h2>{currentCategory.title}</h2>
-            <p>아래 시나리오를 읽고 질문에 답해주세요.</p>
+            <div className="diagnosis-header-top">
+              <button
+                className="diagnosis-back-button"
+                type="button"
+                onClick={goPrev}
+                disabled={isFirstQuestion}
+                aria-label="이전 질문으로 이동"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M14.75 5.75 8.5 12l6.25 6.25"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </button>
+              <div className="diagnosis-header-copy">
+                <h2>{currentCategory.title}</h2>
+                <p>아래 시나리오를 읽고 질문에 답해주세요.</p>
+              </div>
+            </div>
             <div className="progress-wrap">
               <div className="progress-bar">
                 <span style={{ width: `${questionProgress}%` }} />
@@ -551,14 +573,6 @@ export default function OnboardingDiagnosisPage() {
           </div>
 
           <div className="diag-footer">
-            <button
-              className="btn btn-ghost"
-              type="button"
-              onClick={goPrev}
-              disabled={isFirstQuestion}
-            >
-              이전
-            </button>
             {categoryIndex === categories.length - 1 &&
             questionIndex === currentCategory.questions.length - 1 && (
               <button

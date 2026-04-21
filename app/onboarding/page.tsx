@@ -83,7 +83,9 @@ export default function OnboardingIntroPage() {
           <div className="hint">✓ 약 3분 소요</div>
         </section>
 
-        <Footer />
+        <div className="onboarding-footer-shell">
+          <Footer />
+        </div>
       </div>
     </main>
   );

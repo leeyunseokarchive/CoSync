@@ -142,19 +142,19 @@ export default function GapReportPage() {
       },
       {
         id: "q5",
-        label: "회색지대 분담",
-        conflict: (left.extraWorkPrinciple ?? "") !== (right.extraWorkPrinciple ?? ""),
-        leftValue: left.extraWorkPrinciple || "미입력",
-        rightValue: right.extraWorkPrinciple || "미입력",
-        insight: "추가 업무를 떠맡는 책임 윤리가 다릅니다. 이른바 '설거지' 업무에서 핑퐁 치며 번아웃이 유발될 수 있습니다."
-      },
-      {
-        id: "q6",
-        label: "기피 업무 배정",
+        label: "회색지대 업무 배정",
         conflict: (left.extraWorkPriority ?? "") !== (right.extraWorkPriority ?? ""),
         leftValue: left.extraWorkPriority || "미입력",
         rightValue: right.extraWorkPriority || "미입력",
-        insight: "효율주의냐 평등주의냐의 극렬한 충돌 포인트입니다."
+        insight: "담당자가 없는 일을 누구 기준으로 배정할지에 대한 차이입니다. 효율을 우선할지, 공평한 분담을 우선할지에 따라 불만이 쌓일 수 있습니다."
+      },
+      {
+        id: "q6",
+        label: "업무 몰입 시간 기대",
+        conflict: (left.extraWorkPrinciple ?? "") !== (right.extraWorkPrinciple ?? ""),
+        leftValue: left.extraWorkPrinciple || "미입력",
+        rightValue: right.extraWorkPrinciple || "미입력",
+        insight: "창업 초기 서로에게 기대하는 시간 투입 수준의 차이입니다. 누군가에게는 기본 몰입으로 보이는 기준이, 다른 누군가에게는 과도한 요구로 느껴질 수 있습니다."
       },
       {
         id: "q7",
@@ -166,11 +166,11 @@ export default function GapReportPage() {
       },
       {
         id: "q8",
-        label: "근무/근태 관리",
+        label: "협업 운영 방식",
         conflict: (left.workstyleConstraint ?? "") !== (right.workstyleConstraint ?? ""),
         leftValue: left.workstyleConstraint || "미입력",
         rightValue: right.workstyleConstraint || "미입력",
-        insight: "라이프스타일과 근태 통제를 바라보는 시각 차이입니다. 무음의 신뢰 하락을 가져옵니다."
+        insight: "자율 운영과 구조화된 운영 중 어디에 무게를 둘지에 대한 차이입니다. 협업 리듬이 맞지 않으면 실행 속도와 피로도가 함께 흔들릴 수 있습니다."
       },
       {
         id: "q9",
@@ -202,7 +202,7 @@ export default function GapReportPage() {
         conflict: (left.exitDisputeResolution ?? "") !== (right.exitDisputeResolution ?? ""),
         leftValue: left.exitDisputeResolution || "미입력",
         rightValue: right.exitDisputeResolution || "미입력",
-        insight: "이미 약속된 권리를 어디까지 인정할지, 남은 기여와 책임을 얼마나 반영할지에 대한 차이입니다. 공동창업자 이탈 시 가장 민감한 갈등 포인트가 될 수 있습니다."
+        insight: "지분 정리에서 무엇을 가장 우선 기준으로 삼을지에 대한 차이입니다. 확정 지분, 누적 기여, 인수인계, 귀책 사유 중 무엇을 더 중요하게 보는지가 크게 갈릴 수 있습니다."
       }
     ];
   }, [selectedPair]);
