@@ -14,6 +14,23 @@ export type OnboardingAnswers = {
 };
 
 export type GapScore = "LOW" | "MID" | "HIGH" | "CRITICAL";
+export type IssueStatus = "match" | "diff" | "conflict" | "unanswered";
+
+export const getIssueStatus = (val1?: string, val2?: string, toxicPairs: [string, string][] = []): IssueStatus => {
+  if (!val1 || !val2) return "unanswered";
+  if (val1 === val2) return "match";
+
+  const opt1 = val1[0];
+  const opt2 = val2[0];
+
+  for (const [p1, p2] of toxicPairs) {
+    if ((opt1 === p1 && opt2 === p2) || (opt1 === p2 && opt2 === p1)) {
+      return "conflict";
+    }
+  }
+
+  return "diff";
+};
 
 const getScore = (val1?: string, val2?: string, toxicPairs: [string, string][] = [], weight: number = 1.0) => {
   if (!val1 || !val2 || val1 === val2) return 0;
