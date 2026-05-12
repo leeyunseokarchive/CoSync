@@ -226,7 +226,7 @@ export default function GapReportPage() {
       <div className="gap-hero-premium">
         <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div className="gap-breadcrumb-premium">분석 결과 · 인식 격차 리포트</div>
-          <h1 className="section-title-premium">격차 리포트</h1>
+          <h1 className="section-title-premium">GAP REPORT</h1>
           <div className="premium-divider"></div>
           {selectedPair && (
             <div className="gap-pair-label-premium">
@@ -235,10 +235,11 @@ export default function GapReportPage() {
           )}
           {isCreator && selectedPairId && (
             <button 
-              className="btn premium-back-btn" 
+              className="premium-back-btn" 
               onClick={() => setSelectedPairId(null)} 
               type="button"
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
               요약으로 돌아가기
             </button>
           )}
@@ -247,10 +248,13 @@ export default function GapReportPage() {
 
       <section className="container gap-wrap" style={{ position: "relative", zIndex: 10, marginTop: "-40px" }}>
         {isCreator && !selectedPair && (
-          <div className="gap-pair-grid">
-            {membersLoading && <div className="card gap-summary">요약 카드 준비 중...</div>}
+          <div 
+            className="gap-pair-grid"
+            style={pairs.length <= 1 ? { display: "flex", justifyContent: "center" } : {}}
+          >
+            {membersLoading && <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px" }}>요약 카드 준비 중...</div>}
             {!membersLoading && pairs.length === 0 && (
-              <div className="card gap-summary">아직 비교할 팀원이 없습니다.</div>
+              <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", textAlign: "center" }}>아직 비교할 팀원이 없습니다.</div>
             )}
             {!membersLoading &&
               pairs.map((pair) => (
@@ -258,6 +262,7 @@ export default function GapReportPage() {
                   key={pair.id}
                   className="card gap-summary gap-pair"
                   type="button"
+                  style={pairs.length === 1 ? { width: "100%", maxWidth: "600px" } : {}}
                   onClick={() => setSelectedPairId(pair.id)}
                 >
                   <div>
@@ -305,8 +310,11 @@ export default function GapReportPage() {
               </div>
             </div>
 
-            <h2>팀 인사이트 요약</h2>
-            <div className="card gap-insight-summary">
+            <div className="card gap-insight-card">
+              <div className="insight-header">
+                <h2>팀 인사이트 요약</h2>
+              </div>
+              <div className="gap-insight-summary">
               <div className="insight-gauge">
                 <div className="gauge-shell">
                   <div className="gauge-fill" style={{ "--fill": `${alignmentScore}` } as CSSProperties} />
@@ -325,112 +333,294 @@ export default function GapReportPage() {
               <div className="insight-copy">
                 <div className="insight-tag">AI ANALYSIS SUMMARY</div>
                 <p className="insight-text">{teamInsight.text}</p>
-                <div className="insight-stats" style={{ display: "flex", gap: "16px", fontSize: "14px", marginTop: "4px" }}>
-                  <div><strong>차이 항목:</strong> {teamInsight.diffCount ?? 0}개</div>
-                  <div><strong style={{ color: "var(--brand)" }}>고위험 충돌:</strong> {teamInsight.highRiskCount ?? 0}개</div>
+                <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {/* Row 1: Number Stats */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: "600" }}>총 차이 항목</span>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{teamInsight.diffCount ?? 0}<span style={{ fontSize: "1rem", fontWeight: "600", color: "#94a3b8", marginLeft: "4px" }}>개</span></div>
+                    </div>
+                    <div style={{ background: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.15)", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontSize: "0.85rem", color: "#ef4444", fontWeight: "600" }}>고위험 충돌 (High Risk)</span>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "800", color: "#ef4444" }}>{teamInsight.highRiskCount ?? 0}<span style={{ fontSize: "1rem", fontWeight: "600", color: "rgba(239,68,68,0.5)", marginLeft: "4px" }}>개</span></div>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Priority Items */}
+                  <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b" }}></span>
+                      <span style={{ fontSize: "0.9rem", color: "#334155", fontWeight: "700" }}>최우선 조율 권장 항목</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {teamInsight.topPriorityLabels ? teamInsight.topPriorityLabels.split(",").map((label, idx) => (
+                        <span key={idx} style={{ background: "#fef3c7", color: "#d97706", padding: "6px 12px", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "600" }}>
+                          {label.trim()}
+                        </span>
+                      )) : <span style={{ color: "#94a3b8", fontSize: "0.85rem" }}>없음</span>}
+                    </div>
+                  </div>
                 </div>
-                <div className="insight-stats" style={{ fontSize: "14px", marginTop: "4px" }}>
-                  <strong>최우선 조율 항목:</strong> {teamInsight.topPriorityLabels ?? "없음"}
+
+                <div style={{ marginTop: "16px", background: "linear-gradient(to right, rgba(99, 102, 241, 0.08), transparent)", borderLeft: "3px solid #6366f1", padding: "16px 20px", borderRadius: "0 12px 12px 0", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                  <span style={{ fontSize: "1.1rem" }}>💡</span>
+                  <p style={{ margin: 0, fontSize: "0.9rem", color: "#334155", lineHeight: "1.5" }}>
+                    <strong>전문가의 팁:</strong> 위에서 도출된 <span style={{ color: "#6366f1", fontWeight: "600" }}>최우선 조율 항목</span>부터 먼저 대화의 안건으로 삼아보세요. 갈등의 골이 깊어지기 전에 룰을 정하는 것이 가장 안전합니다.
+                  </p>
                 </div>
-                <div className="insight-tip" style={{ marginTop: "8px" }}>팁: 인식 차이가 큰 항목부터 우선적으로 논의하세요.</div>
+              </div>
               </div>
             </div>
 
-            <div className="card gap-matrix">
-              <div className="matrix-head">
-                <h2>영역별 상세 데이터 시각화</h2>
-                <div className="legend">
-                  <span className="dot match" /> 일치
-                  <span className="dot diff" /> 일반 차이
-                  <span className="dot conflict" /> 고위험 충돌
+            <div className="card gap-heatmap-card">
+              <div className="heatmap-header">
+                <div className="heatmap-title-row">
+                  <h2 className="heatmap-title">
+                    영역별 상세 데이터 시각화 <span className="heatmap-subtitle">(Heatmap)</span>
+                  </h2>
+                  <div className="heatmap-legend">
+                    <div className="legend-item"><span className="legend-dot alignment"></span> 일치 (Alignment)</div>
+                    <div className="legend-item"><span className="legend-dot conflict"></span> 갈등 (Conflict)</div>
+                  </div>
+                </div>
+                <div className="heatmap-instruction">
+                  <span className="instruction-icon">💡</span> 히트맵의 갈등 영역(보라색)을 <strong>클릭</strong>하면 실제 응답 차이와 상세 분석을 확인할 수 있습니다.
                 </div>
               </div>
-              <p className="matrix-note">
-                각 매트릭스 영역을 탭하여 해당 항목의 답변 비교를 확인할 수 있습니다.
-              </p>
-              <div className="matrix-table">
-                <div className="matrix-spacer" />
-                <div className="matrix-x">
-                  <span>Q1</span>
-                  <span>Q2</span>
-                  <span>Q3</span>
-                  <span>Q4</span>
+
+              <div className="heatmap-grid">
+                {/* Header Row */}
+                <div className="hm-cell hm-corner"></div>
+                <div className="hm-cell hm-col-header">
+                  <div className="hm-en">OPERATIONS</div>
+                  <div className="hm-kr">(운영방식)</div>
                 </div>
-                <div className="matrix-row">
-                  <div className="matrix-y">의사결정/권한</div>
-                  {issues.slice(0, 4).map((issue) => (
-                    <button
-                      key={issue.id}
-                      type="button"
-                      className={`matrix-cell ${issue.status}`}
-                      onClick={() => issue.status !== "match" && setSelectedIssue(issue.id)}
-                    />
-                  ))}
+                <div className="hm-cell hm-col-header">
+                  <div className="hm-en">AUTHORITY</div>
+                  <div className="hm-kr">(의사결정권)</div>
                 </div>
-                <div className="matrix-row">
-                  <div className="matrix-y">역할/책임</div>
-                  {issues.slice(4, 8).map((issue) => (
-                    <button
-                      key={issue.id}
-                      type="button"
-                      className={`matrix-cell ${issue.status}`}
-                      onClick={() => issue.status !== "match" && setSelectedIssue(issue.id)}
-                    />
-                  ))}
+                <div className="hm-cell hm-col-header">
+                  <div className="hm-en">EXIT</div>
+                  <div className="hm-kr">(투자회수)</div>
                 </div>
-                <div className="matrix-row">
-                  <div className="matrix-y">이탈/권한정리</div>
-                  {issues.slice(8, 12).map((issue) => (
-                    <button
-                      key={issue.id}
-                      type="button"
-                      className={`matrix-cell ${issue.status}`}
-                      onClick={() => issue.status !== "match" && setSelectedIssue(issue.id)}
-                    />
-                  ))}
+
+                {/* Row 1: HIGH */}
+                <div className="hm-cell hm-row-header">
+                  <div className="hm-en">HIGH</div>
+                  <div className="hm-kr">(심각한 차이)</div>
+                </div>
+                <button type="button" className={`hm-cell hm-item ${issues[0].status}`} onClick={() => setSelectedIssue(issues[0].id)}>Q1</button>
+                <button type="button" className={`hm-cell hm-item ${issues[4].status}`} onClick={() => setSelectedIssue(issues[4].id)}>Q5</button>
+                <button type="button" className={`hm-cell hm-item ${issues[8].status}`} onClick={() => setSelectedIssue(issues[8].id)}>Q9</button>
+
+                {/* Row 2: MODERATE */}
+                <div className="hm-cell hm-row-header">
+                  <div className="hm-en">MODERATE</div>
+                  <div className="hm-kr">(조율 필요)</div>
+                </div>
+                <button type="button" className={`hm-cell hm-item ${issues[1].status}`} onClick={() => setSelectedIssue(issues[1].id)}>Q2</button>
+                <button type="button" className={`hm-cell hm-item ${issues[5].status}`} onClick={() => setSelectedIssue(issues[5].id)}>Q6</button>
+                <button type="button" className={`hm-cell hm-item ${issues[9].status}`} onClick={() => setSelectedIssue(issues[9].id)}>Q10</button>
+
+                {/* Row 3: LOW */}
+                <div className="hm-cell hm-row-header">
+                  <div className="hm-en">LOW</div>
+                  <div className="hm-kr">(원만한 합의)</div>
+                </div>
+                <button type="button" className={`hm-cell hm-item ${issues[2].status}`} onClick={() => setSelectedIssue(issues[2].id)}>Q3</button>
+                <button type="button" className={`hm-cell hm-item ${issues[6].status}`} onClick={() => setSelectedIssue(issues[6].id)}>Q7</button>
+                <button type="button" className={`hm-cell hm-item ${issues[10].status}`} onClick={() => setSelectedIssue(issues[10].id)}>Q11</button>
+
+                {/* Row 4: BASELINE */}
+                <div className="hm-cell hm-row-header">
+                  <div className="hm-en">BASELINE</div>
+                  <div className="hm-kr">(공통 기반)</div>
+                </div>
+                <button type="button" className={`hm-cell hm-item ${issues[3].status}`} onClick={() => setSelectedIssue(issues[3].id)}>Q4</button>
+                <button type="button" className={`hm-cell hm-item ${issues[7].status}`} onClick={() => setSelectedIssue(issues[7].id)}>Q8</button>
+                <button type="button" className={`hm-cell hm-item ${issues[11].status}`} onClick={() => setSelectedIssue(issues[11].id)}>Q12</button>
+              </div>
+
+              {/* Help Box */}
+              <div className="heatmap-help-box">
+                <div className="help-title">
+                  <span className="help-icon">❓</span> 어떻게 읽나요?
+                </div>
+                <ul className="help-list">
+                  <li>각 열은 운영 방식(Q1-Q4), 의사결정권(Q5-Q8), 투자 회수(Q9-Q12) 영역을 나타냅니다.</li>
+                  <li>색상이 짙을수록 해당 질문에서 팀원들의 의견이 강하게 충돌하거나 일치함을 의미합니다.</li>
+                  <li><strong className="text-green">초록색 셀</strong>은 긍정적 합의, <strong className="text-purple">보라색 셀</strong>은 인식의 격차(갈등 가능성)를 나타냅니다.</li>
+                  <li>상단의 'High' 영역에 보라색 셀이 많을수록 시급한 조율이 필요한 항목입니다.</li>
+                </ul>
+              </div>
+
+              <div className="heatmap-actions">
+                <button type="button" className="btn hm-guide-btn" onClick={() => setShowSubscribe(true)}>
+                  📄 히트맵 상세 분석 가이드 확인하기 <span className="arrow">→</span>
+                </button>
+              </div>
+
+              <div className="heatmap-alert">
+                <div className="alert-icon">🤖</div>
+                <div className="alert-content">
+                  <div className="alert-title">AI 생성 상세 리포트 준비됨</div>
+                  <div className="alert-desc">운영 방식, 의사결정권, 투자 회수 영역에 대한 팀원의 인식 차이를 심층 분석한 12개 질문에 대한 텍스트 가이드를 확인할 수 있습니다.</div>
                 </div>
               </div>
+            </div>
+
+            {/* Side-by-Side Wrapper for Desktop */}
+            <style dangerouslySetInnerHTML={{__html: `
+              .scenario-review-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 60px;
+                width: 100%;
+                margin: 60px 0;
+              }
+              @media (min-width: 900px) {
+                .scenario-review-wrapper {
+                  flex-direction: row;
+                  align-items: flex-start;
+                  justify-content: center;
+                  gap: 40px;
+                }
+                .worst-case-scenario-section, .reviews-section.clean-reviews-section {
+                  flex: 1;
+                  max-width: 500px;
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+              .worst-case-scenario-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+              }
+              .clean-reviews-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+              }
+              .clean-reviews-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+              }
+              .clean-review-card {
+                background: #ffffff;
+                border-radius: 16px;
+                padding: 28px 32px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+                display: flex;
+                flex-direction: column;
+                text-align: left;
+              }
+              .clean-review-stars {
+                color: #d4af37;
+                font-size: 1.1rem;
+                letter-spacing: 2px;
+                margin-bottom: 16px;
+              }
+              .clean-review-text {
+                font-size: 1rem;
+                line-height: 1.6;
+                color: #1f2937;
+                font-weight: 400;
+                margin-bottom: 24px;
+                word-break: keep-all;
+              }
+              .clean-review-text strong {
+                font-weight: 700;
+                color: #111827;
+              }
+              .clean-review-author {
+                font-size: 0.85rem;
+                color: #6b7280;
+              }
+            `}} />
+            <div className="scenario-review-wrapper">
+              {/* Worst Case Scenario Teaser */}
+              <div className="worst-case-scenario-section">
+                <div className="teaser-header">
+                  <h2>발생할 수 있는 최악의 시나리오</h2>
+                  <p>기준 없이 구두로만 합의된 동업은 결국 이런 결과를 맞이합니다.</p>
+                </div>
+                <img src="/comic_ip_new.jpg" alt="최악의 시나리오 만화" className="scenario-comic-img" style={{ width: "100%", display: "block" }} />
+              </div>
+
+              {/* Clean White Cards Reviews Section */}
+              <div className="reviews-section clean-reviews-section">
+              <div className="teaser-header">
+                <h2 style={{ color: "#000" }}>REVIEWS</h2>
+                <p>이미 수많은 초기 창업팀이 CoSync로 빈틈없는 합의를 마쳤습니다.</p>
+              </div>
+              
+              <div className="clean-reviews-grid">
+                <div className="clean-review-card">
+                  <div className="clean-review-stars">★★★★★</div>
+                  <p className="clean-review-text">
+                    “같이 창업할 공동 창업자와의 격차를 수치를 통해 확인할 수 있어 그동안 감으로만 알던 내용을 <strong>직접적으로 와닿게 파악할 수 있었고, 추후 개선점을 명확히 알 수 있었습니다.</strong>”
+                  </p>
+                  <div className="clean-review-author">예비창업패키지 준비팀 대표 · 27세</div>
+                </div>
+
+                <div className="clean-review-card">
+                  <div className="clean-review-stars">★★★★★</div>
+                  <p className="clean-review-text">
+                    “친한 선배라 돈이나 지분 문제를 먼저 꺼내기 어려웠는데, <strong>객관적인 데이터로 대화의 물꼬를 트니 감정 상할 일 없이</strong> 운영 기준을 문서화할 수 있었습니다. 진짜 꼭 필요했던 서비스예요.”
+                  </p>
+                  <div className="clean-review-author">기창업(2y) 공동창업 준비 중 · 23세</div>
+                </div>
+
+                <div className="clean-review-card">
+                  <div className="clean-review-stars">★★★★★</div>
+                  <p className="clean-review-text">
+                    “대화는 많이 했지만 늘 겉도는 느낌이었어요. CoSync로 진단해보니 <strong>우리가 어떤 부분에서 동상이몽을 하고 있었는지</strong> 한눈에 보였습니다. 덕분에 갈등 없이 안전한 지분 구조를 합의했어요.”
+                  </p>
+                  <div className="clean-review-author">초기 스타트업 공동창업자 · 29세</div>
+                </div>
+              </div>
+            </div>
             </div>
 
             <div className="premium-cards-section">
               <div className="teaser-header">
-                <h2>프리미엄 행동 지침</h2>
-                <p>팀의 구체적인 리스크를 확인하고 완벽한 합의안을 만드세요.</p>
+                <div className="legal-badge" style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05))", border: "1px solid rgba(139, 92, 246, 0.2)", color: "#a78bfa", padding: "8px 18px", borderRadius: "999px", fontSize: "0.85rem", fontWeight: "600", marginBottom: "20px", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.05)" }}>
+                  <span style={{ fontSize: "1rem" }}>⚖️</span> 주주간계약 자문 변호사 MOU 체결 & 법률 검토 완료
+                </div>
+                <h2>프리미엄 팀 합의 솔루션</h2>
+                <p>주주간계약 전 반드시 필요한 맞춤형 운영 및 권리관계 합의서를 완성하세요.</p>
               </div>
               
               <div className="premium-card-list">
                 {/* Card 1 */}
                 <div className="premium-item-card">
-                  <div className="card-header">
-                    <h3 className="card-emoji-title">🚨 가장 먼저 정리해야 할 합의 안건 TOP 3</h3>
-                    <p className="clear-text">현재 팀의 가장 치명적인 잠재 리스크 1위는 <strong>[{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "의견 충돌 영역"}]</strong> 입니다.</p>
+                  <div className="card-header" style={{ marginBottom: "12px" }}>
+                    <h3 className="card-emoji-title">🚨 변호사가 경고하는 치명적 법적 리스크</h3>
+                    <p className="clear-text">현재 팀의 가장 위험한 잠재 분쟁 1위는 <strong>[{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "지분/권한 충돌"}]</strong> 입니다.</p>
                   </div>
-                  <div className="card-blur-area">
-                    <p>이 안건이 위험한 이유는 양측이 기대하는 역할과 권한의 경계가 완전히 다르기 때문입니다. 특히 위기 상황이 발생했을 때 책임 소재를 두고 극심한 갈등이 발생할 수 있습니다.</p>
+                  <div className="clear-preview" style={{ marginBottom: "8px" }}>
+                    <p style={{ fontSize: "0.95rem", color: "#334155", lineHeight: "1.6" }}>
+                      이 안건을 문서화하지 않을 경우, 공동창업자 이탈 시 지분 회수가 불가능해져 <strong>후속 투자가 전면 무산</strong>될 수 있습니다.
+                    </p>
+                  </div>
+                  <div className="card-blur-area" style={{ marginTop: "8px" }}>
+                    <p>법정 분쟁 시 평균 1년 이상의 시간과 막대한 소송 비용이 발생합니다.</p>
                     <ul style={{ listStyleType: "disc", paddingLeft: "20px", marginBottom: "12px", color: "var(--muted)" }}>
-                      <li>2위: {teamInsight.topPriorityIssuesArray?.[1]?.label ?? "이탈 업무 인수인계 및 권한 회수 타이밍"}</li>
-                      <li>3위: {teamInsight.topPriorityIssuesArray?.[2]?.label ?? "퍼포먼스 조치와 창업 멤버의 역할 한계"}</li>
+                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[1]?.label ?? "이탈 업무 인수인계"}</li>
+                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[2]?.label ?? "퍼포먼스 한계 조치"}</li>
+                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[3]?.label ?? "의사결정 교착상태 해결"}</li>
+                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[4]?.label ?? "비밀유지 및 겸업금지 위반"}</li>
                     </ul>
-                    <p>데이터에 따르면 이러한 형태의 의견 불일치를 가진 팀 중 60%가 1년 내에 핵심 멤버의 이탈을 경험했습니다.</p>
+                    <p>데이터에 따르면 초기 합의를 문서화하지 않은 팀의 60%가 1년 내에 이탈 및 지분 분쟁을 겪습니다.</p>
                     <div className="card-unlock-overlay">
                       <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 리포트 잠금해제
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2 */}
-                <div className="premium-item-card">
-                  <div className="card-header">
-                    <h3 className="card-emoji-title">💣 항목별 상세 리스크 시나리오</h3>
-                    <p className="clear-text">이 갈등이 초기에 해결되지 않을 경우 예상되는 최악의 결과는...</p>
-                  </div>
-                  <div className="card-blur-area">
-                    <p>결정적 순간에 업무 마비가 발생하며, 감정적 골이 깊어져 결국 지분 분쟁으로 이어질 확률이 85% 이상으로 분석됩니다. 특히 퇴사 시점에서의 보상 요구와 관련하여 법적 분쟁으로 비화될 수 있으며, 이는 후속 투자 유치에 치명적인 결격 사유로 작용합니다. 창업자 간의 신뢰가 무너지는 순간 회사의 핵심 자산인 지식 재산권(IP)의 귀속 문제까지 얽히게 됩니다.</p>
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 시나리오 보기
+                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
                   </div>
@@ -438,17 +628,23 @@ export default function GapReportPage() {
 
                 {/* Card 3 */}
                 <div className="premium-item-card">
-                  <div className="card-header">
-                    <h3 className="card-emoji-title">💬 바로 쓸 수 있는 합의 질문</h3>
-                    <p className="clear-text">이견을 좁히기 위해 당장 내일 던져야 할 첫 번째 질문:</p>
+                  <div className="card-header" style={{ marginBottom: "12px" }}>
+                    <h3 className="card-emoji-title">💬 감정 소모 없는 1:1 합의 질문 셋</h3>
+                    <p className="clear-text">돈과 권한 문제, 친할수록 꺼내기 어렵습니다. 지금 바로 공유할 수 있는 객관적인 질문:</p>
                   </div>
-                  <div className="card-blur-area">
-                    <div className="chat-bubble">Q. "만약 1년 뒤 누군가 팀의 기대치만큼 성과를 내지 못한다면, 우리는 그 사람의 역할을 어떻게 재조정할 것인가요?"</div>
-                    <div className="chat-bubble">Q. "가장 힘든 시기가 왔을 때, 서로의 번아웃을 방지하기 위한 최소한의 규칙은 무엇으로 정할까요?"</div>
-                    <div className="chat-bubble">Q. "회사의 자금이 바닥나기 3개월 전, 우리는 어떤 기준으로 급여 삭감이나 추가 자금 투입을 결정할 것인가요?"</div>
+                  <div className="clear-preview">
+                    <div className="chat-bubble" style={{ borderLeft: "3px solid #6366f1", fontWeight: "500" }}>
+                      Q. "[{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}]에 대한 명확한 기준 부재로 특정 팀원의 업무 기여도가 현저히 떨어졌을 때, 이를 입증하고 지분이나 권한을 재조정할 수 있는 객관적인 합의 문서가 존재하나요?"
+                    </div>
+                  </div>
+                  <div className="card-blur-area" style={{ marginTop: "4px" }}>
+                    <div className="chat-bubble">Q. "[{teamInsight.topPriorityIssuesArray?.[1]?.label ?? "업무 몰입 시간"}]에 관한 약정 미이행 시, 해당 팀원의 남은 지분 베스팅(Vesting)을 중단하고 기부여 지분을 회수할 객관적 기준이 존재하나요?"</div>
+                    <div className="chat-bubble">Q. "특정 이사가 [{teamInsight.topPriorityIssuesArray?.[2]?.label ?? "투자 회수"}]와 관련해 회사의 이익에 반하는 결정을 내릴 경우, 소수 지분권자가 이를 견제할 수 있는 권리 보호 장치가 있나요?"</div>
+                    <div className="chat-bubble">Q. "개인 사정으로 3개월 이상 정상적인 직무 수행이 불가능해질 경우, 해당 팀원의 기존 지분율과 급여 지급 기준은 어떻게 조정되나요?"</div>
+                    <div className="chat-bubble">Q. "투자 유치 시 기존 주주들의 지분 희석을 방어하기 위한 우선매수권(Right of First Refusal) 및 동반매도요구권(Drag-along) 조항이 팀원 간 합의되어 있나요?"</div>
                     <div className="card-unlock-overlay">
                       <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 질문 리스트 보기
+                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
                   </div>
@@ -456,22 +652,32 @@ export default function GapReportPage() {
 
                 {/* Card 4 */}
                 <div className="premium-item-card">
-                  <div className="card-header">
-                    <h3 className="card-emoji-title">🧭 합의 기준 선택지와 추천 방향</h3>
-                    <p className="clear-text">수많은 창업팀의 데이터를 기반으로 한 가장 안전한 선택지는...</p>
+                  <div className="card-header" style={{ marginBottom: "12px" }}>
+                    <h3 className="card-emoji-title">🧭 시장 표준(Market Standard) 기반 합의 가이드</h3>
+                    <p className="clear-text">성공한 스타트업들이 채택한 가장 안전하고 검증된 운영 기준은...</p>
                   </div>
-                  <div className="card-blur-area">
+                  <div className="clear-preview">
+                    <div className="option-box" style={{ borderColor: "#cbd5e1", background: "#f1f5f9" }}>
+                      <h4 style={{ color: "#0f172a", fontWeight: "700" }}>옵션 A: {teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정 (전문가 추천 ⭐)</h4>
+                      <p style={{ color: "#475569", fontSize: "0.9rem" }}>사유: 성공하는 스타트업은 가장 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 페널티와 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
+                    </div>
+                  </div>
+                  <div className="card-blur-area" style={{ marginTop: "12px" }}>
                     <div className="option-box">
-                      <h4>옵션 A: 즉시 지분 회수 및 권한 정지 (강력 추천 ⭐)</h4>
-                      <p>사유: 스타트업 초기 단계에서는 빠른 의사결정과 보안 유지 필수적이며, 온정주의적 접근은 회사의 존립을 위태롭게 만듭니다.</p>
+                      <h4>옵션 B: 베스팅(Vesting) 조건부 순차적 회수</h4>
+                      <p>사유: 기여 기간에 비례하여 지분을 확정하되, 이탈 시 남은 지분은 액면가로 강제 회수하는 조항을 포함해야 합니다.</p>
                     </div>
                     <div className="option-box">
-                      <h4>옵션 B: 유예 기간 부여 후 순차적 회수</h4>
-                      <p>사유: 인수인계가 필수적인 직무인 경우, 최소한의 협조를 이끌어내기 위해 2~4주의 유예를 둘 수 있습니다.</p>
+                      <h4>옵션 C: 동반매도요구권(Drag-Along) 포함</h4>
+                      <p>사유: 추후 M&A나 매각 시 소수 지분권자가 반대하더라도 강제로 함께 매각할 수 있는 권리를 두어 엑싯을 보장해야 합니다.</p>
+                    </div>
+                    <div className="option-box">
+                      <h4>옵션 D: 이사회 중심의 만장일치 의결</h4>
+                      <p>사유: 가장 안전해 보이지만 실제로는 교착 상태를 유발할 위험이 커 시장에서는 절대 권장하지 않는 방식입니다.</p>
                     </div>
                     <div className="card-unlock-overlay">
                       <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 추천 가이드 보기
+                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
                   </div>
@@ -479,17 +685,24 @@ export default function GapReportPage() {
 
                 {/* Card 5 */}
                 <div className="premium-item-card">
-                  <div className="card-header">
-                    <h3 className="card-emoji-title">📄 합의안 초안 자동 생성</h3>
-                    <p className="clear-text">논의된 내용을 바탕으로 즉시 서명 가능한 계약서 조항:</p>
+                  <div className="card-header" style={{ marginBottom: "12px" }}>
+                    <h3 className="card-emoji-title">📄 주주간계약 전 필수 합의 문서 생성 및 버전 관리</h3>
+                    <p className="clear-text">막연했던 대화를 명확한 운영규칙과 권리관계 합의 문서로. 팀의 성장에 맞춰 지속적으로 업데이트하세요:</p>
                   </div>
-                  <div className="card-blur-area doc-style-area">
-                    <p><strong>제 1조 (목적)</strong> 본 조항은 창업자 간의 역할 분담과 기여도 평가 기준을 명확히 하고...</p>
-                    <p><strong>제 4조 (지분 회수)</strong> 이탈 시의 지분은 기여도에 따라 다음과 같이 정산한다. 이탈자가 악의적인 영업 방해를...</p>
-                    <p><strong>제 7조 (의사결정)</strong> 중대한 사안에 대한 이견 발생 시, 대표이사가 최종 결정권을 가지되...</p>
+                  <div className="clear-preview doc-style-area">
+                    <p style={{ fontFamily: "monospace", fontSize: "0.95rem", background: "#f8fafc", padding: "12px", borderLeft: "3px solid #6366f1", borderRadius: "6px", color: "#334155" }}>
+                      <strong>제 4조 ({teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}의 처리)</strong><br/> 위 조항과 관련하여 창업 멤버 간의 중대한 이견이나 성과 미달이 발생할 시, 본 합의서는 다음 기준에 따라 조율한다...
+                    </p>
+                  </div>
+                  <div className="card-blur-area doc-style-area" style={{ marginTop: "12px" }}>
+                    <p><strong>제 5조 ({teamInsight.topPriorityIssuesArray?.[1]?.label ?? "후속 조치"})</strong> 발생한 문제에 대하여 시장 표준에 따라 대표이사가 선제적으로...</p>
+                    <p><strong>제 6조 (주식 매수 선택권 및 부여 기준)</strong> 인재 영입을 위한 스톡옵션 풀(Pool)은 총 발행 주식의 10% 범위 내에서...</p>
+                    <p><strong>제 7조 (영업비밀 유지 의무)</strong> 본 합의서 체결 이후 지득한 회사의 기술, 재무, 인적 자원 등 일체의 정보는...</p>
+                    <p><strong>제 8조 (경업 금지 의무)</strong> 퇴사 후 최소 2년간 회사가 영위하는 동종 업종의 창업 및 취업을...</p>
+                    <p style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "12px", color: "var(--primary)" }}><strong>🔄 버전 1.0 생성됨 (변경 이력 추적 중)</strong></p>
                     <div className="card-unlock-overlay">
                       <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 초안 생성하기
+                        <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
                   </div>
@@ -561,7 +774,7 @@ export default function GapReportPage() {
                 {(() => {
                   const s = issues.find((issue) => issue.id === selectedIssue)?.status;
                   if (s === "conflict") return "고위험 충돌";
-                  if (s === "diff") return "일반 차이";
+                  if (s === "diff") return "조율 필요";
                   if (s === "unanswered") return "판단 불가";
                   return "일치";
                 })()}

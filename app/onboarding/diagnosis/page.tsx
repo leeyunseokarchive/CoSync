@@ -72,15 +72,15 @@ export default function OnboardingDiagnosisPage() {
   const router = useRouter();
 
   const roleOptions: Record<string, string[]> = {
-    제품: ["CPO", "PO", "PM", "서비스 기획"],
-    기술: ["CTO", "프론트엔드", "백엔드", "모바일", "DevOps"],
-    비즈니스: ["COO", "사업개발", "세일즈", "CS"],
-    마케팅: ["CMO", "퍼포먼스", "콘텐츠", "브랜딩"],
-    운영: ["운영", "HR", "총무"],
-    재무: ["CFO", "회계", "재무"],
-    법무: ["Legal", "컴플라이언스"]
+    "경영/대표": ["CEO", "공동대표", "COO"],
+    "제품/기획": ["CPO", "PO", "PM", "서비스 기획"],
+    "기술/개발": ["CTO", "프론트엔드", "백엔드", "모바일", "DevOps", "데이터"],
+    "디자인": ["CDO", "프로덕트 디자인", "UX/UI 디자인", "브랜드 디자인"],
+    "비즈니스": ["사업개발", "세일즈", "CS", "제휴/파트너십"],
+    "마케팅": ["CMO", "퍼포먼스 마케팅", "콘텐츠 마케팅", "PR/커뮤니케이션"],
+    "운영/지원": ["운영 총괄", "HR/조직문화", "재무/회계", "총무/법무"]
   };
-  const rolesForDepartment = roleOptions[department] ?? ["CEO", "CPO", "CTO"];
+  const rolesForDepartment = roleOptions[department] ?? ["CEO", "CPO", "CTO", "COO", "CDO"];
 
   const categories: Array<{
     id: string;
@@ -547,13 +547,13 @@ export default function OnboardingDiagnosisPage() {
                     }}
                   >
                     <option value="">부서 선택</option>
-                    <option value="제품">제품</option>
-                    <option value="기술">기술</option>
+                    <option value="경영/대표">경영/대표</option>
+                    <option value="제품/기획">제품/기획</option>
+                    <option value="기술/개발">기술/개발</option>
+                    <option value="디자인">디자인</option>
                     <option value="비즈니스">비즈니스</option>
                     <option value="마케팅">마케팅</option>
-                    <option value="운영">운영</option>
-                    <option value="재무">재무</option>
-                    <option value="법무">법무</option>
+                    <option value="운영/지원">운영/지원</option>
                   </select>
                   <select
                     className="chip-select"
