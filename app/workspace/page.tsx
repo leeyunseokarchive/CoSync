@@ -57,8 +57,28 @@ export default function WorkspaceHubPage() {
   const [isExistingMember, setIsExistingMember] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("inviteCode");
+      if (code) {
+        setTeamCode(code);
+        sessionStorage.setItem("pendingInviteCode", code);
+        window.history.replaceState({}, "", "/workspace");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
+    }
+    if (!loading && user) {
+      const pendingCode = sessionStorage.getItem("pendingInviteCode");
+      if (pendingCode) {
+        setTeamCode(pendingCode);
+        sessionStorage.removeItem("pendingInviteCode");
+        setTimeout(() => executeJoinSearch(pendingCode), 100);
+      }
     }
   }, [loading, user, router]);
 
@@ -68,8 +88,8 @@ export default function WorkspaceHubPage() {
     }
   }, [teams.length, setActiveTeams]);
 
-  const handleJoinSearch = async () => {
-    if (!teamCode.trim()) {
+  const executeJoinSearch = async (codeToSearch: string) => {
+    if (!codeToSearch.trim()) {
       setJoinHint("유효한 팀 코드를 입력해주세요.");
       return;
     }
@@ -77,7 +97,7 @@ export default function WorkspaceHubPage() {
       router.push("/login");
       return;
     }
-    const code = teamCode.trim().toUpperCase();
+    const code = codeToSearch.trim().toUpperCase();
     const inviteRef = doc(db, "inviteCodes", code);
     const inviteSnap = await getDoc(inviteRef);
     if (!inviteSnap.exists()) {
@@ -102,6 +122,8 @@ export default function WorkspaceHubPage() {
     setIsExistingMember((teamData.members ?? []).includes(user.uid));
     setShowJoinModal(true);
   };
+
+  const handleJoinSearch = () => executeJoinSearch(teamCode);
 
   const handleJoinConfirm = async () => {
     if (!user || !foundTeam) return;
@@ -156,7 +178,7 @@ export default function WorkspaceHubPage() {
     const { gapCount, gapScore } = computeGapSummary(memberAnswers);
     const teamProgress = computeTeamProgress(memberDocs);
     await updateDoc(teamRef, {
-      progress: Math.max(teamProgress, nextProgress),
+      progress: teamProgress,
       gapCount,
       gapScore
     });

@@ -88,7 +88,8 @@ export function TeamSettingClient() {
 
   const handleCopy = async () => {
     if (!team?.inviteCode) return;
-    await navigator.clipboard.writeText(team.inviteCode);
+    const inviteLink = `${window.location.origin}/workspace?inviteCode=${team.inviteCode}`;
+    await navigator.clipboard.writeText(inviteLink);
     setInviteCopied(true);
     setTimeout(() => setInviteCopied(false), 1600);
   };
@@ -109,7 +110,8 @@ export function TeamSettingClient() {
 
   const handleInviteSubmit = async () => {
     if (!team?.inviteCode) return;
-    await navigator.clipboard.writeText(team.inviteCode);
+    const inviteLink = `${window.location.origin}/workspace?inviteCode=${team.inviteCode}`;
+    await navigator.clipboard.writeText(inviteLink);
     setModalCopied(true);
     setTimeout(() => setModalCopied(false), 1600);
   };

@@ -335,7 +335,7 @@ export default function GapReportPage() {
                 <p className="insight-text">{teamInsight.text}</p>
                 <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
                   {/* Row 1: Number Stats */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="insight-stats-grid">
                     <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                       <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: "600" }}>총 차이 항목</span>
                       <div style={{ fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{teamInsight.diffCount ?? 0}<span style={{ fontSize: "1rem", fontWeight: "600", color: "#94a3b8", marginLeft: "4px" }}>개</span></div>
@@ -564,9 +564,9 @@ export default function GapReportPage() {
                 <div className="clean-review-card">
                   <div className="clean-review-stars">★★★★★</div>
                   <p className="clean-review-text">
-                    “같이 창업할 공동 창업자와의 격차를 수치를 통해 확인할 수 있어 그동안 감으로만 알던 내용을 <strong>직접적으로 와닿게 파악할 수 있었고, 추후 개선점을 명확히 알 수 있었습니다.</strong>”
+                    “전에는 기능 우선순위 하나에도 2~3시간씩 끝장토론을 했지만, <strong>결정 기준과 최종 책임자를 정한 뒤에는 비슷한 안건도 1시간 이내에 결론</strong>을 낼 수 있었습니다. 실행 속도가 확연히 달라졌어요.”
                   </p>
-                  <div className="clean-review-author">예비창업패키지 준비팀 대표 · 27세</div>
+                  <div className="clean-review-author">초기 스타트업 CEO · 31세</div>
                 </div>
 
                 <div className="clean-review-card">
