@@ -22,6 +22,14 @@ type AppState = {
   exitRecoveryPriority: string;
   exitCleanupTiming: string;
   exitDisputeResolution: string;
+  exitVision: string;
+  pivotCriteria: string;
+  conflictResolution: string;
+  dealbreaker: string;
+  salaryStructure: string;
+  equityStructure: string;
+  profitDistribution: string;
+  growthStrategy: string;
   department: string;
   role: string;
 };
@@ -41,6 +49,14 @@ type AppStateContextValue = AppState & {
   setExitRecoveryPriority: (value: string) => void;
   setExitCleanupTiming: (value: string) => void;
   setExitDisputeResolution: (value: string) => void;
+  setExitVision: (value: string) => void;
+  setPivotCriteria: (value: string) => void;
+  setConflictResolution: (value: string) => void;
+  setDealbreaker: (value: string) => void;
+  setSalaryStructure: (value: string) => void;
+  setEquityStructure: (value: string) => void;
+  setProfitDistribution: (value: string) => void;
+  setGrowthStrategy: (value: string) => void;
   setDepartment: (value: string) => void;
   setRole: (value: string) => void;
   progress: number;
@@ -70,6 +86,14 @@ const defaultState: AppState = {
   exitRecoveryPriority: "",
   exitCleanupTiming: "",
   exitDisputeResolution: "",
+  exitVision: "",
+  pivotCriteria: "",
+  conflictResolution: "",
+  dealbreaker: "",
+  salaryStructure: "",
+  equityStructure: "",
+  profitDistribution: "",
+  growthStrategy: "",
   department: "",
   role: ""
 };
@@ -109,6 +133,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       state.exitRecoveryPriority,
       state.exitCleanupTiming,
       state.exitDisputeResolution,
+      state.exitVision,
+      state.pivotCriteria,
+      state.conflictResolution,
+      state.dealbreaker,
+      state.salaryStructure,
+      state.equityStructure,
+      state.profitDistribution,
+      state.growthStrategy,
       state.department,
       state.role
     ];
@@ -130,6 +162,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const setExitRecoveryPriority = useCallback((value: string) => setState((prev) => ({ ...prev, exitRecoveryPriority: value })), []);
   const setExitCleanupTiming = useCallback((value: string) => setState((prev) => ({ ...prev, exitCleanupTiming: value })), []);
   const setExitDisputeResolution = useCallback((value: string) => setState((prev) => ({ ...prev, exitDisputeResolution: value })), []);
+  const setExitVision = useCallback((value: string) => setState((prev) => ({ ...prev, exitVision: value })), []);
+  const setPivotCriteria = useCallback((value: string) => setState((prev) => ({ ...prev, pivotCriteria: value })), []);
+  const setConflictResolution = useCallback((value: string) => setState((prev) => ({ ...prev, conflictResolution: value })), []);
+  const setDealbreaker = useCallback((value: string) => setState((prev) => ({ ...prev, dealbreaker: value })), []);
+  const setSalaryStructure = useCallback((value: string) => setState((prev) => ({ ...prev, salaryStructure: value })), []);
+  const setEquityStructure = useCallback((value: string) => setState((prev) => ({ ...prev, equityStructure: value })), []);
+  const setProfitDistribution = useCallback((value: string) => setState((prev) => ({ ...prev, profitDistribution: value })), []);
+  const setGrowthStrategy = useCallback((value: string) => setState((prev) => ({ ...prev, growthStrategy: value })), []);
   const setDepartment = useCallback((value: string) => setState((prev) => ({ ...prev, department: value })), []);
   const setRole = useCallback((value: string) => setState((prev) => ({ ...prev, role: value })), []);
 
@@ -150,6 +190,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setExitRecoveryPriority,
       setExitCleanupTiming,
       setExitDisputeResolution,
+      setExitVision,
+      setPivotCriteria,
+      setConflictResolution,
+      setDealbreaker,
+      setSalaryStructure,
+      setEquityStructure,
+      setProfitDistribution,
+      setGrowthStrategy,
       setDepartment,
       setRole,
       progress
@@ -170,6 +218,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setExitRecoveryPriority,
       setExitCleanupTiming,
       setExitDisputeResolution,
+      setExitVision,
+      setPivotCriteria,
+      setConflictResolution,
+      setDealbreaker,
+      setSalaryStructure,
+      setEquityStructure,
+      setProfitDistribution,
+      setGrowthStrategy,
       setDepartment,
       setRole,
       progress

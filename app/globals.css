@@ -4030,15 +4030,14 @@ button {
 }
 
 .legend-dot.conflict {
-  background: #6366f1;
+  background: #f97316;
 }
 
 .heatmap-grid {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: repeat(3, 120px);
+  gap: 10px;
   margin: 0 auto 40px;
-  max-width: 440px;
 }
 
 .hm-cell {
@@ -4055,7 +4054,7 @@ button {
 
 .hm-col-header .hm-en {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink);
   letter-spacing: 0.5px;
 }
@@ -4109,12 +4108,12 @@ button {
 }
 
 .hm-item.diff {
-  background: #a5b4fc; /* Light Purple */
+  background: #fdba74; /* Light Orange */
   color: #fff;
 }
 
 .hm-item.conflict {
-  background: #6366f1; /* Dark Purple */
+  background: #f97316; /* Orange */
   color: #fff;
 }
 

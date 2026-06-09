@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
@@ -18,6 +19,7 @@ import { db } from "../../lib/firebase";
 
 export default function GapReportPage() {
   const [showSubscribe, setShowSubscribe] = useState(false);
+  const router = useRouter();
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { teams } = useTeams();
@@ -125,19 +127,37 @@ export default function GapReportPage() {
     };
 
     return [
-      createIssue("q1", "의사결정 구조", left.decisionStructure, right.decisionStructure, [["1", "4"]], "의사결정 시스템에 대한 관점 차이입니다. 권한과 자율성에 대한 철학이 다릅니다."),
-      createIssue("q2", "실패 대처", left.decisionFailure, right.decisionFailure, [["1", "3"], ["1", "4"]], "실패의 리스크를 대하는 태도 차이입니다. 회사 자산과 기회비용 인식에서 갈등이 시작될 수 있습니다."),
-      createIssue("q3", "50:50 결단", left.actionVsConsensus, right.actionVsConsensus, [["1", "2"], ["2", "4"]], "교착 상태에서 총대를 메는 방식에 대한 이견입니다. 강행과 타협 사이에서 감정이 상할 수 있습니다."),
-      createIssue("q4", "교착 시간 인내", left.deadlockTolerance, right.deadlockTolerance, [["1", "4"]], "시간에 대한 민감도(Urgency) 갭입니다. 업무 지연을 대하는 스트레스 임계점이 다릅니다."),
-      createIssue("q5", "회색지대 업무 배정", left.extraWorkPriority, right.extraWorkPriority, [["3", "4"]], "담당자가 없는 일을 누구 기준으로 배정할지에 대한 차이입니다. 효율을 우선할지, 공평한 분담을 우선할지에 따라 불만이 쌓일 수 있습니다."),
-      createIssue("q6", "업무 몰입 시간 기대", left.extraWorkPrinciple, right.extraWorkPrinciple, [["1", "4"]], "창업 초기 서로에게 기대하는 시간 투입 수준의 차이입니다. 누군가에게는 기본 몰입으로 보이는 기준이, 다른 누군가에게는 과도한 요구로 느껴질 수 있습니다."),
-      createIssue("q7", "퍼포먼스 조치", left.underperformanceAction, right.underperformanceAction, [["3", "4"]], "가장 치명적인 리스크입니다. 역량 부족 파운더를 단호하게 쳐낼지, 의리로 끌고 갈 것인지에 대한 지분 소송의 불씨입니다."),
-      createIssue("q8", "협업 운영 방식", left.workstyleConstraint, right.workstyleConstraint, [["1", "4"]], "자율 운영과 구조화된 운영 중 어디에 무게를 둘지에 대한 차이입니다. 협업 리듬이 맞지 않으면 실행 속도와 피로도가 함께 흔들릴 수 있습니다."),
-      createIssue("q9", "이탈 업무 인수인계", left.handoverMethod, right.handoverMethod, [["1", "4"]], "이별의 순간 윤리에 대한 시각차입니다. 최악의 상황 시 회사의 자원을 악의적으로 방치할 가능성을 봅니다."),
-      createIssue("q10", "우선 정리 권한", left.exitRecoveryPriority, right.exitRecoveryPriority, [["1", "2"], ["2", "3"], ["2", "4"]], "무엇이 회사 운영의 핵심 리스크인지에 대한 판단 차이입니다. 결과물, 관리자 권한, 운영 정보, 커뮤니케이션 채널 중 무엇을 먼저 통제할지 기준이 갈립니다."),
-      createIssue("q11", "권한 차단 타이밍", left.exitCleanupTiming, right.exitCleanupTiming, [["1", "4"]], "보안 위협의 당장 차단과 서류상 절차 유예의 심각한 대립 포인트입니다."),
-      createIssue("q12", "이탈 시 지분 정리", left.exitDisputeResolution, right.exitDisputeResolution, [["1", "4"], ["2", "4"]], "지분 정리에서 무엇을 가장 우선 기준으로 삼을지에 대한 차이입니다. 확정 지분, 누적 기여, 인수인계, 귀책 사유 중 무엇을 더 중요하게 보는지가 크게 갈릴 수 있습니다.")
+      createIssue("q1", "단독 결정권 범위", left.decisionStructure, right.decisionStructure, [["1", "3"]], "한 명이 담당 영역에서 결정하고 나중에 알렸는데, 상대방이 '왜 나한테 먼저 안 물어봤냐'고 할 때 터집니다. 지금 맞춰볼 질문: 각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?"),
+      createIssue("q2", "실패 후 반응", left.decisionFailure, right.decisionFailure, [["1", "4"]], "실패 직후 한 명은 '빨리 다음 거 가자'고 하고, 상대방은 '왜 맨날 회고도 안 하냐'고 할 때 터집니다. 지금 맞춰볼 질문: 실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?"),
+      createIssue("q3", "반대 의견 처리", left.actionVsConsensus, right.actionVsConsensus, [["1", "2"]], "결정이 됐는데 반대했던 사람이 계속 납득 안 된다며 재논의를 요구할 때 팀 실행 속도가 반복적으로 막힙니다. 지금 맞춰볼 질문: 결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?"),
+      createIssue("q4", "결정 속도 vs 확신", left.deadlockTolerance, right.deadlockTolerance, [["1", "2"]], "한 명은 '70%면 충분하니 지금 가자'고 하고, 상대방은 '좀 더 확인하고 가자'고 할 때 '왜 항상 서두르냐' vs '왜 항상 느리냐'로 반복 충돌합니다. 지금 맞춰볼 질문: 중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?"),
+      createIssue("q5", "회색지대 업무 배정", left.extraWorkPriority, right.extraWorkPriority, [["3", "4"]], "담당자 없는 일이 생겼을 때 한 명은 당연히 A가 해야 한다고 보고, 당사자는 '왜 나냐'고 할 때 반복 마찰이 생깁니다. 지금 맞춰볼 질문: 회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?"),
+      createIssue("q6", "업무 몰입 시간 기대", left.extraWorkPrinciple, right.extraWorkPrinciple, [["1", "3"], ["1", "4"]], "한 명이 저녁·주말에 메시지를 보내거나, 반대로 업무 시간 후엔 연락이 안 될 때 기대치 차이가 드러납니다. 지금 맞춰볼 질문: 서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?"),
+      createIssue("q7", "퍼포먼스 조치", left.underperformanceAction, right.underperformanceAction, [["1", "4"], ["3", "4"]], "한 명이 계속 목표를 못 채울 때, 한 명은 '이제 역할을 조정해야 한다'고 보고 상대방은 '좀 더 기다려야 한다'고 볼 때 감정과 지분 문제가 함께 엮입니다. 지금 맞춰볼 질문: 성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?"),
+      createIssue("q8", "협업 운영 방식", left.workstyleConstraint, right.workstyleConstraint, [["1", "4"]], "중요한 시점에 상대방 일정을 모른 채 연락이 안 되거나, 불필요하게 느껴지는 보고 구조에 피로가 쌓일 때 터집니다. 지금 맞춰볼 질문: 공통으로 지켜야 할 최소 협업 리듬(예: 주 1회 싱크)이 합의됐나요?"),
+      createIssue("q9", "이탈 업무 인수인계", left.handoverMethod, right.handoverMethod, [["1", "4"]], "이탈 당사자가 '내가 마무리할게'라고 했는데 실제로는 업무가 흐지부지 넘어올 때, 또는 너무 일찍 권한이 차단돼 공백이 생길 때 터집니다. 지금 맞춰볼 질문: 인수인계 완료 기준을 미리 문서로 정해둘 의향이 있나요?"),
+      createIssue("q10", "우선 정리 권한", left.exitRecoveryPriority, right.exitRecoveryPriority, [["1", "2"], ["2", "4"]], "이탈 상황에서 한 명은 서버 권한부터 차단해야 한다고 하고, 상대방은 고객 연락처가 먼저라고 할 때 초기 몇 시간이 엉키면서 공백이 생깁니다. 지금 맞춰볼 질문: 이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?"),
+      createIssue("q11", "권한 차단 타이밍", left.exitCleanupTiming, right.exitCleanupTiming, [["1", "3"], ["1", "4"]], "퇴사 의사를 밝혔지만 법적 처리가 안 된 상황에서 한 명은 이미 외부인으로 보고 상대방은 여전히 팀원으로 대할 때 보안과 신뢰 모두 위험해집니다. 지금 맞춰볼 질문: 퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?"),
+      createIssue("q12", "이탈 시 지분 정리", left.exitDisputeResolution, right.exitDisputeResolution, [["1", "4"], ["2", "4"]], "이탈 당사자는 '나의 기여를 인정해달라'고 하고, 남은 사람은 '계약 기준으로만 처리하자'고 할 때 감정이 최고조로 올라갑니다. 지금 맞춰볼 질문: 이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?"),
+      createIssue("q13", "회사 출구 전략", left.exitVision, right.exitVision, [["1", "3"]], "한 명은 빠른 M&A 엑싯을 목표로 달리고, 상대방은 독립 운영을 원할 때 투자 유치 방향, 성장 속도, 핵심 결정 기준이 전부 어긋납니다. 지금 맞춰볼 질문: 3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?"),
+      createIssue("q14", "피벗/중단 기준", left.pivotCriteria, right.pivotCriteria, [["1", "2"]], "한 명은 '자금이 다 떨어지기 전에는 계속 간다'고 하고, 상대방은 '시장 반응이 없으면 먼저 멈춰야 한다'고 할 때 버티는 기준 자체가 달라 결정적 순간에 충돌합니다. 지금 맞춰볼 질문: 방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?"),
+      createIssue("q15", "갈등 해소 방식", left.conflictResolution, right.conflictResolution, [["1", "3"]], "한 명은 '지금 당장 얘기하자'고 하고, 상대방은 '좀 식히고 나서 하자'고 할 때 갈등이 해소되지 않고 쌓입니다. 지금 맞춰볼 질문: 갈등이 생겼을 때 처리 방식에 대한 기준을 맞춰본 적 있나요?"),
+      createIssue("q16", "절대 용납 못하는 것", left.dealbreaker, right.dealbreaker, [["1", "4"]], "한 명이 가장 못 참는 것이 상대방의 가장 자연스러운 행동 방식일 때 반복 마찰의 근원이 됩니다. 지금 맞춰볼 질문: 서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?"),
+      createIssue("q17", "급여 구조", left.salaryStructure, right.salaryStructure, [["1", "2"]], "한 명은 '기여도가 다르면 급여도 달라야 한다'고 하고, 상대방은 '초기엔 같아야 공평하다'고 할 때 불만이 쌓이다 터집니다. 지금 맞춰볼 질문: 공동창업자 간 급여 차등 기준이 지금 합의되어 있나요?"),
+      createIssue("q18", "지분 구조 철학", left.equityStructure, right.equityStructure, [["1", "2"]], "한 명은 '처음 합의한 구조가 맞다'고 하고, 상대방은 '기여도가 달라지면 지분도 바뀌어야 한다'고 할 때 가장 큰 감정 충돌이 생깁니다. 지금 맞춰볼 질문: 지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?"),
+      createIssue("q19", "수익 배분 우선순위", left.profitDistribution, right.profitDistribution, [["1", "3"]], "한 명은 '수익은 전부 재투자해야 한다'고 하고, 상대방은 '이제 보상을 받아야 한다'고 할 때 첫 수익이 오히려 갈등의 도화선이 됩니다. 지금 맞춰볼 질문: 수익 발생 시 배분 기준이 미리 합의되어 있나요?"),
+      createIssue("q20", "성장 전략", left.growthStrategy, right.growthStrategy, [["1", "2"]], "한 명은 투자를 받아 빠르게 성장하고 싶고, 상대방은 지분을 지키며 생존하고 싶을 때 투자 유치 기회가 올 때마다 충돌합니다. 지금 맞춰볼 질문: 외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?")
     ];
+  }, [selectedPair]);
+
+  const bothHaveAdvancedData = useMemo(() => {
+    if (!selectedPair) return false;
+    const advancedFields = ["exitVision", "pivotCriteria", "conflictResolution", "dealbreaker", "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"] as const;
+    const leftAnswers = selectedPair.a.answers ?? {};
+    const rightAnswers = selectedPair.b.answers ?? {};
+    const leftHas = advancedFields.some((f) => Boolean(leftAnswers[f]));
+    const rightHas = advancedFields.some((f) => Boolean(rightAnswers[f]));
+    return leftHas && rightHas;
   }, [selectedPair]);
 
   const diffIssues = useMemo(() => {
@@ -207,7 +227,7 @@ export default function GapReportPage() {
 
   const alignmentScore = useMemo(() => {
     if (teamInsight.rawScore === undefined) return 86;
-    return Math.max(0, Math.round(100 - (teamInsight.rawScore / 54) * 100));
+    return Math.max(0, Math.round(100 - (teamInsight.rawScore / 102) * 100));
   }, [teamInsight.rawScore]);
 
   const slides = [
@@ -379,8 +399,9 @@ export default function GapReportPage() {
                     영역별 상세 데이터 시각화 <span className="heatmap-subtitle">(Heatmap)</span>
                   </h2>
                   <div className="heatmap-legend">
-                    <div className="legend-item"><span className="legend-dot alignment"></span> 일치 (Alignment)</div>
-                    <div className="legend-item"><span className="legend-dot conflict"></span> 갈등 (Conflict)</div>
+                    <div className="legend-item"><span className="legend-dot alignment"></span> 일치</div>
+                    <div className="legend-item"><span className="legend-dot" style={{background:"#fdba74"}}></span> 차이</div>
+                    <div className="legend-item"><span className="legend-dot conflict"></span> 충돌</div>
                   </div>
                 </div>
                 <div className="heatmap-instruction">
@@ -388,57 +409,73 @@ export default function GapReportPage() {
                 </div>
               </div>
 
-              <div className="heatmap-grid">
-                {/* Header Row */}
-                <div className="hm-cell hm-corner"></div>
-                <div className="hm-cell hm-col-header">
-                  <div className="hm-en">OPERATIONS</div>
-                  <div className="hm-kr">(운영방식)</div>
-                </div>
-                <div className="hm-cell hm-col-header">
-                  <div className="hm-en">AUTHORITY</div>
-                  <div className="hm-kr">(의사결정권)</div>
-                </div>
-                <div className="hm-cell hm-col-header">
-                  <div className="hm-en">EXIT</div>
-                  <div className="hm-kr">(투자회수)</div>
+              <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", justifyContent: bothHaveAdvancedData ? "flex-start" : "center" }}>
+                {/* Basic Diagnosis Heatmap */}
+                <div className="heatmap-grid">
+                  {/* Header Row */}
+                  <div className="hm-cell hm-col-header">
+                    <div className="hm-en">권한 & 실행</div>
+                    <div className="hm-kr">(Operations)</div>
+                  </div>
+                  <div className="hm-cell hm-col-header">
+                    <div className="hm-en">책임</div>
+                    <div className="hm-kr">(Responsibility)</div>
+                  </div>
+                  <div className="hm-cell hm-col-header">
+                    <div className="hm-en">종료</div>
+                    <div className="hm-kr">(Exit)</div>
+                  </div>
+
+                  {/* Row 1 */}
+                  <button type="button" className={`hm-cell hm-item ${issues[0].status}`} onClick={() => setSelectedIssue(issues[0].id)}>Q1</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[4].status}`} onClick={() => setSelectedIssue(issues[4].id)}>Q5</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[8].status}`} onClick={() => setSelectedIssue(issues[8].id)}>Q9</button>
+
+                  {/* Row 2 */}
+                  <button type="button" className={`hm-cell hm-item ${issues[1].status}`} onClick={() => setSelectedIssue(issues[1].id)}>Q2</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[5].status}`} onClick={() => setSelectedIssue(issues[5].id)}>Q6</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[9].status}`} onClick={() => setSelectedIssue(issues[9].id)}>Q10</button>
+
+                  {/* Row 3 */}
+                  <button type="button" className={`hm-cell hm-item ${issues[2].status}`} onClick={() => setSelectedIssue(issues[2].id)}>Q3</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[6].status}`} onClick={() => setSelectedIssue(issues[6].id)}>Q7</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[10].status}`} onClick={() => setSelectedIssue(issues[10].id)}>Q11</button>
+
+                  {/* Row 4 */}
+                  <button type="button" className={`hm-cell hm-item ${issues[3].status}`} onClick={() => setSelectedIssue(issues[3].id)}>Q4</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[7].status}`} onClick={() => setSelectedIssue(issues[7].id)}>Q8</button>
+                  <button type="button" className={`hm-cell hm-item ${issues[11].status}`} onClick={() => setSelectedIssue(issues[11].id)}>Q12</button>
                 </div>
 
-                {/* Row 1: HIGH */}
-                <div className="hm-cell hm-row-header">
-                  <div className="hm-en">HIGH</div>
-                  <div className="hm-kr">(심각한 차이)</div>
-                </div>
-                <button type="button" className={`hm-cell hm-item ${issues[0].status}`} onClick={() => setSelectedIssue(issues[0].id)}>Q1</button>
-                <button type="button" className={`hm-cell hm-item ${issues[4].status}`} onClick={() => setSelectedIssue(issues[4].id)}>Q5</button>
-                <button type="button" className={`hm-cell hm-item ${issues[8].status}`} onClick={() => setSelectedIssue(issues[8].id)}>Q9</button>
-
-                {/* Row 2: MODERATE */}
-                <div className="hm-cell hm-row-header">
-                  <div className="hm-en">MODERATE</div>
-                  <div className="hm-kr">(조율 필요)</div>
-                </div>
-                <button type="button" className={`hm-cell hm-item ${issues[1].status}`} onClick={() => setSelectedIssue(issues[1].id)}>Q2</button>
-                <button type="button" className={`hm-cell hm-item ${issues[5].status}`} onClick={() => setSelectedIssue(issues[5].id)}>Q6</button>
-                <button type="button" className={`hm-cell hm-item ${issues[9].status}`} onClick={() => setSelectedIssue(issues[9].id)}>Q10</button>
-
-                {/* Row 3: LOW */}
-                <div className="hm-cell hm-row-header">
-                  <div className="hm-en">LOW</div>
-                  <div className="hm-kr">(원만한 합의)</div>
-                </div>
-                <button type="button" className={`hm-cell hm-item ${issues[2].status}`} onClick={() => setSelectedIssue(issues[2].id)}>Q3</button>
-                <button type="button" className={`hm-cell hm-item ${issues[6].status}`} onClick={() => setSelectedIssue(issues[6].id)}>Q7</button>
-                <button type="button" className={`hm-cell hm-item ${issues[10].status}`} onClick={() => setSelectedIssue(issues[10].id)}>Q11</button>
-
-                {/* Row 4: BASELINE */}
-                <div className="hm-cell hm-row-header">
-                  <div className="hm-en">BASELINE</div>
-                  <div className="hm-kr">(공통 기반)</div>
-                </div>
-                <button type="button" className={`hm-cell hm-item ${issues[3].status}`} onClick={() => setSelectedIssue(issues[3].id)}>Q4</button>
-                <button type="button" className={`hm-cell hm-item ${issues[7].status}`} onClick={() => setSelectedIssue(issues[7].id)}>Q8</button>
-                <button type="button" className={`hm-cell hm-item ${issues[11].status}`} onClick={() => setSelectedIssue(issues[11].id)}>Q12</button>
+                {/* Advanced Diagnosis Heatmap */}
+                {bothHaveAdvancedData ? (
+                  <>
+                    <div style={{ width: "1px", background: "#e2e8f0", alignSelf: "stretch", marginTop: "40px" }} />
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "0.8rem", fontWeight: "700", color: "#6366f1", background: "rgba(99,102,241,0.08)", padding: "4px 10px", borderRadius: "999px", letterSpacing: "0.5px" }}>심화 진단</span>
+                      </div>
+                      <div className="heatmap-grid" style={{ gridTemplateColumns: "repeat(2, 120px)" }}>
+                        <div className="hm-cell hm-col-header">
+                          <div className="hm-en">비전/가치관</div>
+                          <div className="hm-kr">(Vision)</div>
+                        </div>
+                        <div className="hm-cell hm-col-header">
+                          <div className="hm-en">돈/보상</div>
+                          <div className="hm-kr">(Money)</div>
+                        </div>
+                        <button type="button" className={`hm-cell hm-item ${issues[12].status}`} onClick={() => setSelectedIssue(issues[12].id)}>Q13</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[16].status}`} onClick={() => setSelectedIssue(issues[16].id)}>Q17</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[13].status}`} onClick={() => setSelectedIssue(issues[13].id)}>Q14</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[17].status}`} onClick={() => setSelectedIssue(issues[17].id)}>Q18</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[14].status}`} onClick={() => setSelectedIssue(issues[14].id)}>Q15</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[18].status}`} onClick={() => setSelectedIssue(issues[18].id)}>Q19</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[15].status}`} onClick={() => setSelectedIssue(issues[15].id)}>Q16</button>
+                        <button type="button" className={`hm-cell hm-item ${issues[19].status}`} onClick={() => setSelectedIssue(issues[19].id)}>Q20</button>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
               </div>
 
               {/* Help Box */}
@@ -447,10 +484,9 @@ export default function GapReportPage() {
                   <span className="help-icon">❓</span> 어떻게 읽나요?
                 </div>
                 <ul className="help-list">
-                  <li>각 열은 운영 방식(Q1-Q4), 의사결정권(Q5-Q8), 투자 회수(Q9-Q12) 영역을 나타냅니다.</li>
-                  <li>색상이 짙을수록 해당 질문에서 팀원들의 의견이 강하게 충돌하거나 일치함을 의미합니다.</li>
-                  <li><strong className="text-green">초록색 셀</strong>은 긍정적 합의, <strong className="text-purple">보라색 셀</strong>은 인식의 격차(갈등 가능성)를 나타냅니다.</li>
-                  <li>상단의 'High' 영역에 보라색 셀이 많을수록 시급한 조율이 필요한 항목입니다.</li>
+                  <li>1차 진단: <strong>권한 & 실행(Q1-Q4)</strong>, <strong>책임(Q5-Q8)</strong>, <strong>종료(Q9-Q12)</strong> / 심화 진단: <strong>비전/가치관(Q13-Q16)</strong>, <strong>돈/보상(Q17-Q20)</strong></li>
+                  <li><strong style={{color:"#20c997"}}>초록색</strong>은 두 사람의 답이 일치, <strong style={{color:"#fdba74"}}>주황 연한색</strong>은 차이 있음, <strong style={{color:"#f97316"}}>주황 진한색</strong>은 충돌(즉각 조율 필요)입니다.</li>
+                  <li>셀을 클릭하면 두 사람의 실제 응답과 상세 분석을 확인할 수 있습니다.</li>
                 </ul>
               </div>
 
@@ -619,7 +655,7 @@ export default function GapReportPage() {
                     </ul>
                     <p>데이터에 따르면 초기 합의를 문서화하지 않은 팀의 60%가 1년 내에 이탈 및 지분 분쟁을 겪습니다.</p>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                         <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
@@ -643,7 +679,7 @@ export default function GapReportPage() {
                     <div className="chat-bubble">Q. "개인 사정으로 3개월 이상 정상적인 직무 수행이 불가능해질 경우, 해당 팀원의 기존 지분율과 급여 지급 기준은 어떻게 조정되나요?"</div>
                     <div className="chat-bubble">Q. "투자 유치 시 기존 주주들의 지분 희석을 방어하기 위한 우선매수권(Right of First Refusal) 및 동반매도요구권(Drag-along) 조항이 팀원 간 합의되어 있나요?"</div>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                         <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
@@ -676,7 +712,7 @@ export default function GapReportPage() {
                       <p>사유: 가장 안전해 보이지만 실제로는 교착 상태를 유발할 위험이 커 시장에서는 절대 권장하지 않는 방식입니다.</p>
                     </div>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                         <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
@@ -701,7 +737,7 @@ export default function GapReportPage() {
                     <p><strong>제 8조 (경업 금지 의무)</strong> 퇴사 후 최소 2년간 회사가 영위하는 동종 업종의 창업 및 취업을...</p>
                     <p style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "12px", color: "var(--primary)" }}><strong>🔄 버전 1.0 생성됨 (변경 이력 추적 중)</strong></p>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                         <span className="lock-icon" style={{ fontSize: "16px", marginBottom: "0", marginRight: "6px", display: "inline-block" }}>🔒</span> 우리 팀 맞춤 합의서 완성하기
                       </button>
                     </div>
@@ -766,7 +802,7 @@ export default function GapReportPage() {
         </div>
       )}
 
-      {selectedPair && selectedIssue && (
+      {selectedPair && selectedIssue && (bothHaveAdvancedData || ["q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","q11","q12"].includes(selectedIssue)) && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <div className="modal-top">

@@ -35,7 +35,15 @@ export default function WorkspaceCreatePage() {
     handoverMethod,
     exitRecoveryPriority,
     exitCleanupTiming,
-    exitDisputeResolution
+    exitDisputeResolution,
+    exitVision,
+    pivotCriteria,
+    conflictResolution,
+    dealbreaker,
+    salaryStructure,
+    equityStructure,
+    profitDistribution,
+    growthStrategy
   } = useAppState();
   const { profile } = useUserProfile();
   const [teamName, setTeamName] = useState("");
@@ -68,7 +76,15 @@ export default function WorkspaceCreatePage() {
       handoverMethod,
       exitRecoveryPriority,
       exitCleanupTiming,
-      exitDisputeResolution
+      exitDisputeResolution,
+      exitVision,
+      pivotCriteria,
+      conflictResolution,
+      dealbreaker,
+      salaryStructure,
+      equityStructure,
+      profitDistribution,
+      growthStrategy
     };
     const { gapCount, gapScore } = computeGapSummary([answers]);
     const teamProgress = computeTeamProgress([{ progress }]);
