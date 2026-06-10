@@ -11,6 +11,7 @@ import { db } from "../../../lib/firebase";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 import { useRouter } from "next/navigation";
+import { ScenarioIllustration } from "../../../components/ScenarioIllustration";
 
 
 
@@ -114,11 +115,11 @@ export default function OnboardingDiagnosisPage() {
           id: "decisionStructure",
           label: "",
           type: "single",
-          scenario: "온보딩 첫 화면 전환율이 낮아서 플로우를 바꾸면 될 것 같습니다. 아직 공동창업자와 이야기하지 않았는데, 보통 나는 어떻게 행동하나요?",
+          scenario: "온보딩 첫 화면 전환율이 낮아서 플로우를 바꾸면 될 것 같습니다. 아직 공동창업자와 이야기하지 않은 상황, 어떻게 할 것 같아요?",
           options: [
-            "1. 내 담당 영역이라면 바로 수정하고 결과를 공유한다",
+            "1. 내 영역이면 바로 수정하고 결과를 공유한다",
             "2. 간단히 알림만 보내고 바로 진행한다",
-            "3. 먼저 의견을 물어보고 방향을 맞춘 뒤 진행한다",
+            "3. 먼저 의견을 맞추고 나서 진행한다",
             "4. 함께 검토할 시간을 잡고 결정한다"
           ],
           value: decisionStructure,
@@ -129,12 +130,12 @@ export default function OnboardingDiagnosisPage() {
           id: "decisionFailure",
           label: "",
           type: "single",
-          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다. 다음 달 방향을 결정해야 하는데, 보통 나는 어떻게 행동하나요?",
+          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다. 다음 달 방향을 어떻게 잡을 것 같아요?",
           options: [
             "1. 결과가 말해주고 있으니 당장 전략을 바꾼다",
-            "2. 원인을 분석하고 공동창업자와 방향을 논의한다",
+            "2. 원인을 분석하고 방향을 함께 논의한다",
             "3. 데이터를 더 모아보고 한 달 뒤에 판단한다",
-            "4. 현재 전략은 맞다고 보고 영업 방식 일부만 수정한다"
+            "4. 전략은 유지하고 영업 방식만 일부 수정한다"
           ],
           value: decisionFailure,
           onSelect: setDecisionFailure,
@@ -144,10 +145,10 @@ export default function OnboardingDiagnosisPage() {
           id: "actionVsConsensus",
           label: "",
           type: "single",
-          scenario: "마케팅 예산 300만원을 인스타그램 광고에 쓰기로 결정됐습니다. 나는 반대 의견을 냈지만 실행이 이미 진행된 지금, 보통 나는 어떻게 행동하나요?",
+          scenario: "마케팅 예산 300만원을 인스타그램 광고에 쓰기로 결정됐습니다. 반대 의견을 냈지만 실행이 이미 진행된 지금, 어떻게 할 것 같아요?",
           options: [
-            "1. 결정된 이상 내 역할에서 최선을 다해 지원한다",
-            "2. 결과가 나오기 전까지 재검토를 계속 요청한다",
+            "1. 결정된 이상 내 역할에서 최선을 다한다",
+            "2. 결과 전까지 재검토를 계속 요청한다",
             "3. 실행에는 참여하지만 이견은 기록해둔다",
             "4. 더 이상 언급하지 않고 결과를 지켜본다"
           ],
@@ -159,10 +160,10 @@ export default function OnboardingDiagnosisPage() {
           id: "deadlockTolerance",
           label: "",
           type: "single",
-          scenario: "경쟁사가 유사 기능을 먼저 출시했습니다. 일부를 단순화하면 1주 내 출시가 가능하고, 2주 더 다듬으면 완성도가 높아집니다. 보통 나는 어떻게 행동하나요?",
+          scenario: "경쟁사가 유사 기능을 먼저 출시했습니다. 1주 내 단순화 출시 vs 2주 더 다듬어 완성도 출시, 어떻게 할 것 같아요?",
           options: [
-            "1. 지금 당장 단순화해서 내보낸다 — 속도가 먼저다",
-            "2. 2주를 더 다듬어 제대로 된 버전을 출시한다 — 완성도가 먼저다",
+            "1. 단순화해서 당장 내보낸다 — 속도 우선",
+            "2. 2주 더 다듬어서 출시한다 — 완성도 우선",
             "3. 공동창업자와 논의해서 기준을 정한다",
             "4. 핵심 기능만 추려 중간 타협점을 찾는다"
           ],
@@ -181,12 +182,12 @@ export default function OnboardingDiagnosisPage() {
           id: "extraWorkPriority",
           label: "",
           type: "single",
-          scenario: "베타 출시 이후 고객 문의가 하루 5~10건 정도 발생하고 있습니다. CS를 전담하는 역할은 따로 정해져 있지 않은 상태인데, 보통 나는 어떻게 하나요?",
+          scenario: "베타 출시 이후 고객 문의가 하루 5~10건 발생하고 있습니다. CS 담당이 따로 정해지지 않은 상황, 어떻게 할 것 같아요?",
           options: [
-            "1. 우선 내가 일부라도 직접 처리하면서 상황을 파악한다",
-            "2. 공동창업자와 함께 담당자를 정하고 역할을 나눈다",
-            "3. 현재 업무 우선순위를 유지하고 당장은 별도 대응하지 않는다",
-            "4. 반복 패턴을 보고 난 뒤 구조적으로 해결한다 (채용 포함)"
+            "1. 일단 내가 직접 처리하며 상황을 파악한다",
+            "2. 담당자를 정하고 역할을 함께 나눈다",
+            "3. 현재 우선순위를 유지한다 — 별도 대응 없이",
+            "4. 패턴 확인 후 구조적으로 해결한다 (채용 포함)"
           ],
           value: extraWorkPriority,
           onSelect: setExtraWorkPriority,
@@ -196,12 +197,12 @@ export default function OnboardingDiagnosisPage() {
           id: "extraWorkPrinciple",
           label: "",
           type: "single",
-          scenario: "금요일 저녁 10시, 공동창업자에게서 카카오톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 같이 30분만 검토하자.' 나는 어떻게 생각하나요?",
+          scenario: "토요일 밤 12시, 공동창업자 카톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 30분만 같이 봐줘.' 어떻게 할 것 같아요?",
           options: [
             "1. 당연히 해야지 — 초기엔 이런 게 기본이다",
-            "2. 하겠지만 이런 요청은 미리 알려줬으면 좋겠다",
+            "2. 하겠지만 미리 알려줬으면 좋겠다",
             "3. 중요한 일이지만 개인 시간은 지켜져야 한다",
-            "4. 업무 시간 외 요청은 원칙적으로 다음 날 처리한다"
+            "4. 업무 외 시간 요청은 원칙적으로 거절한다"
           ],
           value: extraWorkPrinciple,
           onSelect: setExtraWorkPrinciple,
@@ -211,12 +212,12 @@ export default function OnboardingDiagnosisPage() {
           id: "underperformanceAction",
           label: "",
           type: "single",
-          scenario: "공동창업자가 맡은 개발 일정이 3개월째 반복적으로 밀리고 있습니다. 매번 이유는 있지만 전체 릴리즈 일정에 영향이 누적되고 있는데, 나는 어떻게 해야 한다고 생각하나요?",
+          scenario: "공동창업자가 맡은 개발 일정이 이번 달도 밀렸습니다. 저번 달에 이어 두 번째인데, 매번 이유는 있어요. 어떻게 할 것 같아요?",
           options: [
             "1. 즉시 역할 조정이나 업무 대행을 검토한다",
-            "2. 명확한 기준과 타임라인을 함께 정하고 이행을 확인한다",
+            "2. 기준과 타임라인을 정하고 이행을 확인한다",
             "3. 원인을 먼저 파악하고 도울 방법을 찾는다",
-            "4. 현재 방식으로는 어렵다고 판단하고 구조 변경을 논의한다"
+            "4. 한계라고 판단하면 구조 변경을 논의한다"
           ],
           value: underperformanceAction,
           onSelect: setUnderperformanceAction,
@@ -226,12 +227,12 @@ export default function OnboardingDiagnosisPage() {
           id: "workstyleConstraint",
           label: "",
           type: "single",
-          scenario: "긴급 의사결정이 필요한데, 한 명은 업무 중이고 다른 한 명은 2~3시간째 응답이 없습니다. 나는 어떤 방식이 맞다고 생각하나요?",
+          scenario: "긴급 의사결정이 필요한데, 한 명은 업무 중이고 다른 한 명은 2~3시간째 응답이 없습니다. 이 상황, 어떻게 할 것 같아요?",
           options: [
-            "1. 기다리지 않고 내가 판단해서 결정한다 — 속도가 중요하다",
+            "1. 기다리지 않고 내가 결정한다 — 속도 우선",
             "2. 최대한 빨리 연락을 취하고 결정을 보류한다",
-            "3. 이런 상황에 대한 규칙을 미리 만들어야 한다고 생각한다",
-            "4. 공동 결정이 원칙이므로 연락이 닿을 때까지 기다린다"
+            "3. 이런 상황을 대비한 규칙이 미리 필요하다",
+            "4. 공동 결정 원칙 — 연락될 때까지 기다린다"
           ],
           value: workstyleConstraint,
           onSelect: setWorkstyleConstraint,
@@ -248,11 +249,11 @@ export default function OnboardingDiagnosisPage() {
           id: "handoverMethod",
           label: "",
           type: "single",
-          scenario: "공동창업자가 한 달 후 팀을 떠나겠다고 했습니다. 그가 담당하던 고객 관리와 서버 운영이 문서화되지 않은 상태인데, 인수인계는 어떻게 진행하는 게 맞다고 생각하나요?",
+          scenario: "공동창업자가 한 달 후 떠난다고 했습니다. 담당하던 고객 관리와 서버 운영, 문서화가 안 된 상태예요. 인수인계 어떻게 할 것 같아요?",
           options: [
-            "1. 이번 주부터 즉시 문서화와 인수인계를 시작한다",
-            "2. 이탈 일정을 2주 연장하고 충분한 시간을 확보한다",
-            "3. 핵심만 구두로 전달받고 나머지는 직접 파악한다",
+            "1. 이번 주 즉시 문서화와 인수인계를 시작한다",
+            "2. 이탈 일정 2주 연장해 충분한 시간을 확보한다",
+            "3. 핵심은 구두로 받고 나머지는 직접 파악한다",
             "4. 이탈 시점이 가까워지면 그때 정리한다"
           ],
           value: handoverMethod,
@@ -263,12 +264,12 @@ export default function OnboardingDiagnosisPage() {
           id: "exitRecoveryPriority",
           label: "",
           type: "single",
-          scenario: "이탈 예정 공동창업자가 GitHub, AWS, 고객 연락처, 법인 계좌 접근 권한을 모두 갖고 있습니다. 가장 먼저 조치해야 할 사항은 무엇이라고 생각하나요?",
+          scenario: "떠나는 공동창업자가 GitHub, AWS, 고객 연락처, 법인 계좌 권한을 모두 갖고 있어요. 가장 먼저 뭘 챙길 것 같아요?",
           options: [
-            "1. 핵심 시스템 접근 권한 회수 및 백업을 처리한다",
-            "2. 주요 고객과의 관계 인수인계를 먼저 진행한다",
+            "1. 핵심 시스템 권한 회수와 백업을 처리한다",
+            "2. 주요 고객 관계 인수인계를 먼저 챙긴다",
             "3. 운영 문서와 프로세스 정리를 우선한다",
-            "4. 법인 계좌와 지분 관련 법적 처리를 먼저 진행한다"
+            "4. 법인 계좌·지분 법적 처리를 먼저 한다"
           ],
           value: exitRecoveryPriority,
           onSelect: setExitRecoveryPriority,
@@ -278,12 +279,12 @@ export default function OnboardingDiagnosisPage() {
           id: "exitCleanupTiming",
           label: "",
           type: "single",
-          scenario: "공동창업자가 당일 퇴사를 통보했습니다. 아직 인수인계는 시작도 안 됐고, 모든 시스템 권한은 유지된 상태입니다. 계정과 권한은 언제 어떻게 조정하는 게 맞다고 생각하나요?",
+          scenario: "공동창업자가 오늘 갑자기 퇴사를 통보했어요. 인수인계는 시작도 안 됐고 시스템 권한은 그대로예요. 계정과 권한, 어떻게 할 것 같아요?",
           options: [
             "1. 통보 즉시 모든 권한을 차단한다",
             "2. 핵심 인수인계 완료 직후 단계적으로 차단한다",
-            "3. 2~4주의 인수인계 기간 동안 순차적으로 처리한다",
-            "4. 모든 절차가 합의되고 나서 마지막에 차단한다"
+            "3. 2~4주 인수인계 기간에 순차적으로 처리한다",
+            "4. 모든 절차 합의 후 마지막에 차단한다"
           ],
           value: exitCleanupTiming,
           onSelect: setExitCleanupTiming,
@@ -293,12 +294,12 @@ export default function OnboardingDiagnosisPage() {
           id: "exitDisputeResolution",
           label: "",
           type: "single",
-          scenario: "공동창업자가 1년을 함께한 뒤 이탈합니다. 처음 약속한 지분은 20%인데, 실제 기여도에 대한 평가가 서로 다릅니다. 이 상황에서 가장 우선해야 할 기준은 무엇이라고 생각하나요?",
+          scenario: "1년 함께한 공동창업자가 떠납니다. 약속한 지분은 20%인데, 실제 기여도 평가가 서로 달라요. 어떤 기준으로 정리할 것 같아요?",
           options: [
             "1. 처음 합의한 계약 내용을 그대로 이행한다",
-            "2. 실제 기여도와 활동 기간을 기준으로 재산정한다",
-            "3. 제3자(변호사, 투자자 등)의 도움을 받아 결정한다",
-            "4. 서로 감정 없이 납득할 수 있는 선을 협의한다"
+            "2. 기여도와 활동 기간 기준으로 재산정한다",
+            "3. 변호사 등 제3자의 도움을 받아 결정한다",
+            "4. 서로 납득할 수 있는 선에서 협의한다"
           ],
           value: exitDisputeResolution,
           onSelect: setExitDisputeResolution,
@@ -315,11 +316,11 @@ export default function OnboardingDiagnosisPage() {
           id: "exitVision",
           label: "",
           type: "single",
-          scenario: "창업을 시작한 지 2년이 지났고 제품이 시장에서 반응을 얻기 시작했습니다. 이 회사의 가장 이상적인 결말은 무엇이라고 생각하나요?",
+          scenario: "'이 회사가 어디로 가야 하는가'라는 의문이 생기기 시작했어요. 지금 함께 만들고 있는 이 회사, 가장 이상적인 결말은 뭐라고 생각해요?",
           options: [
             "1. 빠르게 성장해 대기업에 인수된다 (M&A 엑싯)",
             "2. 상장(IPO)해서 더 큰 회사로 키운다",
-            "3. 외부 투자 없이 수익성 있는 독립 회사로 오래 운영한다",
+            "3. 수익성 있는 독립 회사로 오래 운영한다",
             "4. 아직 정해진 생각은 없다"
           ],
           value: exitVision,
@@ -330,11 +331,11 @@ export default function OnboardingDiagnosisPage() {
           id: "pivotCriteria",
           label: "",
           type: "single",
-          scenario: "팀이 목표한 성과를 지속적으로 내지 못하고 있습니다. 중단 또는 방향 전환을 해야 한다고 판단하는 기준은 무엇인가요?",
+          scenario: "출시 8개월차, 지표는 정체고 번레이트(매달 소진되는 운영 자금)도 줄고 있어요. 피벗이나 중단을 결정하는 기준이 뭘 것 같아요?",
           options: [
             "1. 자금이 부족해 더 이상 운영이 어려울 때",
             "2. 일정 기간 동안 시장 반응이 거의 없을 때",
-            "3. 핵심 팀원이 이탈하거나 지속적으로 흔들릴 때",
+            "3. 핵심 팀원이 이탈하거나 계속 흔들릴 때",
             "4. 공동창업자 간 합의가 되지 않을 때"
           ],
           value: pivotCriteria,
@@ -345,7 +346,7 @@ export default function OnboardingDiagnosisPage() {
           id: "conflictResolution",
           label: "",
           type: "single",
-          scenario: "공동창업자 간 갈등이 생겼을 때 어떻게 해결하는 게 맞다고 생각하나요?",
+          scenario: "첫 채용 예산이 생겼는데, 시니어 개발자가 먼저라는 의견과 영업 인력이 먼저라는 의견이 서로 물러서지 않는 상황, 어떻게 할 것 같아요?",
           options: [
             "1. 당사자끼리 즉시 직접 대화로 해결한다",
             "2. 정해진 기준이나 룰에 따라 처리한다",
@@ -360,7 +361,7 @@ export default function OnboardingDiagnosisPage() {
           id: "dealbreaker",
           label: "",
           type: "single",
-          scenario: "공동창업자에게 절대 용납할 수 없는 것은 무엇인가요?",
+          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
           options: [
             "1. 결정을 미루거나 느리게 움직이는 것",
             "2. 말한 것을 지키지 않는 것",
@@ -382,12 +383,12 @@ export default function OnboardingDiagnosisPage() {
           id: "salaryStructure",
           label: "",
           type: "single",
-          scenario: "창업 초기 자금이 넉넉하지 않습니다. 공동창업자 간 급여는 어떻게 정하는 게 맞다고 생각하나요?",
+          scenario: "초기 팀 보상 구조를 논의하다 스톡옵션 필요 여부로 의견이 갈렸어요. 어떻게 할 것 같아요?",
           options: [
-            "1. 역할과 기여도에 따라 처음부터 차등 지급한다",
-            "2. 초기엔 동일하게 맞추고 이후 성과에 따라 조정한다",
-            "3. 회사가 안정될 때까지 최소 수준으로 맞춘다",
-            "4. 각자 시장 기준 연봉에 맞게 책정한다"
+            "1. 스톡옵션으로 핵심 인재를 유치한다",
+            "2. 성과 기반 현금 인센티브로 대신한다",
+            "3. 회사가 안정된 후 보상 구조를 정한다",
+            "4. 별도 보상 없이 급여만으로 운영한다"
           ],
           value: salaryStructure,
           onSelect: setSalaryStructure,
@@ -397,12 +398,12 @@ export default function OnboardingDiagnosisPage() {
           id: "equityStructure",
           label: "",
           type: "single",
-          scenario: "공동창업자 지분 구조에 대해 어떻게 생각하나요?",
+          scenario: "초기 지분을 6:4로 합의했지만 1년이 지난 지금, 두 사람의 실제 기여도와 시간 투자가 달라졌습니다. 지분 구조에 대해 어떻게 생각하나요?",
           options: [
-            "1. 투자 유치를 위해 시장 관행에 맞는 구조를 유지하는 게 맞다",
-            "2. 실제 기여도와 시간 투입이 달라지면 지분도 조정해야 한다",
-            "3. 처음 합의한 지분은 어떤 상황에서도 계약대로 이행해야 한다",
-            "4. 지분은 고정하되 스톡옵션이나 급여로 기여도 차이를 메운다"
+            "1. 투자 유치에 맞게 시장 관행 구조를 유지한다",
+            "2. 기여도가 달라지면 지분도 조정해야 한다",
+            "3. 처음 합의한 지분은 어떤 상황에서도 지킨다",
+            "4. 지분 고정 후 급여·옵션으로 기여도를 보완한다"
           ],
           value: equityStructure,
           onSelect: setEquityStructure,
@@ -412,10 +413,10 @@ export default function OnboardingDiagnosisPage() {
           id: "profitDistribution",
           label: "",
           type: "single",
-          scenario: "회사에 의미 있는 수익이 발생하기 시작했습니다. 이 수익을 어떻게 처리하는 게 맞다고 생각하나요?",
+          scenario: "서비스 출시 2년차, 월 매출이 처음으로 5천만원을 넘었어요. 이 수익을 어떻게 처리하는 게 맞다고 생각해요?",
           options: [
-            "1. 전액 사업에 재투자한다 — 지금은 성장이 먼저다",
-            "2. 일부는 재투자, 일부는 공동창업자 보상으로 배분한다",
+            "1. 전액 재투자한다 — 지금은 성장이 먼저다",
+            "2. 재투자와 창업자 보상을 나눠서 배분한다",
             "3. 급여 인상이나 인센티브를 먼저 챙긴다",
             "4. 적립해두고 팀이 함께 결정할 때 쓴다"
           ],
@@ -427,12 +428,12 @@ export default function OnboardingDiagnosisPage() {
           id: "growthStrategy",
           label: "",
           type: "single",
-          scenario: "회사를 성장시키는 방식에 대해 어떻게 생각하나요?",
+          scenario: "PMF를 찾았고 이제 본격적인 성장 단계입니다. VC에서 시리즈 A 투자 제안도 들어온 상황에서, 회사를 어떻게 성장시키는 게 맞다고 생각하나요?",
           options: [
-            "1. 외부 투자를 받아 빠르게 성장한다 — 지분 희석은 감수한다",
+            "1. 외부 투자로 빠르게 성장한다 — 희석 감수",
             "2. 수익으로 버티면서 최대한 지분을 지킨다",
             "3. 필요한 시점에 선택적으로 투자를 받는다",
-            "4. 정부 지원금이나 대출 등 비희석 자금을 먼저 찾는다"
+            "4. 정부 지원금·대출 등 비희석 자금을 우선한다"
           ],
           value: growthStrategy,
           onSelect: setGrowthStrategy,
@@ -466,22 +467,14 @@ export default function OnboardingDiagnosisPage() {
   const hoverUnlockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentCategory = categories[categoryIndex];
   const currentQuestion = currentCategory.questions[questionIndex];
-  const totalQuestions = categories.reduce((sum, category) => sum + category.questions.length, 0);
+  const totalQuestions = categories.filter((c) => c.id !== "profile").reduce((sum, category) => sum + category.questions.length, 0);
   const currentQuestionNumber =
     categories.slice(0, categoryIndex).reduce((sum, category) => sum + category.questions.length, 0) +
     questionIndex +
     1;
   const questionProgress = totalQuestions
-    ? Math.round((currentQuestionNumber / totalQuestions) * 100)
+    ? Math.min(100, Math.round((currentQuestionNumber / totalQuestions) * 100))
     : 0;
-  const scenarioImage = (() => {
-    if (currentCategory.id === "decision") return { src: "/scenario/q1.png" };
-    if (currentCategory.id === "role") return { src: "/scenario/q2.png" };
-    if (currentCategory.id === "exit") return { src: "/scenario/q3.png" };
-    if (currentCategory.id === "vision") return { src: "/scenario/q1.png" };
-    if (currentCategory.id === "money") return { src: "/scenario/q3.png" };
-    return null;
-  })();
   const isFirstQuestion = categoryIndex === 0 && questionIndex === 0;
 
   useEffect(() => {
@@ -668,7 +661,6 @@ export default function OnboardingDiagnosisPage() {
               </button>
               <div className="diagnosis-header-copy">
                 <h2>{currentCategory.title}</h2>
-                <p>아래 시나리오를 읽고 질문에 답해주세요.</p>
               </div>
             </div>
             <div className="progress-wrap">
@@ -682,22 +674,28 @@ export default function OnboardingDiagnosisPage() {
           <div className="diagnosis-body">
             {((isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario) && (
               <div className="scenario-panel">
-                {scenarioImage && (
-                  <div className="scenario-media">
-                    <img src={scenarioImage.src} alt={`${currentCategory.title} 시나리오`} />
-                  </div>
+                {currentQuestion.id !== "profile" && (
+                  <span className="question-step">
+                    Question {currentQuestionNumber} / {totalQuestions}
+                  </span>
                 )}
-                <div className="info-box">
-                  <span className="scenario-tag">시나리오</span>
+                <div className="scenario-body">
                   <p>{(isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario}</p>
                 </div>
+                {currentQuestion.id !== "profile" && (
+                  <div className="scenario-media">
+                    <ScenarioIllustration questionId={currentQuestion.id} />
+                  </div>
+                )}
               </div>
             )}
             <div className="diag-section">
               <div className="question-header">
-                <span className="question-step">
-                  Question {currentQuestionNumber} / {totalQuestions}
-                </span>
+                {currentQuestion.id !== "profile" && currentQuestion.id === "profile" && (
+                  <span className="question-step">
+                    Question {currentQuestionNumber} / {totalQuestions}
+                  </span>
+                )}
                 {currentQuestion.label && <h4>{currentQuestion.label}</h4>}
               </div>
 
@@ -707,6 +705,7 @@ export default function OnboardingDiagnosisPage() {
                     <button
                       key={option}
                       type="button"
+                      disabled={isAdvancing}
                       className={`chip ${
                         currentQuestion.value === option ||
                         (pendingSelection?.questionId === currentQuestion.id &&

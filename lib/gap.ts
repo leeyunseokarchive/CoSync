@@ -111,7 +111,7 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
 
       // --- Category 5: Money (Weight 2.0) ---
       // Q17: 차등 지급 vs 동일 분배 — 보상 철학 충돌
-      const q17 = getScore(a1.salaryStructure, a2.salaryStructure, [["1", "2"]], 2.0);
+      const q17 = getScore(a1.salaryStructure, a2.salaryStructure, [["1", "4"]], 2.0);
       // Q18: 관행 고수 vs 기여 기반 유동 조정 — 지분 철학 충돌
       const q18 = getScore(a1.equityStructure, a2.equityStructure, [["1", "2"]], 2.0);
       // Q19: 전액 재투자 vs 보상 먼저
