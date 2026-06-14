@@ -55,7 +55,11 @@ export default function LoginPage() {
   return (
     <main className="page auth-page login-page">
       <section className="center-card auth-card">
-        <Link className="back-arrow auth-back" href="/">←</Link>
+        <Link className="back-arrow auth-back" href="/">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none">
+            <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Link>
         <h1>로그인</h1>
         <p className="auth-sub">
           반가워요! 다시 팀 합의를 시작해볼까요?

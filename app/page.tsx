@@ -128,7 +128,6 @@ export default function LandingPage() {
           { label: "Preview", href: "#output" },
           { label: "FAQ", href: "#faq" }
         ]} 
-        hideAuthLinks={true} 
       />
 
       {/* 1. Hero */}

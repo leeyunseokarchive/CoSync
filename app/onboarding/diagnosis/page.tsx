@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TopNav } from "../../../components/TopNav";
 import { useAppState } from "../../../components/AppState";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../components/AuthContext";
@@ -130,7 +129,7 @@ export default function OnboardingDiagnosisPage() {
           id: "decisionFailure",
           label: "",
           type: "single",
-          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다.\n다음 달 방향을 어떻게 잡을 것 같아요?",
+          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다. 다음 달 방향을 어떻게 잡을 것 같아요?",
           options: [
             "1. 결과가 말해주고 있으니 당장 전략을 바꾼다",
             "2. 원인을 분석하고 방향을 함께 논의한다",
@@ -316,7 +315,7 @@ export default function OnboardingDiagnosisPage() {
           id: "exitVision",
           label: "",
           type: "single",
-          scenario: "'이 회사가 어디로 가야 하는가'라는 의문이 생기기 시작했어요. 지금 함께 만들고 있는 이 회사, 가장 이상적인 결말은 뭐라고 생각해요?",
+          scenario: "'이 회사가 어디로 가야 하는가' 의문이 들기 시작했어요. 지금 이 회사의 가장 이상적인 결말은 뭐라고 생각해요?",
           options: [
             "1. 빠르게 성장해 대기업에 인수된다 (M&A 엑싯)",
             "2. 상장(IPO)해서 더 큰 회사로 키운다",
@@ -346,7 +345,7 @@ export default function OnboardingDiagnosisPage() {
           id: "conflictResolution",
           label: "",
           type: "single",
-          scenario: "첫 채용 예산이 생겼는데, 시니어 개발자가 먼저라는 의견과 영업 인력이 먼저라는 의견이 서로 물러서지 않는 상황, 어떻게 할 것 같아요?",
+          scenario: "첫 채용 예산이 생겼는데, 시니어 개발자 vs 영업 인력, 서로 물러서지 않는 상황입니다. 어떻게 할 것 같아요?",
           options: [
             "1. 당사자끼리 즉시 직접 대화로 해결한다",
             "2. 정해진 기준이나 룰에 따라 처리한다",
@@ -361,7 +360,7 @@ export default function OnboardingDiagnosisPage() {
           id: "dealbreaker",
           label: "",
           type: "single",
-          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고\n느끼는 게 있다면 무엇인가요?",
+          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
           options: [
             "1. 결정을 미루거나 느리게 움직이는 것",
             "2. 말한 것을 지키지 않는 것",
@@ -383,7 +382,7 @@ export default function OnboardingDiagnosisPage() {
           id: "salaryStructure",
           label: "",
           type: "single",
-          scenario: "초기 팀 보상 구조를 논의하다 스톡옵션 필요 여부로\n의견이 갈렸어요. 어떻게 할 것 같아요?",
+          scenario: "초기 팀 보상 구조를 논의하다 스톡옵션 필요 여부로 의견이 갈렸어요. 어떻게 할 것 같아요?",
           options: [
             "1. 스톡옵션으로 핵심 인재를 유치한다",
             "2. 성과 기반 현금 인센티브로 대신한다",
@@ -398,7 +397,7 @@ export default function OnboardingDiagnosisPage() {
           id: "equityStructure",
           label: "",
           type: "single",
-          scenario: "초기 지분을 6:4로 합의했지만 1년이 지난 지금, 두 사람의 실제 기여도와 시간 투자가 달라졌습니다. 지분 구조에 대해 어떻게 생각하나요?",
+          scenario: "지분을 6:4로 합의했지만 1년이 지난 지금, 두 사람의 기여도와 시간 투자가 달라졌어요. 지분 구조, 어떻게 생각하나요?",
           options: [
             "1. 투자 유치에 맞게 시장 관행 구조를 유지한다",
             "2. 기여도가 달라지면 지분도 조정해야 한다",
@@ -428,7 +427,7 @@ export default function OnboardingDiagnosisPage() {
           id: "growthStrategy",
           label: "",
           type: "single",
-          scenario: "PMF를 찾았고 이제 본격적인 성장 단계입니다. VC에서 시리즈 A 투자 제안도 들어온 상황에서, 회사를 어떻게 성장시키는 게 맞다고 생각하나요?",
+          scenario: "PMF를 찾았고 본격적인 성장 단계입니다. VC 시리즈 A 투자 제안이 들어온 상황, 회사를 어떻게 성장시키는 게 맞다고 생각하나요?",
           options: [
             "1. 외부 투자로 빠르게 성장한다 — 희석 감수",
             "2. 수익으로 버티면서 최대한 지분을 지킨다",
@@ -470,7 +469,7 @@ export default function OnboardingDiagnosisPage() {
   const searchParams = useSearchParams();
   useEffect(() => {
     if (!milestone) return;
-    const t = setTimeout(() => setMilestone(null), 2200);
+    const t = setTimeout(() => setMilestone(null), 1000);
     return () => clearTimeout(t);
   }, [milestone]);
   const currentCategory = categories[categoryIndex];
@@ -664,10 +663,8 @@ export default function OnboardingDiagnosisPage() {
 
   return (
     <main className="page diagnosis-page">
-      <TopNav links={[{ label: "대시보드", href: "/workspace" }]} active="대시보드" />
-
       <section className="container diagnosis-wrap">
-        <div className="diagnosis-card">
+        <div className={`diagnosis-card${currentQuestion.id === "profile" ? " diagnosis-card--profile" : ""}`}>
           <div className="diagnosis-header">
             <div className="diagnosis-header-top">
               <button
@@ -711,7 +708,7 @@ export default function OnboardingDiagnosisPage() {
             </div>
           )}
 
-          <div className="diagnosis-body">
+          <div className={`diagnosis-body${currentQuestion.id === "profile" ? " diagnosis-body--profile" : ""}`}>
             {((isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario) && (
               <div className="scenario-panel">
                 {currentQuestion.id !== "profile" && (
@@ -826,6 +823,10 @@ export default function OnboardingDiagnosisPage() {
               </button>
             )}
           </div>
+
+          {milestone && (
+            <div className="milestone-toast">{milestone}</div>
+          )}
         </div>
       </section>
       <div className="diagnosis-footer-shell">

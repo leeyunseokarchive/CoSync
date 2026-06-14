@@ -13,7 +13,6 @@ export default function OnboardingIntroPage() {
     <main className="page onboarding-page">
       <div className="onboarding-shell">
         <section className="container onboarding-hero">
-          <span className="pill">Onboarding Guide</span>
           <h1>
             막연한 약속을 <br />
             <span className="accent">실행 가능한 규칙</span>으로
@@ -60,17 +59,17 @@ export default function OnboardingIntroPage() {
             <div className="card step-card">
               <div className="step-label">STEP 01</div>
               <h3>시나리오 진단</h3>
-              <p>나의 팀이 겪을 상황을 점검합니다.</p>
+              <p>팀 상황 점검</p>
             </div>
             <div className="card step-card">
               <div className="step-label">STEP 02</div>
               <h3>인식 격차 분석</h3>
-              <p>팀원별 차이를 확인합니다.</p>
+              <p>팀원별 차이 확인</p>
             </div>
             <div className="card step-card">
               <div className="step-label">STEP 03</div>
               <h3>합의 규칙 확정</h3>
-              <p>합의안을 구조화합니다.</p>
+              <p>합의안 구조화</p>
             </div>
           </div>
 

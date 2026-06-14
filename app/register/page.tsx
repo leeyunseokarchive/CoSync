@@ -72,7 +72,11 @@ export default function RegisterPage() {
   return (
     <main className="page auth-page">
       <section className="center-card auth-card">
-        <Link className="back-arrow auth-back" href="/login">←</Link>
+        <Link className="back-arrow auth-back" href="/login">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none">
+            <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Link>
         <h1>회원가입</h1>
         <p className="auth-sub">
           이미 계정이 있으신가요? <Link href="/login">로그인</Link>

@@ -78,17 +78,17 @@ button {
     radial-gradient(circle at 8% 92%, rgba(79, 208, 185, 0.22), transparent 40%),
     #f5f6fa;
   min-height: 100vh;
-  position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
 }
 
 .onboarding-shell {
-  width: min(1060px, 92vw);
+  width: min(920px, 92vw);
   margin: 0 auto;
   background: #fff;
-  box-shadow: none;
-  min-height: 100vh;
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -180,7 +180,7 @@ button {
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-width: 360px;
+  max-width: 420px;
 }
 
 .input:focus {
@@ -338,8 +338,8 @@ button {
   width: min(640px, 92vw);
   margin: 40px auto;
   padding: 46px;
-  border-radius: 34px;
-  box-shadow: var(--shadow);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
   background: var(--surface);
 }
 
@@ -449,18 +449,18 @@ button {
 }
 
 .step-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  display: flex;
+  gap: 12px;
   margin: 8px 0 16px;
-  width: 100%;
+  justify-content: center;
 }
 
 .step-card {
-  padding: 18px 22px;
+  padding: 14px 18px;
   text-align: left;
-  min-height: 126px;
   border-radius: 22px;
+  width: 220px;
+  flex-shrink: 0;
 }
 
 .step-card h3 {
@@ -560,7 +560,9 @@ button {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #f6f7fb;
+  background: radial-gradient(circle at 92% 8%, rgba(112, 106, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 8% 92%, rgba(79, 208, 185, 0.22), transparent 40%),
+    #f5f6fa;
   padding: 24px 0;
   position: relative;
 }
@@ -569,6 +571,21 @@ button {
   position: absolute;
   top: 18px;
   left: 20px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(91, 91, 231, 0.14);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.auth-back:hover {
+  background: rgba(91, 91, 231, 0.05);
+  border-color: rgba(91, 91, 231, 0.24);
 }
 
 .auth-page .center-card {
@@ -1258,15 +1275,20 @@ button {
 
 .diagnosis-card {
   width: min(900px, 94vw);
+  min-height: 560px;
   background: #fff;
   border-radius: 24px;
-  padding: 32px 36px 0;
+  padding: 32px 36px 28px;
   box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.diagnosis-card--profile {
+  min-height: auto;
 }
 
 .back-link {
@@ -1334,7 +1356,7 @@ button {
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  max-width: 480px;
+  max-width: 440px;
 }
 
 .diagnosis-body {
@@ -1342,6 +1364,13 @@ button {
   grid-template-columns: 380px 1fr;
   gap: 40px;
   align-items: end;
+  min-height: 260px;
+}
+
+.diagnosis-body--profile {
+  grid-template-columns: 1fr;
+  align-items: start;
+  justify-items: start;
 }
 
 .info-box {
@@ -1397,8 +1426,6 @@ button {
   color: #1e293b;
   font-weight: 600;
   margin: 0;
-  text-wrap: balance;
-  white-space: pre-line;
 }
 
 .scenario-media {
@@ -1698,8 +1725,9 @@ button {
 }
 
 .diag-complete-page {
-  min-height: 100vh;
-  background: #f8f9fc;
+  height: 100vh;
+  overflow: hidden;
+  background: #f6f7fb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1708,7 +1736,7 @@ button {
 
 .diag-complete-wrap {
   width: 100%;
-  max-width: 520px;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1735,11 +1763,12 @@ button {
 .diag-complete-card {
   background: #fff;
   border-radius: 24px;
-  padding: 40px 36px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  padding: 40px 48px;
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow: hidden;
 }
 
 .diag-complete-badge {
@@ -1784,15 +1813,16 @@ button {
 }
 
 .diag-complete-progress-bar {
-  height: 6px;
-  background: #e2e8f0;
+  height: 12px;
+  background: #eef0f7;
   border-radius: 999px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .diag-complete-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #5c5ce7, #8b5cf6);
   border-radius: 999px;
 }
 
@@ -1812,6 +1842,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .diag-complete-btn {
