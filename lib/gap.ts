@@ -83,13 +83,13 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
       // Q4: "70% 확신으로 즉시 실행" vs "90% 확신까지 대기" — 근본적인 속도 철학 충돌
       const q4 = getScore(a1.deadlockTolerance, a2.deadlockTolerance, [["1", "2"]], 1.0);
 
-      // --- Category 2: Role (Weight 1.5) ---
-      const q5 = getScore(a1.extraWorkPriority, a2.extraWorkPriority, [["3", "4"]], 1.5);
+      // --- Category 2: Role (Weight 1.0) ---
+      const q5 = getScore(a1.extraWorkPriority, a2.extraWorkPriority, [["3", "4"]], 1.0);
       // Q6: (1,3)도 toxic — "정규 시간만" vs "초기 높은 몰입 기본"은 실질적 기대치 충돌
-      const q6 = getScore(a1.extraWorkPrinciple, a2.extraWorkPrinciple, [["1", "3"], ["1", "4"]], 1.5);
+      const q6 = getScore(a1.extraWorkPrinciple, a2.extraWorkPrinciple, [["1", "3"], ["1", "4"]], 1.0);
       // Q7: "즉시 역할 조정" vs "원인 파악/지원" — 한쪽은 즉각 구조 조정, 다른쪽은 감정적 지원 우선
-      const q7 = getScore(a1.underperformanceAction, a2.underperformanceAction, [["1", "3"]], 1.5);
-      const q8 = getScore(a1.workstyleConstraint, a2.workstyleConstraint, [["1", "4"]], 1.5);
+      const q7 = getScore(a1.underperformanceAction, a2.underperformanceAction, [["1", "3"]], 1.0);
+      const q8 = getScore(a1.workstyleConstraint, a2.workstyleConstraint, [["1", "4"]], 1.0);
 
       // --- Category 3: Exit (Weight 2.0) ---
       const q9 = getScore(a1.handoverMethod, a2.handoverMethod, [["1", "4"]], 2.0);
@@ -99,15 +99,15 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
       const q11 = getScore(a1.exitCleanupTiming, a2.exitCleanupTiming, [["1", "3"], ["1", "4"]], 2.0);
       const q12 = getScore(a1.exitDisputeResolution, a2.exitDisputeResolution, [["1", "4"], ["2", "4"]], 2.0);
 
-      // --- Category 4: Vision (Weight 1.5) ---
+      // --- Category 4: Vision (Weight 1.0) ---
       // Q13: M&A 엑싯 vs 독립 운영 — 출구 전략 근본 충돌
-      const q13 = getScore(a1.exitVision, a2.exitVision, [["1", "3"]], 1.5);
+      const q13 = getScore(a1.exitVision, a2.exitVision, [["1", "3"]], 1.0);
       // Q14: 자금 소진까지 버팀 vs 시장 신호로 먼저 판단
-      const q14 = getScore(a1.pivotCriteria, a2.pivotCriteria, [["1", "2"]], 1.5);
+      const q14 = getScore(a1.pivotCriteria, a2.pivotCriteria, [["1", "2"]], 1.0);
       // Q15: 즉시 직접 대화 vs 냉각 기간 후 대화 — 갈등 처리 스타일 충돌
-      const q15 = getScore(a1.conflictResolution, a2.conflictResolution, [["1", "3"]], 1.5);
+      const q15 = getScore(a1.conflictResolution, a2.conflictResolution, [["1", "3"]], 1.0);
       // Q16: 속도를 못 참는 것 vs 방향 불일치를 못 참는 것
-      const q16 = getScore(a1.dealbreaker, a2.dealbreaker, [["1", "4"]], 1.5);
+      const q16 = getScore(a1.dealbreaker, a2.dealbreaker, [["1", "4"]], 1.0);
 
       // --- Category 5: Money (Weight 2.0) ---
       // Q17: 차등 지급 vs 동일 분배 — 보상 철학 충돌
@@ -134,12 +134,11 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
   }
 
   let gapScore: GapScore = "LOW";
-  
-  // Total max score possible is around 102 points.
-  // Cat1(Q1-4): 12, Cat2(Q5-8): 18, Cat3(Q9-12): 24, Cat4(Q13-16): 18, Cat5(Q17-20): 24
-  if (maxGapScore >= 32) gapScore = "CRITICAL";
-  else if (maxGapScore >= 18) gapScore = "HIGH";
-  else if (maxGapScore >= 7) gapScore = "MID";
+
+  // Max score = 84: Cat1(Q1-4): 12, Cat2(Q5-8): 12, Cat3(Q9-12): 24, Cat4(Q13-16): 12, Cat5(Q17-20): 24
+  if (maxGapScore >= 26) gapScore = "CRITICAL";
+  else if (maxGapScore >= 15) gapScore = "HIGH";
+  else if (maxGapScore >= 6) gapScore = "MID";
 
   return { gapCount, gapScore, rawScore: maxGapScore };
 }

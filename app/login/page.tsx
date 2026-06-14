@@ -53,13 +53,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="page auth-page">
-      <div className="container">
-        <Link className="back-arrow" href="/">
-          ←
-        </Link>
-      </div>
+    <main className="page auth-page login-page">
       <section className="center-card auth-card">
+        <Link className="back-arrow auth-back" href="/">←</Link>
         <h1>로그인</h1>
         <p className="auth-sub">
           반가워요! 다시 팀 합의를 시작해볼까요?
@@ -116,7 +112,7 @@ export default function LoginPage() {
               )}
             </button>
           </div>
-          <div className="right-link">비밀번호를 잊으셨나요?</div>
+
           {error && <div className="error-text">{error}</div>}
         </div>
 

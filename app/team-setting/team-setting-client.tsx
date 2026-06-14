@@ -16,11 +16,13 @@ export function TeamSettingClient() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { members, loading: membersLoading } = useTeamMembers(teamId);
-  const [team, setTeam] = useState<{ id: string; name?: string; inviteCode?: string; industry?: string; stage?: string } | null>(null);
+  const [team, setTeam] = useState<{ id: string; name?: string; inviteCode?: string; industry?: string; stage?: string; teamStatus?: string } | null>(null);
   const [teamLoading, setTeamLoading] = useState(true);
   const [teamName, setTeamName] = useState("");
   const [industry, setIndustry] = useState("");
   const [stage, setStage] = useState("");
+  const [teamStatus, setTeamStatus] = useState("active");
+  const [dissolvedReason, setDissolvedReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("팀 정보");
@@ -51,12 +53,16 @@ export function TeamSettingClient() {
           inviteCode?: string;
           industry?: string;
           stage?: string;
+          teamStatus?: string;
+          dissolvedReason?: string;
           settings?: { permissions?: { requireAllAgree?: boolean; allowMemberInvite?: boolean } };
         };
         setTeam({ id: teamSnap.id, ...data });
         setTeamName(data.name || "");
         setIndustry(data.industry || "");
         setStage(data.stage || "");
+        setTeamStatus(data.teamStatus || "active");
+        setDissolvedReason(data.dissolvedReason || "");
         setPermissions({
           requireAllAgree: data.settings?.permissions?.requireAllAgree ?? false,
           allowMemberInvite: data.settings?.permissions?.allowMemberInvite ?? true
@@ -71,13 +77,21 @@ export function TeamSettingClient() {
   const [roleFilter, setRoleFilter] = useState("전체");
   const [query, setQuery] = useState("");
 
+  const roleOrder = ["CEO", "공동대표", "COO", "CTO", "CPO", "CFO", "CMO", "CDO", "프론트엔드", "백엔드", "모바일", "DevOps", "데이터", "퍼포먼스 마케팅", "콘텐츠 마케팅", "PR/커뮤니케이션", "디자인", "OWNER", "MEMBER"];
+
   const filteredMembers = useMemo(() => {
     const needle = query.toLowerCase();
     const base = members.filter((member) =>
       [member.name, member.id].some((value) => (value || "").toLowerCase().includes(needle))
     );
-    if (roleFilter === "전체") return base;
-    return base.filter((member) => member.role === roleFilter);
+    const filtered = roleFilter === "전체" ? base : base.filter((member) => member.role === roleFilter);
+    return [...filtered].sort((a, b) => {
+      const ai = roleOrder.indexOf(a.role || "");
+      const bi = roleOrder.indexOf(b.role || "");
+      const av = ai === -1 ? 999 : ai;
+      const bv = bi === -1 ? 999 : bi;
+      return av - bv;
+    });
   }, [members, roleFilter, query]);
 
   const formatStatus = (status: string) => {
@@ -97,14 +111,18 @@ export function TeamSettingClient() {
   const handleSaveTeam = async () => {
     if (!teamId) return;
     setSaving(true);
-    await updateDoc(doc(db, "teams", teamId), {
+    const updateData: Record<string, unknown> = {
       name: teamName.trim() || "팀",
       industry,
       stage,
-      settings: {
-        permissions
-      }
-    });
+      teamStatus,
+      statusUpdatedAt: new Date().toISOString(),
+      settings: { permissions }
+    };
+    if (teamStatus === "dissolved" || teamStatus === "exited") {
+      updateData.dissolvedReason = dissolvedReason.trim();
+    }
+    await updateDoc(doc(db, "teams", teamId), updateData);
     setSaving(false);
   };
 
@@ -205,6 +223,28 @@ export function TeamSettingClient() {
                     <option>스케일업 단계</option>
                   </select>
                 </div>
+
+                <label className="label">팀 상태</label>
+                <div className="select-row">
+                  <select className="input select" value={teamStatus} onChange={(event) => setTeamStatus(event.target.value)}>
+                    <option value="active">운영 중</option>
+                    <option value="pivoted">피벗</option>
+                    <option value="exited">엑싯 (M&A/IPO)</option>
+                    <option value="dissolved">해산</option>
+                  </select>
+                </div>
+
+                {(teamStatus === "dissolved" || teamStatus === "exited") && (
+                  <>
+                    <label className="label">사유</label>
+                    <input
+                      className="input"
+                      placeholder={teamStatus === "dissolved" ? "해산 사유 (선택)" : "엑싯 형태 (선택)"}
+                      value={dissolvedReason}
+                      onChange={(event) => setDissolvedReason(event.target.value)}
+                    />
+                  </>
+                )}
               </div>
               <div style={{ marginTop: 14 }}>
                 <button className="btn btn-primary" type="button" onClick={handleSaveTeam} disabled={saving}>

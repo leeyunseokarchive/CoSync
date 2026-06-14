@@ -13,9 +13,47 @@ import { useAuth } from "../../components/AuthContext";
 import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
-import { computeGapSummary, getIssueStatus, type IssueStatus } from "../../lib/gap";
+import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+
+type QuestionDef = {
+  id: string;
+  label: string;
+  field: keyof OnboardingAnswers;
+  toxicPairs: [string, string][];
+  insight: string;
+};
+
+const QUESTION_DEFS: QuestionDef[] = [
+  { id: "q1", label: "단독 결정권 범위", field: "decisionStructure", toxicPairs: [["1","3"]], insight: "한 명이 담당 영역에서 결정하고 나중에 알렸는데, 상대방이 '왜 나한테 먼저 안 물어봤냐'고 할 때 터집니다. 지금 맞춰볼 질문: 각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?" },
+  { id: "q2", label: "실패 후 반응", field: "decisionFailure", toxicPairs: [["1","4"]], insight: "실패 직후 한 명은 '빨리 다음 거 가자'고 하고, 상대방은 '왜 맨날 회고도 안 하냐'고 할 때 터집니다. 지금 맞춰볼 질문: 실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?" },
+  { id: "q3", label: "반대 의견 처리", field: "actionVsConsensus", toxicPairs: [["1","2"]], insight: "결정이 됐는데 반대했던 사람이 계속 납득 안 된다며 재논의를 요구할 때 팀 실행 속도가 반복적으로 막힙니다. 지금 맞춰볼 질문: 결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?" },
+  { id: "q4", label: "결정 속도 vs 확신", field: "deadlockTolerance", toxicPairs: [["1","2"]], insight: "한 명은 '70%면 충분하니 지금 가자'고 하고, 상대방은 '좀 더 확인하고 가자'고 할 때 반복 충돌합니다. 지금 맞춰볼 질문: 중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?" },
+  { id: "q5", label: "회색지대 업무 배정", field: "extraWorkPriority", toxicPairs: [["3","4"]], insight: "담당자 없는 일이 생겼을 때 한 명은 당연히 A가 해야 한다고 보고, 당사자는 '왜 나냐'고 할 때 반복 마찰이 생깁니다. 지금 맞춰볼 질문: 회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?" },
+  { id: "q6", label: "업무 몰입 시간 기대", field: "extraWorkPrinciple", toxicPairs: [["1","3"],["1","4"]], insight: "한 명이 저녁·주말에 메시지를 보내거나, 반대로 업무 시간 후엔 연락이 안 될 때 기대치 차이가 드러납니다. 지금 맞춰볼 질문: 서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?" },
+  { id: "q7", label: "퍼포먼스 조치", field: "underperformanceAction", toxicPairs: [["1","4"],["3","4"]], insight: "한 명이 계속 목표를 못 채울 때, 한 명은 '역할을 조정해야 한다'고 보고 상대방은 '좀 더 기다려야 한다'고 볼 때 감정과 지분 문제가 함께 엮입니다. 지금 맞춰볼 질문: 성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?" },
+  { id: "q8", label: "협업 운영 방식", field: "workstyleConstraint", toxicPairs: [["1","4"]], insight: "중요한 시점에 상대방 일정을 모른 채 연락이 안 되거나, 불필요하게 느껴지는 보고 구조에 피로가 쌓일 때 터집니다. 지금 맞춰볼 질문: 공통으로 지켜야 할 최소 협업 리듬(예: 주 1회 싱크)이 합의됐나요?" },
+  { id: "q9", label: "이탈 업무 인수인계", field: "handoverMethod", toxicPairs: [["1","4"]], insight: "이탈 당사자가 '내가 마무리할게'라고 했는데 실제로는 업무가 흐지부지 넘어올 때, 또는 너무 일찍 권한이 차단돼 공백이 생길 때 터집니다. 지금 맞춰볼 질문: 인수인계 완료 기준을 미리 문서로 정해둘 의향이 있나요?" },
+  { id: "q10", label: "우선 정리 권한", field: "exitRecoveryPriority", toxicPairs: [["1","2"],["2","4"]], insight: "이탈 상황에서 한 명은 서버 권한부터 차단해야 한다고 하고, 상대방은 고객 연락처가 먼저라고 할 때 초기 몇 시간이 엉키면서 공백이 생깁니다. 지금 맞춰볼 질문: 이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?" },
+  { id: "q11", label: "권한 차단 타이밍", field: "exitCleanupTiming", toxicPairs: [["1","3"],["1","4"]], insight: "퇴사 의사를 밝혔지만 법적 처리가 안 된 상황에서 한 명은 이미 외부인으로 보고 상대방은 여전히 팀원으로 대할 때 보안과 신뢰 모두 위험해집니다. 지금 맞춰볼 질문: 퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?" },
+  { id: "q12", label: "이탈 시 지분 정리", field: "exitDisputeResolution", toxicPairs: [["1","4"],["2","4"]], insight: "이탈 당사자는 '나의 기여를 인정해달라'고 하고, 남은 사람은 '계약 기준으로만 처리하자'고 할 때 감정이 최고조로 올라갑니다. 지금 맞춰볼 질문: 이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?" },
+  { id: "q13", label: "회사 출구 전략", field: "exitVision", toxicPairs: [["1","3"]], insight: "한 명은 빠른 M&A 엑싯을 목표로 달리고, 상대방은 독립 운영을 원할 때 투자 유치 방향, 성장 속도, 핵심 결정 기준이 전부 어긋납니다. 지금 맞춰볼 질문: 3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?" },
+  { id: "q14", label: "피벗/중단 기준", field: "pivotCriteria", toxicPairs: [["1","2"]], insight: "한 명은 '자금이 다 떨어지기 전에는 계속 간다'고 하고, 상대방은 '시장 반응이 없으면 먼저 멈춰야 한다'고 할 때 버티는 기준 자체가 달라 결정적 순간에 충돌합니다. 지금 맞춰볼 질문: 방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?" },
+  { id: "q15", label: "갈등 해소 방식", field: "conflictResolution", toxicPairs: [["1","3"]], insight: "한 명은 '지금 당장 얘기하자'고 하고, 상대방은 '좀 식히고 나서 하자'고 할 때 갈등이 해소되지 않고 쌓입니다. 지금 맞춰볼 질문: 갈등이 생겼을 때 처리 방식에 대한 기준을 맞춰본 적 있나요?" },
+  { id: "q16", label: "절대 용납 못하는 것", field: "dealbreaker", toxicPairs: [["1","4"]], insight: "한 명이 가장 못 참는 것이 상대방의 가장 자연스러운 행동 방식일 때 반복 마찰의 근원이 됩니다. 지금 맞춰볼 질문: 서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?" },
+  { id: "q17", label: "급여 구조", field: "salaryStructure", toxicPairs: [["1","2"]], insight: "한 명은 '기여도가 다르면 급여도 달라야 한다'고 하고, 상대방은 '초기엔 같아야 공평하다'고 할 때 불만이 쌓이다 터집니다. 지금 맞춰볼 질문: 공동창업자 간 급여 차등 기준이 지금 합의되어 있나요?" },
+  { id: "q18", label: "지분 구조 철학", field: "equityStructure", toxicPairs: [["1","2"]], insight: "한 명은 '처음 합의한 구조가 맞다'고 하고, 상대방은 '기여도가 달라지면 지분도 바뀌어야 한다'고 할 때 가장 큰 감정 충돌이 생깁니다. 지금 맞춰볼 질문: 지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?" },
+  { id: "q19", label: "수익 배분 우선순위", field: "profitDistribution", toxicPairs: [["1","3"]], insight: "한 명은 '수익은 전부 재투자해야 한다'고 하고, 상대방은 '이제 보상을 받아야 한다'고 할 때 첫 수익이 오히려 갈등의 도화선이 됩니다. 지금 맞춰볼 질문: 수익 발생 시 배분 기준이 미리 합의되어 있나요?" },
+  { id: "q20", label: "성장 전략", field: "growthStrategy", toxicPairs: [["1","2"]], insight: "한 명은 투자를 받아 빠르게 성장하고 싶고, 상대방은 지분을 지키며 생존하고 싶을 때 투자 유치 기회가 올 때마다 충돌합니다. 지금 맞춰볼 질문: 외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?" },
+];
+
+const statusRank = (s: IssueStatus): number => {
+  if (s === "conflict") return 3;
+  if (s === "diff") return 2;
+  if (s === "match") return 1;
+  return 0;
+};
 
 export default function GapReportPage() {
   const [showSubscribe, setShowSubscribe] = useState(false);
@@ -27,6 +65,7 @@ export default function GapReportPage() {
   const [teamCreator, setTeamCreator] = useState<string | null>(null);
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"team" | "pair">("team");
   const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
 
@@ -44,7 +83,7 @@ export default function GapReportPage() {
   }, [activeTeamId]);
 
   const pairs = useMemo(() => {
-    if (!user || !teamCreator) return [] as Array<{
+    if (!user || members.length < 2) return [] as Array<{
       id: string;
       a: (typeof members)[number];
       b: (typeof members)[number];
@@ -52,53 +91,66 @@ export default function GapReportPage() {
       gapScore: "LOW" | "MID" | "HIGH" | "CRITICAL";
       rawScore: number;
     }>;
-    const creatorMember = members.find((member) => member.id === teamCreator);
-    if (!creatorMember) return [];
-
-    if (user.uid === teamCreator) {
-      return members
-        .filter((member) => member.id !== teamCreator)
-        .map((member) => {
-          const { gapCount, gapScore, rawScore } = computeGapSummary([
-            creatorMember.answers ?? {},
-            member.answers ?? {}
-          ]);
-          return {
-            id: `${creatorMember.id}-${member.id}`,
-            a: creatorMember,
-            b: member,
-            gapCount,
-            gapScore,
-            rawScore
-          };
-        });
-    }
-
-    const me = members.find((member) => member.id === user.uid);
-    if (!me) return [];
-    const { gapCount, gapScore, rawScore } = computeGapSummary([
-      creatorMember.answers ?? {},
-      me.answers ?? {}
-    ]);
-    return [
-      {
-        id: `${creatorMember.id}-${me.id}`,
-        a: creatorMember,
-        b: me,
-        gapCount,
-        gapScore,
-        rawScore
+    const result = [];
+    for (let i = 0; i < members.length; i++) {
+      for (let j = i + 1; j < members.length; j++) {
+        const a = members[i];
+        const b = members[j];
+        const { gapCount, gapScore, rawScore } = computeGapSummary([
+          a.answers ?? {},
+          b.answers ?? {}
+        ]);
+        result.push({ id: `${a.id}-${b.id}`, a, b, gapCount, gapScore, rawScore });
       }
-    ];
-  }, [user, teamCreator, members]);
+    }
+    return result;
+  }, [user, members]);
 
   const isCreator = Boolean(user && teamCreator && user.uid === teamCreator);
 
   const selectedPair = useMemo(() => {
     if (!pairs.length) return null;
-    if (!selectedPairId) return isCreator ? null : pairs[0];
-    return pairs.find((pair) => pair.id === selectedPairId) ?? pairs[0];
-  }, [pairs, selectedPairId, isCreator]);
+    if (pairs.length === 1) return pairs[0];
+    if (!selectedPairId) return null;
+    return pairs.find((pair) => pair.id === selectedPairId) ?? null;
+  }, [pairs, selectedPairId]);
+
+  const teamIssues = useMemo(() => {
+    if (members.length < 2) return [] as Array<{
+      id: string; label: string; status: IssueStatus; conflict: boolean;
+      memberValues: Array<{name: string; value: string}>;
+      leftValue: string; rightValue: string; insight: string;
+    }>;
+    return QUESTION_DEFS.map(def => {
+      const memberValues = members.map(m => ({
+        name: m.name || "팀원",
+        value: (m.answers as OnboardingAnswers | undefined)?.[def.field] || "미입력"
+      }));
+      let worstStatus: IssueStatus = "match";
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          const s = getIssueStatus(
+            (members[i].answers as OnboardingAnswers | undefined)?.[def.field],
+            (members[j].answers as OnboardingAnswers | undefined)?.[def.field],
+            def.toxicPairs
+          );
+          if (statusRank(s) > statusRank(worstStatus)) worstStatus = s;
+        }
+      }
+      return {
+        id: def.id,
+        label: def.label,
+        status: worstStatus,
+        conflict: worstStatus === "diff" || worstStatus === "conflict",
+        memberValues,
+        leftValue: memberValues[0]?.value || "미입력",
+        rightValue: memberValues[1]?.value || "미입력",
+        insight: def.insight
+      };
+    });
+  }, [members]);
+
+  const isTeamComplete = members.length >= 2 && members.every(m => (m.progress ?? 0) >= 100);
 
   const issues = useMemo(() => {
     if (!selectedPair) return [] as Array<{
@@ -175,9 +227,9 @@ export default function GapReportPage() {
     const memberAnswers = members.map((member) => member.answers ?? {});
     const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
     const counts = {
-      decision: issues.slice(0, 4).filter((issue) => issue.conflict).length,
-      role: issues.slice(4, 8).filter((issue) => issue.conflict).length,
-      exit: issues.slice(8, 12).filter((issue) => issue.conflict).length
+      decision: teamIssues.slice(0, 4).filter((issue) => issue.conflict).length,
+      role: teamIssues.slice(4, 8).filter((issue) => issue.conflict).length,
+      exit: teamIssues.slice(8, 12).filter((issue) => issue.conflict).length
     };
     const sorted = [
       { key: "decision", label: "의사결정/권한", count: counts.decision },
@@ -187,12 +239,12 @@ export default function GapReportPage() {
     const top = sorted[0];
     const second = sorted[1];
 
-    const diffCount = issues.filter((i) => i.status === "diff" || i.status === "conflict").length;
-    const highRiskCount = issues.filter((i) => i.status === "conflict").length;
-    
-    const topPriorityIssuesList = issues.filter((i) => i.status === "conflict");
+    const diffCount = teamIssues.filter((i) => i.status === "diff" || i.status === "conflict").length;
+    const highRiskCount = teamIssues.filter((i) => i.status === "conflict").length;
+
+    const topPriorityIssuesList = teamIssues.filter((i) => i.status === "conflict");
     if (topPriorityIssuesList.length < 3) {
-      topPriorityIssuesList.push(...issues.filter((i) => i.status === "diff").slice(0, 3 - topPriorityIssuesList.length));
+      topPriorityIssuesList.push(...teamIssues.filter((i) => i.status === "diff").slice(0, 3 - topPriorityIssuesList.length));
     }
     const topPriorityIssuesArray = topPriorityIssuesList.slice(0, 3);
     const topPriorityLabels = topPriorityIssuesArray.length > 0 ? topPriorityIssuesArray.map(i => i.label).join(", ") : "없음";
@@ -223,12 +275,36 @@ export default function GapReportPage() {
       topPriorityIssuesArray,
       rawScore
     };
-  }, [members, issues]);
+  }, [members, teamIssues]);
 
   const alignmentScore = useMemo(() => {
-    if (teamInsight.rawScore === undefined) return 86;
-    return Math.max(0, Math.round(100 - (teamInsight.rawScore / 102) * 100));
-  }, [teamInsight.rawScore]);
+    const completePairs = pairs.filter(
+      (p) => (p.a.progress ?? 0) >= 100 && (p.b.progress ?? 0) >= 100
+    );
+    if (!completePairs.length) return 0;
+    const avg =
+      completePairs.reduce(
+        (sum, p) => sum + Math.max(0, Math.round(100 - ((p.rawScore ?? 0) / 84) * 100)),
+        0
+      ) / completePairs.length;
+    return Math.round(avg);
+  }, [pairs]);
+
+  const isPairComplete = useMemo(() => {
+    if (!selectedPair) return false;
+    return (selectedPair.a.progress ?? 0) >= 100 && (selectedPair.b.progress ?? 0) >= 100;
+  }, [selectedPair]);
+
+  const activeIssues = viewMode === "team" ? teamIssues : issues;
+
+  const allHaveAdvancedData = useMemo(() => {
+    if (members.length < 2) return false;
+    const advancedFields: (keyof OnboardingAnswers)[] = ["exitVision", "pivotCriteria", "conflictResolution", "dealbreaker", "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"];
+    return members.every(m => advancedFields.some(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f])));
+  }, [members]);
+
+  const showAdvancedHeatmap = viewMode === "team" ? allHaveAdvancedData : bothHaveAdvancedData;
+  const showReport = viewMode === "team" ? isTeamComplete : (selectedPair !== null && isPairComplete);
 
   const slides = [
     { title: "합의 세션", src: "/preview/agreement-confirm.png" },
@@ -248,27 +324,70 @@ export default function GapReportPage() {
           <div className="gap-breadcrumb-premium">분석 결과 · 인식 격차 리포트</div>
           <h1 className="section-title-premium">GAP REPORT</h1>
           <div className="premium-divider"></div>
-          {selectedPair && (
+          {viewMode === "team" && members.length >= 2 && (
+            <div className="gap-pair-label-premium">
+              팀 통합 리포트: {members.map(m => m.name).join(" · ")}
+            </div>
+          )}
+          {viewMode === "pair" && selectedPair && (
             <div className="gap-pair-label-premium">
               비교 대상: {selectedPair.a.name} · {selectedPair.b.name}
             </div>
           )}
-          {isCreator && selectedPairId && (
-            <button 
-              className="premium-back-btn" 
-              onClick={() => setSelectedPairId(null)} 
+          {members.length >= 3 && (
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <button
+                type="button"
+                className={`btn ${viewMode === "team" ? "btn-primary" : "btn-ghost"}`}
+                style={{ fontSize: "0.85rem", padding: "8px 18px" }}
+                onClick={() => { setViewMode("team"); setSelectedPairId(null); }}
+              >
+                팀 통합 보기
+              </button>
+              <button
+                type="button"
+                className={`btn ${viewMode === "pair" ? "btn-primary" : "btn-ghost"}`}
+                style={{ fontSize: "0.85rem", padding: "8px 18px" }}
+                onClick={() => setViewMode("pair")}
+              >
+                1:1 비교
+              </button>
+            </div>
+          )}
+          {viewMode === "pair" && pairs.length > 1 && selectedPairId && (
+            <button
+              className="premium-back-btn"
+              onClick={() => setSelectedPairId(null)}
               type="button"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-              요약으로 돌아가기
+              1:1 쌍 선택으로 돌아가기
             </button>
           )}
         </div>
       </div>
 
       <section className="container gap-wrap" style={{ position: "relative", zIndex: 10, marginTop: "-40px" }}>
-        {isCreator && !selectedPair && (
-          <div 
+        {/* 팀 통합 보기 - 미완료 */}
+        {viewMode === "team" && !isTeamComplete && members.length >= 2 && (
+          <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 32px" }}>
+            <div style={{ fontSize: "32px", marginBottom: "16px" }}>🔒</div>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>모든 팀원이 진단을 완료해야 리포트를 볼 수 있어요</h3>
+            <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, marginBottom: "24px" }}>
+              {members.filter(m => (m.progress ?? 0) < 100).map(m => (
+                <span key={m.id}><strong>{m.name}</strong>의 진단 진행률: {m.progress ?? 0}%<br /></span>
+              ))}
+              <br />전원 100% 완료 후 통합 리포트가 열립니다.
+            </p>
+            <Link href="/onboarding/diagnosis" className="btn btn-primary" style={{ display: "inline-flex" }}>
+              진단 계속하기 →
+            </Link>
+          </div>
+        )}
+
+        {/* 1:1 비교 모드 - 쌍 선택 */}
+        {viewMode === "pair" && !selectedPair && (
+          <div
             className="gap-pair-grid"
             style={pairs.length <= 1 ? { display: "flex", justifyContent: "center" } : {}}
           >
@@ -277,37 +396,68 @@ export default function GapReportPage() {
               <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", textAlign: "center" }}>아직 비교할 팀원이 없습니다.</div>
             )}
             {!membersLoading &&
-              pairs.map((pair) => (
-                <button
-                  key={pair.id}
-                  className="card gap-summary gap-pair"
-                  type="button"
-                  style={pairs.length === 1 ? { width: "100%", maxWidth: "600px" } : {}}
-                  onClick={() => setSelectedPairId(pair.id)}
-                >
-                  <div>
-                    <div className="summary-title">비교 대상</div>
-                    <div className="summary-value">
-                      {pair.a.name} · {pair.b.name}
+              pairs.map((pair) => {
+                const pairComplete = (pair.a.progress ?? 0) >= 100 && (pair.b.progress ?? 0) >= 100;
+                return (
+                  <button
+                    key={pair.id}
+                    className="card gap-summary gap-pair"
+                    type="button"
+                    style={pairs.length === 1 ? { width: "100%", maxWidth: "600px" } : {}}
+                    onClick={() => setSelectedPairId(pair.id)}
+                  >
+                    <div>
+                      <div className="summary-title">비교 대상</div>
+                      <div className="summary-value">
+                        {pair.a.name} · {pair.b.name}
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="summary-title">GAP SCORE</div>
-                    <div className={`summary-value ${pair.gapScore?.toLowerCase()}`}>
-                      {pair.gapScore}
+                    {pairComplete ? (
+                      <>
+                        <div>
+                          <div className="summary-title">GAP SCORE</div>
+                          <div className={`summary-value ${pair.gapScore?.toLowerCase()}`}>
+                            {pair.gapScore}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="summary-title">이해차이 항목</div>
+                          <div className="summary-value">{pair.gapCount}개</div>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <div className="summary-title">진행률</div>
+                        <div className="summary-value muted">
+                          {pair.a.name} {pair.a.progress ?? 0}% · {pair.b.name} {pair.b.progress ?? 0}%
+                        </div>
+                      </div>
+                    )}
+                    <div className="summary-note">
+                      {pairComplete ? "카드를 눌러 상세 격차 리포트를 확인하세요." : "두 사람 모두 진단을 완료해야 리포트가 열립니다."}
                     </div>
-                  </div>
-                  <div>
-                    <div className="summary-title">이해차이 항목</div>
-                    <div className="summary-value">{pair.gapCount}개</div>
-                  </div>
-                  <div className="summary-note">요약 카드를 눌러 상세 격차 리포트를 확인하세요.</div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
           </div>
         )}
 
-        {selectedPair && (
+        {viewMode === "pair" && selectedPair && !isPairComplete && (
+          <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 32px" }}>
+            <div style={{ fontSize: "32px", marginBottom: "16px" }}>🔒</div>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>진단을 완료해야 리포트를 볼 수 있어요</h3>
+            <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, marginBottom: "24px" }}>
+              {(selectedPair.a.progress ?? 0) < 100 && <><strong>{selectedPair.a.name}</strong>의 진단 진행률: {selectedPair.a.progress ?? 0}%<br /></>}
+              {(selectedPair.b.progress ?? 0) < 100 && <><strong>{selectedPair.b.name}</strong>의 진단 진행률: {selectedPair.b.progress ?? 0}%<br /></>}
+              <br />두 사람 모두 진단을 100% 완료해야 리포트가 열립니다.
+            </p>
+            <Link href="/onboarding/diagnosis" className="btn btn-primary" style={{ display: "inline-flex" }}>
+              진단 계속하기 →
+            </Link>
+          </div>
+        )}
+
+        {showReport && (
           <>
             <div className="card gap-status">
               <div className="status-grid">
@@ -409,7 +559,7 @@ export default function GapReportPage() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", justifyContent: bothHaveAdvancedData ? "flex-start" : "center" }}>
+              <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", justifyContent: showAdvancedHeatmap ? "flex-start" : "center" }}>
                 {/* Basic Diagnosis Heatmap */}
                 <div className="heatmap-grid">
                   {/* Header Row */}
@@ -427,28 +577,28 @@ export default function GapReportPage() {
                   </div>
 
                   {/* Row 1 */}
-                  <button type="button" className={`hm-cell hm-item ${issues[0].status}`} onClick={() => setSelectedIssue(issues[0].id)}>Q1</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[4].status}`} onClick={() => setSelectedIssue(issues[4].id)}>Q5</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[8].status}`} onClick={() => setSelectedIssue(issues[8].id)}>Q9</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[0].status}`} onClick={() => setSelectedIssue(activeIssues[0].id)}>Q1</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[4].status}`} onClick={() => setSelectedIssue(activeIssues[4].id)}>Q5</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[8].status}`} onClick={() => setSelectedIssue(activeIssues[8].id)}>Q9</button>
 
                   {/* Row 2 */}
-                  <button type="button" className={`hm-cell hm-item ${issues[1].status}`} onClick={() => setSelectedIssue(issues[1].id)}>Q2</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[5].status}`} onClick={() => setSelectedIssue(issues[5].id)}>Q6</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[9].status}`} onClick={() => setSelectedIssue(issues[9].id)}>Q10</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[1].status}`} onClick={() => setSelectedIssue(activeIssues[1].id)}>Q2</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[5].status}`} onClick={() => setSelectedIssue(activeIssues[5].id)}>Q6</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[9].status}`} onClick={() => setSelectedIssue(activeIssues[9].id)}>Q10</button>
 
                   {/* Row 3 */}
-                  <button type="button" className={`hm-cell hm-item ${issues[2].status}`} onClick={() => setSelectedIssue(issues[2].id)}>Q3</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[6].status}`} onClick={() => setSelectedIssue(issues[6].id)}>Q7</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[10].status}`} onClick={() => setSelectedIssue(issues[10].id)}>Q11</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[2].status}`} onClick={() => setSelectedIssue(activeIssues[2].id)}>Q3</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[6].status}`} onClick={() => setSelectedIssue(activeIssues[6].id)}>Q7</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[10].status}`} onClick={() => setSelectedIssue(activeIssues[10].id)}>Q11</button>
 
                   {/* Row 4 */}
-                  <button type="button" className={`hm-cell hm-item ${issues[3].status}`} onClick={() => setSelectedIssue(issues[3].id)}>Q4</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[7].status}`} onClick={() => setSelectedIssue(issues[7].id)}>Q8</button>
-                  <button type="button" className={`hm-cell hm-item ${issues[11].status}`} onClick={() => setSelectedIssue(issues[11].id)}>Q12</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[3].status}`} onClick={() => setSelectedIssue(activeIssues[3].id)}>Q4</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[7].status}`} onClick={() => setSelectedIssue(activeIssues[7].id)}>Q8</button>
+                  <button type="button" className={`hm-cell hm-item ${activeIssues[11].status}`} onClick={() => setSelectedIssue(activeIssues[11].id)}>Q12</button>
                 </div>
 
                 {/* Advanced Diagnosis Heatmap */}
-                {bothHaveAdvancedData ? (
+                {showAdvancedHeatmap ? (
                   <>
                     <div style={{ width: "1px", background: "#e2e8f0", alignSelf: "stretch", marginTop: "40px" }} />
                     <div>
@@ -464,14 +614,14 @@ export default function GapReportPage() {
                           <div className="hm-en">돈/보상</div>
                           <div className="hm-kr">(Money)</div>
                         </div>
-                        <button type="button" className={`hm-cell hm-item ${issues[12].status}`} onClick={() => setSelectedIssue(issues[12].id)}>Q13</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[16].status}`} onClick={() => setSelectedIssue(issues[16].id)}>Q17</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[13].status}`} onClick={() => setSelectedIssue(issues[13].id)}>Q14</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[17].status}`} onClick={() => setSelectedIssue(issues[17].id)}>Q18</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[14].status}`} onClick={() => setSelectedIssue(issues[14].id)}>Q15</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[18].status}`} onClick={() => setSelectedIssue(issues[18].id)}>Q19</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[15].status}`} onClick={() => setSelectedIssue(issues[15].id)}>Q16</button>
-                        <button type="button" className={`hm-cell hm-item ${issues[19].status}`} onClick={() => setSelectedIssue(issues[19].id)}>Q20</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[12].status}`} onClick={() => setSelectedIssue(activeIssues[12].id)}>Q13</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[16].status}`} onClick={() => setSelectedIssue(activeIssues[16].id)}>Q17</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[13].status}`} onClick={() => setSelectedIssue(activeIssues[13].id)}>Q14</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[17].status}`} onClick={() => setSelectedIssue(activeIssues[17].id)}>Q18</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[14].status}`} onClick={() => setSelectedIssue(activeIssues[14].id)}>Q15</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[18].status}`} onClick={() => setSelectedIssue(activeIssues[18].id)}>Q19</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[15].status}`} onClick={() => setSelectedIssue(activeIssues[15].id)}>Q16</button>
+                        <button type="button" className={`hm-cell hm-item ${activeIssues[19].status}`} onClick={() => setSelectedIssue(activeIssues[19].id)}>Q20</button>
                       </div>
                     </div>
                   </>
@@ -802,69 +952,80 @@ export default function GapReportPage() {
         </div>
       )}
 
-      {selectedPair && selectedIssue && (bothHaveAdvancedData || ["q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","q11","q12"].includes(selectedIssue)) && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <div className="modal-top">
-              <span className={`pill ${issues.find((issue) => issue.id === selectedIssue)?.status}`}>
-                {(() => {
-                  const s = issues.find((issue) => issue.id === selectedIssue)?.status;
-                  if (s === "conflict") return "고위험 충돌";
-                  if (s === "diff") return "조율 필요";
-                  if (s === "unanswered") return "판단 불가";
-                  return "일치";
-                })()}
-              </span>
-              <button className="close" type="button" onClick={() => setSelectedIssue(null)}>
-                ✕
-              </button>
-            </div>
-            <h2>{issues.find((issue) => issue.id === selectedIssue)?.label}</h2>
-            <div className="modal-grid">
-              <div className="modal-user">
-                <div className="user-head">
-                  <div className="avatar">{selectedPair.a.name?.[0] ?? "?"}</div>
-                  <div className="user-name">{selectedPair.a.name}</div>
+      {selectedIssue && (showAdvancedHeatmap || ["q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","q11","q12"].includes(selectedIssue)) && (() => {
+        const activeIssue = activeIssues.find((issue) => issue.id === selectedIssue);
+        if (!activeIssue) return null;
+        return (
+          <div className="modal-backdrop" role="dialog" aria-modal="true">
+            <div className="modal-card">
+              <div className="modal-top">
+                <span className={`pill ${activeIssue.status}`}>
+                  {activeIssue.status === "conflict" ? "고위험 충돌"
+                    : activeIssue.status === "diff" ? "조율 필요"
+                    : activeIssue.status === "unanswered" ? "판단 불가"
+                    : "일치"}
+                </span>
+                <button className="close" type="button" onClick={() => setSelectedIssue(null)}>
+                  ✕
+                </button>
+              </div>
+              <h2>{activeIssue.label}</h2>
+              {viewMode === "team" ? (
+                <div className="modal-grid" style={{ gridTemplateColumns: `repeat(${Math.min(members.length, 3)}, 1fr)` }}>
+                  {(activeIssue as typeof teamIssues[number]).memberValues.map((mv) => (
+                    <div key={mv.name} className="modal-user">
+                      <div className="user-head">
+                        <div className="avatar">{mv.name?.[0] ?? "?"}</div>
+                        <div className="user-name">{mv.name}</div>
+                      </div>
+                      <div className="quote">{mv.value}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="quote">
-                  {issues.find((issue) => issue.id === selectedIssue)?.leftValue}
+              ) : (
+                <div className="modal-grid">
+                  <div className="modal-user">
+                    <div className="user-head">
+                      <div className="avatar">{selectedPair?.a.name?.[0] ?? "?"}</div>
+                      <div className="user-name">{selectedPair?.a.name}</div>
+                    </div>
+                    <div className="quote">{activeIssue.leftValue}</div>
+                  </div>
+                  <div className="modal-user">
+                    <div className="user-head">
+                      <div className="avatar">{selectedPair?.b.name?.[0] ?? "?"}</div>
+                      <div className="user-name">{selectedPair?.b.name}</div>
+                    </div>
+                    <div className="quote">{activeIssue.rightValue}</div>
+                  </div>
+                </div>
+              )}
+              <div className="insight">
+                <span className="spark">✦</span>
+                <div>
+                  <div className="insight-title">GAP INSIGHT</div>
+                  <p>{activeIssue.insight}</p>
                 </div>
               </div>
-              <div className="modal-user">
-                <div className="user-head">
-                  <div className="avatar">{selectedPair.b.name?.[0] ?? "?"}</div>
-                  <div className="user-name">{selectedPair.b.name}</div>
-                </div>
-                <div className="quote">
-                  {issues.find((issue) => issue.id === selectedIssue)?.rightValue}
-                </div>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" type="button" onClick={() => setSelectedIssue(null)}>
+                  닫기
+                </button>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => {
+                    setSelectedIssue(null);
+                    setShowSubscribe(true);
+                  }}
+                >
+                  상세 리스크 및 합의 세션 시작하기 →
+                </button>
               </div>
-            </div>
-            <div className="insight">
-              <span className="spark">✦</span>
-              <div>
-                <div className="insight-title">GAP INSIGHT</div>
-                <p>{issues.find((issue) => issue.id === selectedIssue)?.insight}</p>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-ghost" type="button" onClick={() => setSelectedIssue(null)}>
-                닫기
-              </button>
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={() => {
-                  setSelectedIssue(null);
-                  setShowSubscribe(true);
-                }}
-              >
-                상세 리스크 및 합의 세션 시작하기 →
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </main>
   );
 }

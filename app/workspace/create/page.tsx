@@ -54,7 +54,7 @@ export default function WorkspaceCreatePage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.push("/register");
     }
   }, [loading, user, router]);
 
@@ -62,6 +62,18 @@ export default function WorkspaceCreatePage() {
     if (!user) return;
     if (!teamName.trim()) {
       setError("팀 이름을 입력해주세요.");
+      return;
+    }
+    if (industry === "선택해주세요") {
+      setError("비즈니스 분야를 선택해주세요.");
+      return;
+    }
+    if (members === "선택해주세요") {
+      setError("팀원 수를 선택해주세요.");
+      return;
+    }
+    if (stage === "선택해주세요") {
+      setError("팀 단계를 선택해주세요.");
       return;
     }
     const answers = {
@@ -155,6 +167,7 @@ export default function WorkspaceCreatePage() {
               <option>커머스</option>
               <option>콘텐츠</option>
               <option>바이오/헬스</option>
+              <option>기타</option>
             </select>
           </div>
 
@@ -176,11 +189,19 @@ export default function WorkspaceCreatePage() {
               <div className="select-row">
                 <select className="input select" value={stage} onChange={(event) => setStage(event.target.value)}>
                   <option>선택해주세요</option>
-                  <option>아이디어 단계</option>
-                  <option>MVP 단계</option>
-                  <option>PMF 단계</option>
-                  <option>스케일업 단계</option>
+                  <option value="아이디어 단계">아이디어 단계</option>
+                  <option value="MVP 단계">MVP 단계</option>
+                  <option value="PMF 단계">PMF 단계</option>
+                  <option value="스케일업 단계">스케일업 단계</option>
                 </select>
+                {stage !== "선택해주세요" && (
+                  <p className="hint" style={{ marginTop: "6px" }}>
+                    {stage === "아이디어 단계" && "아직 제품이 없고 아이디어를 구체화하는 단계예요."}
+                    {stage === "MVP 단계" && "핵심 기능만 담은 첫 제품을 만들어 시장에 검증하는 단계예요."}
+                    {stage === "PMF 단계" && "제품이 시장에 맞는지 반복 실험하며 맞춰가는 단계예요."}
+                    {stage === "스케일업 단계" && "검증된 모델을 바탕으로 본격적으로 성장을 가속하는 단계예요."}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -1,0 +1,134 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useUserProfile } from "../../../../components/useUserProfile";
+import { useAuth } from "../../../../components/AuthContext";
+import { useAppState } from "../../../../components/AppState";
+import { collection, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../../../lib/firebase";
+import { computeGapSummary } from "../../../../lib/gap";
+import { computeTeamProgress } from "../../../../lib/teamProgress";
+import { appendDiagnosisHistory } from "../../../../lib/history";
+
+export default function DiagnosisCompletePage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { profile } = useUserProfile();
+  const {
+    decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+    extraWorkPrinciple, extraWorkPriority, underperformanceAction, workstyleConstraint,
+    handoverMethod, exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+    exitVision, pivotCriteria, conflictResolution, dealbreaker,
+    salaryStructure, equityStructure, profitDistribution, growthStrategy,
+    role, progress
+  } = useAppState();
+
+  const hasTeam = Boolean(profile?.teamIds?.length);
+
+  const handleSaveAndProceed = async (destination: string) => {
+    if (!user) { router.push("/register"); return; }
+    const teamId = profile?.teamIds?.[0];
+    const answers = {
+      decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+      extraWorkPrinciple, extraWorkPriority, underperformanceAction, workstyleConstraint,
+      handoverMethod, exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+      exitVision, pivotCriteria, conflictResolution, dealbreaker,
+      salaryStructure, equityStructure, profitDistribution, growthStrategy
+    };
+    if (teamId) {
+      await setDoc(doc(db, "teams", teamId, "members", user.uid), {
+        name: profile?.name || user.displayName || "팀원",
+        role: role || "MEMBER",
+        status: "active",
+        progress,
+        answers
+      }, { merge: true });
+      await appendDiagnosisHistory(teamId, user.uid, answers, progress);
+      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      const memberDocs = membersSnapshot.docs.map((d) => d.data());
+      const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
+      const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
+      const teamProgress = computeTeamProgress(memberDocs);
+      await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore, rawScore });
+    }
+    router.push(destination);
+  };
+
+  return (
+    <main className="diag-complete-page">
+      <div className="diag-complete-wrap">
+        <button
+          className="diag-complete-back"
+          type="button"
+          onClick={() => router.push("/onboarding/diagnosis?goTo=q12")}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          12번으로 돌아가기
+        </button>
+
+        <div className="diag-complete-card">
+          <div className="diag-complete-badge">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10L8 14L16 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            1차 진단 완료
+          </div>
+
+          <h1 className="diag-complete-title">기본 진단이 끝났습니다</h1>
+
+          <div className="diag-complete-progress">
+            <div className="diag-complete-progress-info">
+              <span>진행률</span>
+              <span><strong>12</strong> / 20 문항</span>
+            </div>
+            <div className="diag-complete-progress-bar">
+              <div className="diag-complete-progress-fill" style={{ width: "60%" }} />
+            </div>
+          </div>
+
+          <p className="diag-complete-desc">
+            {hasTeam
+              ? <>공동창업자와 결과를 비교하거나,<br /><strong>비전·가치관·돈/보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
+              : <>심화 진단을 계속하거나,<br />공동창업자/팀원을 초대해서 진단 결과를 확인하세요.</>
+            }
+          </p>
+
+          <div className="diag-complete-actions">
+            <button
+              className="btn btn-primary diag-complete-btn"
+              type="button"
+              onClick={() => router.push("/onboarding/diagnosis?goTo=q13")}
+            >
+              심화 진단 계속하기 (Q13~Q20)
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            {hasTeam ? (
+              <button
+                className="btn btn-ghost diag-complete-btn"
+                type="button"
+                onClick={() => handleSaveAndProceed("/gap-report")}
+              >
+                결과 바로 확인하기
+              </button>
+            ) : (
+              <button
+                className="btn btn-ghost diag-complete-btn"
+                type="button"
+                onClick={() => handleSaveAndProceed("/workspace/create")}
+              >
+                공동창업자/팀원 초대하기
+              </button>
+            )}
+          </div>
+
+          <p className="diag-complete-note">심화 진단은 나중에 언제든 이어서 완료할 수 있습니다.</p>
+        </div>
+      </div>
+    </main>
+  );
+}

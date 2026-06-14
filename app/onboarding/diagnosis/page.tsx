@@ -10,7 +10,7 @@ import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from "fi
 import { db } from "../../../lib/firebase";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ScenarioIllustration } from "../../../components/ScenarioIllustration";
 
 
@@ -130,7 +130,7 @@ export default function OnboardingDiagnosisPage() {
           id: "decisionFailure",
           label: "",
           type: "single",
-          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다. 다음 달 방향을 어떻게 잡을 것 같아요?",
+          scenario: "이번 달 B2B 영업 결과가 계약 0건입니다.\n다음 달 방향을 어떻게 잡을 것 같아요?",
           options: [
             "1. 결과가 말해주고 있으니 당장 전략을 바꾼다",
             "2. 원인을 분석하고 방향을 함께 논의한다",
@@ -361,7 +361,7 @@ export default function OnboardingDiagnosisPage() {
           id: "dealbreaker",
           label: "",
           type: "single",
-          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
+          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고\n느끼는 게 있다면 무엇인가요?",
           options: [
             "1. 결정을 미루거나 느리게 움직이는 것",
             "2. 말한 것을 지키지 않는 것",
@@ -383,7 +383,7 @@ export default function OnboardingDiagnosisPage() {
           id: "salaryStructure",
           label: "",
           type: "single",
-          scenario: "초기 팀 보상 구조를 논의하다 스톡옵션 필요 여부로 의견이 갈렸어요. 어떻게 할 것 같아요?",
+          scenario: "초기 팀 보상 구조를 논의하다 스톡옵션 필요 여부로\n의견이 갈렸어요. 어떻게 할 것 같아요?",
           options: [
             "1. 스톡옵션으로 핵심 인재를 유치한다",
             "2. 성과 기반 현금 인센티브로 대신한다",
@@ -459,12 +459,20 @@ export default function OnboardingDiagnosisPage() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [showAdvancedPrompt, setShowAdvancedPrompt] = useState(false);
+  const [milestone, setMilestone] = useState<string | null>(null);
+  const [goToHandled, setGoToHandled] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<{
     questionId: string;
     option: string;
   } | null>(null);
   const autoNextTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverUnlockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (!milestone) return;
+    const t = setTimeout(() => setMilestone(null), 2200);
+    return () => clearTimeout(t);
+  }, [milestone]);
   const currentCategory = categories[categoryIndex];
   const currentQuestion = currentCategory.questions[questionIndex];
   const totalQuestions = categories.filter((c) => c.id !== "profile").reduce((sum, category) => sum + category.questions.length, 0);
@@ -487,6 +495,26 @@ export default function OnboardingDiagnosisPage() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (goToHandled) return;
+    const goTo = searchParams.get("goTo");
+    if (goTo === "q12") {
+      const exitIdx = categories.findIndex((c) => c.id === "exit");
+      if (exitIdx !== -1) {
+        setCategoryIndex(exitIdx);
+        setQuestionIndex(categories[exitIdx].questions.length - 1);
+      }
+      setGoToHandled(true);
+    } else if (goTo === "q13") {
+      const visionIdx = categories.findIndex((c) => c.id === "vision");
+      if (visionIdx !== -1) {
+        setCategoryIndex(visionIdx);
+        setQuestionIndex(0);
+      }
+      setGoToHandled(true);
+    }
+  }, [searchParams, goToHandled]);
 
   const toggleMulti = (list: string[], value: string, max?: number) => {
     if (list.includes(value)) {
@@ -524,13 +552,14 @@ export default function OnboardingDiagnosisPage() {
       setQuestionIndex((prev) => prev + 1);
       return;
     }
-    // 1차 진단(exit) 완료 시점 — 심화 진단 선택 모달 표시
+    // 1차 진단(exit) 완료 시점 — 완료 페이지로 이동
     if (currentCategory.id === "exit") {
-      setShowAdvancedPrompt(true);
+      router.push("/onboarding/diagnosis/complete");
       return;
     }
     const isLastCategory = categoryIndex === categories.length - 1;
     if (!isLastCategory) {
+      setMilestone(`${currentCategory.title} 완료!`);
       setCategoryIndex((prev) => prev + 1);
       setQuestionIndex(0);
       return;
@@ -671,17 +700,20 @@ export default function OnboardingDiagnosisPage() {
             </div>
           </div>
 
+          {((isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario) && currentQuestion.id !== "profile" && (
+            <div className="diagnosis-question-row">
+              <span className="question-step">
+                Question {currentQuestionNumber} / {totalQuestions}
+              </span>
+              <div className="scenario-body">
+                <p>{(isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario}</p>
+              </div>
+            </div>
+          )}
+
           <div className="diagnosis-body">
             {((isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario) && (
               <div className="scenario-panel">
-                {currentQuestion.id !== "profile" && (
-                  <span className="question-step">
-                    Question {currentQuestionNumber} / {totalQuestions}
-                  </span>
-                )}
-                <div className="scenario-body">
-                  <p>{(isSingleQuestion(currentQuestion) && currentQuestion.scenario) || currentCategory.scenario}</p>
-                </div>
                 {currentQuestion.id !== "profile" && (
                   <div className="scenario-media">
                     <ScenarioIllustration questionId={currentQuestion.id} />
@@ -690,14 +722,11 @@ export default function OnboardingDiagnosisPage() {
               </div>
             )}
             <div className="diag-section">
-              <div className="question-header">
-                {currentQuestion.id !== "profile" && currentQuestion.id === "profile" && (
-                  <span className="question-step">
-                    Question {currentQuestionNumber} / {totalQuestions}
-                  </span>
-                )}
-                {currentQuestion.label && <h4>{currentQuestion.label}</h4>}
-              </div>
+              {currentQuestion.label && (
+                <div className="question-header">
+                  <h4>{currentQuestion.label}</h4>
+                </div>
+              )}
 
               {isSingleQuestion(currentQuestion) && (
                 <div className={`chip-grid ${isAdvancing ? "is-transitioning" : ""}`}>
