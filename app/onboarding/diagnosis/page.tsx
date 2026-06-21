@@ -44,18 +44,12 @@ export default function OnboardingDiagnosisPage() {
     setDecisionFailure,
     actionVsConsensus,
     setActionVsConsensus,
-    deadlockTolerance,
-    setDeadlockTolerance,
     extraWorkPrinciple,
     setExtraWorkPrinciple,
     extraWorkPriority,
     setExtraWorkPriority,
     underperformanceAction,
     setUnderperformanceAction,
-    workstyleConstraint,
-    setWorkstyleConstraint,
-    handoverMethod,
-    setHandoverMethod,
     exitRecoveryPriority,
     setExitRecoveryPriority,
     exitCleanupTiming,
@@ -66,10 +60,10 @@ export default function OnboardingDiagnosisPage() {
     setExitVision,
     pivotCriteria,
     setPivotCriteria,
-    conflictResolution,
-    setConflictResolution,
     dealbreaker,
     setDealbreaker,
+    deadlockTolerance,
+    setDeadlockTolerance,
     salaryStructure,
     setSalaryStructure,
     equityStructure,
@@ -78,6 +72,12 @@ export default function OnboardingDiagnosisPage() {
     setProfitDistribution,
     growthStrategy,
     setGrowthStrategy,
+    fundingRunway,
+    setFundingRunway,
+    spendingApproval,
+    setSpendingApproval,
+    investmentCriteria,
+    setInvestmentCriteria,
     department,
     setDepartment,
     role,
@@ -105,9 +105,219 @@ export default function OnboardingDiagnosisPage() {
     scenario: string;
     questions: Question[];
   }> = [
+    // ── 기본 진단 (4 cats × 3q = 12q) ──
+    {
+      id: "role",
+      title: "역할 & 책임",
+      scenario: "",
+      questions: [
+        {
+          id: "extraWorkPriority",
+          label: "",
+          type: "single",
+          scenario: "베타 출시 이후 고객 문의가 하루 5~10건 발생하고 있습니다. CS 담당이 따로 정해지지 않은 상황, 어떻게 할 것 같아요?",
+          options: [
+            "1. 일단 내가 직접 처리하며 상황을 파악한다",
+            "2. 담당자를 정하고 역할을 함께 나눈다",
+            "3. 현재 우선순위를 유지한다 — 별도 대응 없이",
+            "4. 패턴 확인 후 구조적으로 해결한다 (채용 포함)"
+          ],
+          value: extraWorkPriority,
+          onSelect: setExtraWorkPriority,
+          autoNext: true
+        },
+        {
+          id: "extraWorkPrinciple",
+          label: "",
+          type: "single",
+          scenario: "토요일 밤 12시, 공동창업자 카톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 30분만 같이 봐줘.' 어떻게 할 것 같아요?",
+          options: [
+            "1. 당연히 해야지 — 초기엔 이런 게 기본이다",
+            "2. 하겠지만 미리 알려줬으면 좋겠다",
+            "3. 중요한 일이지만 개인 시간은 지켜져야 한다",
+            "4. 업무 외 시간 요청은 원칙적으로 거절한다"
+          ],
+          value: extraWorkPrinciple,
+          onSelect: setExtraWorkPrinciple,
+          autoNext: true
+        },
+        {
+          id: "underperformanceAction",
+          label: "",
+          type: "single",
+          scenario: "공동창업자가 맡은 개발 일정이 이번 달도 밀렸습니다. 저번 달에 이어 두 번째인데, 매번 이유는 있어요. 어떻게 할 것 같아요?",
+          options: [
+            "1. 즉시 역할 조정이나 업무 대행을 검토한다",
+            "2. 기준과 타임라인을 정하고 이행을 확인한다",
+            "3. 원인을 먼저 파악하고 도울 방법을 찾는다",
+            "4. 한계라고 판단하면 구조 변경을 논의한다"
+          ],
+          value: underperformanceAction,
+          onSelect: setUnderperformanceAction,
+          autoNext: true
+        }
+      ]
+    },
+    {
+      id: "exit",
+      title: "이탈 & 회수",
+      scenario: "",
+      questions: [
+        {
+          id: "exitRecoveryPriority",
+          label: "",
+          type: "single",
+          scenario: "떠나는 공동창업자가 GitHub, AWS, 고객 연락처, 법인 계좌 권한을 모두 갖고 있어요. 가장 먼저 뭘 챙길 것 같아요?",
+          options: [
+            "1. 핵심 시스템 권한 회수와 백업을 처리한다",
+            "2. 주요 고객 관계 인수인계를 먼저 챙긴다",
+            "3. 운영 문서와 프로세스 정리를 우선한다",
+            "4. 법인 계좌·지분 법적 처리를 먼저 한다"
+          ],
+          value: exitRecoveryPriority,
+          onSelect: setExitRecoveryPriority,
+          autoNext: true
+        },
+        {
+          id: "exitCleanupTiming",
+          label: "",
+          type: "single",
+          scenario: "공동창업자가 오늘 갑자기 퇴사를 통보했어요. 인수인계는 시작도 안 됐고 시스템 권한은 그대로예요. 계정과 권한, 어떻게 할 것 같아요?",
+          options: [
+            "1. 통보 즉시 모든 권한을 차단한다",
+            "2. 핵심 인수인계 완료 직후 단계적으로 차단한다",
+            "3. 2~4주 인수인계 기간에 순차적으로 처리한다",
+            "4. 모든 절차 합의 후 마지막에 차단한다"
+          ],
+          value: exitCleanupTiming,
+          onSelect: setExitCleanupTiming,
+          autoNext: true
+        },
+        {
+          id: "exitDisputeResolution",
+          label: "",
+          type: "single",
+          scenario: "1년 함께한 공동창업자가 떠납니다. 약속한 지분은 20%인데, 실제 기여도 평가가 서로 달라요. 어떤 기준으로 정리할 것 같아요?",
+          options: [
+            "1. 처음 합의한 계약 내용을 그대로 이행한다",
+            "2. 기여도와 활동 기간 기준으로 재산정한다",
+            "3. 변호사 등 제3자의 도움을 받아 결정한다",
+            "4. 서로 납득할 수 있는 선에서 협의한다"
+          ],
+          value: exitDisputeResolution,
+          onSelect: setExitDisputeResolution,
+          autoNext: true
+        }
+      ]
+    },
+    {
+      id: "vision",
+      title: "비전 & 가치관",
+      scenario: "",
+      questions: [
+        {
+          id: "exitVision",
+          label: "",
+          type: "single",
+          scenario: "'이 회사가 어디로 가야 하는가' 의문이 들기 시작했어요. 지금 이 회사의 가장 이상적인 결말은 뭐라고 생각해요?",
+          options: [
+            "1. 빠르게 성장해 대기업에 인수된다 (M&A 엑싯)",
+            "2. 상장(IPO)해서 더 큰 회사로 키운다",
+            "3. 수익성 있는 독립 회사로 오래 운영한다",
+            "4. 아직 정해진 생각은 없다"
+          ],
+          value: exitVision,
+          onSelect: setExitVision,
+          autoNext: true
+        },
+        {
+          id: "pivotCriteria",
+          label: "",
+          type: "single",
+          scenario: "출시 8개월차, 지표는 정체고 번레이트(매달 소진되는 운영 자금)도 줄고 있어요. 피벗이나 중단을 결정하는 기준이 뭘 것 같아요?",
+          options: [
+            "1. 자금이 부족해 더 이상 운영이 어려울 때",
+            "2. 일정 기간 동안 시장 반응이 거의 없을 때",
+            "3. 핵심 팀원이 이탈하거나 계속 흔들릴 때",
+            "4. 공동창업자 간 합의가 되지 않을 때"
+          ],
+          value: pivotCriteria,
+          onSelect: setPivotCriteria,
+          autoNext: true
+        },
+        {
+          id: "dealbreaker",
+          label: "",
+          type: "single",
+          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
+          options: [
+            "1. 결정을 미루거나 느리게 움직이는 것",
+            "2. 말한 것을 지키지 않는 것",
+            "3. 결과 없이 이유만 대는 것",
+            "4. 방향이 달라지고 있는데 맞추려 하지 않는 것"
+          ],
+          value: dealbreaker,
+          onSelect: setDealbreaker,
+          autoNext: true
+        }
+      ]
+    },
+    {
+      id: "funding",
+      title: "조달 & 운용",
+      scenario: "",
+      questions: [
+        {
+          id: "fundingRunway",
+          label: "",
+          type: "single",
+          scenario: "런웨이가 6개월로 줄었습니다. 추가 자금 없이는 인건비가 위협받는 상황입니다. 어떻게 대응하는 게 맞다고 생각하나요?",
+          options: [
+            "1. 즉시 비용을 대폭 절감한다 — 인원 감축도 포함",
+            "2. 브릿지 투자를 빠르게 유치한다 — 희석을 감수",
+            "3. 매출을 끌어올려 자체 생존을 우선한다",
+            "4. 공동창업자들이 급여를 유예하고 버틴다"
+          ],
+          value: fundingRunway,
+          onSelect: setFundingRunway,
+          autoNext: true
+        },
+        {
+          id: "spendingApproval",
+          label: "",
+          type: "single",
+          scenario: "공동창업자가 마케팅 집행을 위해 500만 원을 사전 합의 없이 단독으로 집행했습니다. 어떻게 생각하나요?",
+          options: [
+            "1. 역할 범위 내 결정이면 문제없다 — 실행 속도가 중요",
+            "2. 금액 기준을 정해두고 그 이상은 반드시 사전 협의한다",
+            "3. 항목에 따라 자율/협의 범위를 구분한다",
+            "4. 금액과 무관하게 지출은 공동 승인이 원칙이다"
+          ],
+          value: spendingApproval,
+          onSelect: setSpendingApproval,
+          autoNext: true
+        },
+        {
+          id: "investmentCriteria",
+          label: "",
+          type: "single",
+          scenario: "첫 외부 투자 제안이 왔습니다. 밸류에이션은 기대보다 낮지만 투자자 네트워크는 훌륭합니다. 투자 조건을 받아들이는 기준이 뭔가요?",
+          options: [
+            "1. 밸류에이션이 최우선 — 희석은 최소화해야 한다",
+            "2. 투자자의 전략적 가치가 수치보다 중요하다",
+            "3. 다음 라운드까지의 런웨이 확보 여부가 기준이다",
+            "4. 조건보다 속도가 중요 — 가능한 빨리 받는다"
+          ],
+          value: investmentCriteria,
+          onSelect: setInvestmentCriteria,
+          autoNext: true
+        }
+      ]
+    },
+    // ── 심화 진단 (2 cats × 4q = 8q) ──
     {
       id: "decision",
-      title: "권한 & 실행",
+      title: "의사결정 & 실행",
       scenario: "",
       questions: [
         {
@@ -173,209 +383,8 @@ export default function OnboardingDiagnosisPage() {
       ]
     },
     {
-      id: "role",
-      title: "책임",
-      scenario: "",
-      questions: [
-        {
-          id: "extraWorkPriority",
-          label: "",
-          type: "single",
-          scenario: "베타 출시 이후 고객 문의가 하루 5~10건 발생하고 있습니다. CS 담당이 따로 정해지지 않은 상황, 어떻게 할 것 같아요?",
-          options: [
-            "1. 일단 내가 직접 처리하며 상황을 파악한다",
-            "2. 담당자를 정하고 역할을 함께 나눈다",
-            "3. 현재 우선순위를 유지한다 — 별도 대응 없이",
-            "4. 패턴 확인 후 구조적으로 해결한다 (채용 포함)"
-          ],
-          value: extraWorkPriority,
-          onSelect: setExtraWorkPriority,
-          autoNext: true
-        },
-        {
-          id: "extraWorkPrinciple",
-          label: "",
-          type: "single",
-          scenario: "토요일 밤 12시, 공동창업자 카톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 30분만 같이 봐줘.' 어떻게 할 것 같아요?",
-          options: [
-            "1. 당연히 해야지 — 초기엔 이런 게 기본이다",
-            "2. 하겠지만 미리 알려줬으면 좋겠다",
-            "3. 중요한 일이지만 개인 시간은 지켜져야 한다",
-            "4. 업무 외 시간 요청은 원칙적으로 거절한다"
-          ],
-          value: extraWorkPrinciple,
-          onSelect: setExtraWorkPrinciple,
-          autoNext: true
-        },
-        {
-          id: "underperformanceAction",
-          label: "",
-          type: "single",
-          scenario: "공동창업자가 맡은 개발 일정이 이번 달도 밀렸습니다. 저번 달에 이어 두 번째인데, 매번 이유는 있어요. 어떻게 할 것 같아요?",
-          options: [
-            "1. 즉시 역할 조정이나 업무 대행을 검토한다",
-            "2. 기준과 타임라인을 정하고 이행을 확인한다",
-            "3. 원인을 먼저 파악하고 도울 방법을 찾는다",
-            "4. 한계라고 판단하면 구조 변경을 논의한다"
-          ],
-          value: underperformanceAction,
-          onSelect: setUnderperformanceAction,
-          autoNext: true
-        },
-        {
-          id: "workstyleConstraint",
-          label: "",
-          type: "single",
-          scenario: "긴급 의사결정이 필요한데, 한 명은 업무 중이고 다른 한 명은 2~3시간째 응답이 없습니다. 이 상황, 어떻게 할 것 같아요?",
-          options: [
-            "1. 기다리지 않고 내가 결정한다 — 속도 우선",
-            "2. 최대한 빨리 연락을 취하고 결정을 보류한다",
-            "3. 이런 상황을 대비한 규칙이 미리 필요하다",
-            "4. 공동 결정 원칙 — 연락될 때까지 기다린다"
-          ],
-          value: workstyleConstraint,
-          onSelect: setWorkstyleConstraint,
-          autoNext: true
-        }
-      ]
-    },
-    {
-      id: "exit",
-      title: "종료",
-      scenario: "",
-      questions: [
-        {
-          id: "handoverMethod",
-          label: "",
-          type: "single",
-          scenario: "공동창업자가 한 달 후 떠난다고 했습니다. 담당하던 고객 관리와 서버 운영, 문서화가 안 된 상태예요. 인수인계 어떻게 할 것 같아요?",
-          options: [
-            "1. 이번 주 즉시 문서화와 인수인계를 시작한다",
-            "2. 이탈 일정 2주 연장해 충분한 시간을 확보한다",
-            "3. 핵심은 구두로 받고 나머지는 직접 파악한다",
-            "4. 이탈 시점이 가까워지면 그때 정리한다"
-          ],
-          value: handoverMethod,
-          onSelect: setHandoverMethod,
-          autoNext: true
-        },
-        {
-          id: "exitRecoveryPriority",
-          label: "",
-          type: "single",
-          scenario: "떠나는 공동창업자가 GitHub, AWS, 고객 연락처, 법인 계좌 권한을 모두 갖고 있어요. 가장 먼저 뭘 챙길 것 같아요?",
-          options: [
-            "1. 핵심 시스템 권한 회수와 백업을 처리한다",
-            "2. 주요 고객 관계 인수인계를 먼저 챙긴다",
-            "3. 운영 문서와 프로세스 정리를 우선한다",
-            "4. 법인 계좌·지분 법적 처리를 먼저 한다"
-          ],
-          value: exitRecoveryPriority,
-          onSelect: setExitRecoveryPriority,
-          autoNext: true
-        },
-        {
-          id: "exitCleanupTiming",
-          label: "",
-          type: "single",
-          scenario: "공동창업자가 오늘 갑자기 퇴사를 통보했어요. 인수인계는 시작도 안 됐고 시스템 권한은 그대로예요. 계정과 권한, 어떻게 할 것 같아요?",
-          options: [
-            "1. 통보 즉시 모든 권한을 차단한다",
-            "2. 핵심 인수인계 완료 직후 단계적으로 차단한다",
-            "3. 2~4주 인수인계 기간에 순차적으로 처리한다",
-            "4. 모든 절차 합의 후 마지막에 차단한다"
-          ],
-          value: exitCleanupTiming,
-          onSelect: setExitCleanupTiming,
-          autoNext: true
-        },
-        {
-          id: "exitDisputeResolution",
-          label: "",
-          type: "single",
-          scenario: "1년 함께한 공동창업자가 떠납니다. 약속한 지분은 20%인데, 실제 기여도 평가가 서로 달라요. 어떤 기준으로 정리할 것 같아요?",
-          options: [
-            "1. 처음 합의한 계약 내용을 그대로 이행한다",
-            "2. 기여도와 활동 기간 기준으로 재산정한다",
-            "3. 변호사 등 제3자의 도움을 받아 결정한다",
-            "4. 서로 납득할 수 있는 선에서 협의한다"
-          ],
-          value: exitDisputeResolution,
-          onSelect: setExitDisputeResolution,
-          autoNext: true
-        }
-      ]
-    },
-    {
-      id: "vision",
-      title: "비전/가치관",
-      scenario: "",
-      questions: [
-        {
-          id: "exitVision",
-          label: "",
-          type: "single",
-          scenario: "'이 회사가 어디로 가야 하는가' 의문이 들기 시작했어요. 지금 이 회사의 가장 이상적인 결말은 뭐라고 생각해요?",
-          options: [
-            "1. 빠르게 성장해 대기업에 인수된다 (M&A 엑싯)",
-            "2. 상장(IPO)해서 더 큰 회사로 키운다",
-            "3. 수익성 있는 독립 회사로 오래 운영한다",
-            "4. 아직 정해진 생각은 없다"
-          ],
-          value: exitVision,
-          onSelect: setExitVision,
-          autoNext: true
-        },
-        {
-          id: "pivotCriteria",
-          label: "",
-          type: "single",
-          scenario: "출시 8개월차, 지표는 정체고 번레이트(매달 소진되는 운영 자금)도 줄고 있어요. 피벗이나 중단을 결정하는 기준이 뭘 것 같아요?",
-          options: [
-            "1. 자금이 부족해 더 이상 운영이 어려울 때",
-            "2. 일정 기간 동안 시장 반응이 거의 없을 때",
-            "3. 핵심 팀원이 이탈하거나 계속 흔들릴 때",
-            "4. 공동창업자 간 합의가 되지 않을 때"
-          ],
-          value: pivotCriteria,
-          onSelect: setPivotCriteria,
-          autoNext: true
-        },
-        {
-          id: "conflictResolution",
-          label: "",
-          type: "single",
-          scenario: "첫 채용 예산이 생겼는데, 시니어 개발자 vs 영업 인력, 서로 물러서지 않는 상황입니다. 어떻게 할 것 같아요?",
-          options: [
-            "1. 당사자끼리 즉시 직접 대화로 해결한다",
-            "2. 정해진 기준이나 룰에 따라 처리한다",
-            "3. 냉각 기간을 두고 나서 이야기한다",
-            "4. 외부 멘토나 제3자의 도움을 받는다"
-          ],
-          value: conflictResolution,
-          onSelect: setConflictResolution,
-          autoNext: true
-        },
-        {
-          id: "dealbreaker",
-          label: "",
-          type: "single",
-          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
-          options: [
-            "1. 결정을 미루거나 느리게 움직이는 것",
-            "2. 말한 것을 지키지 않는 것",
-            "3. 결과 없이 이유만 대는 것",
-            "4. 방향이 달라지고 있는데 맞추려 하지 않는 것"
-          ],
-          value: dealbreaker,
-          onSelect: setDealbreaker,
-          autoNext: true
-        }
-      ]
-    },
-    {
       id: "money",
-      title: "돈/보상",
+      title: "지분 & 보상",
       scenario: "",
       questions: [
         {
@@ -412,12 +421,12 @@ export default function OnboardingDiagnosisPage() {
           id: "profitDistribution",
           label: "",
           type: "single",
-          scenario: "서비스 출시 2년차, 월 매출이 처음으로 5천만원을 넘었어요. 이 수익을 어떻게 처리하는 게 맞다고 생각해요?",
+          scenario: "출시 18개월차, 처음으로 월 영업이익이 났습니다. 공동창업자가 '이제 우리 급여를 시장가로 올리자'고 합니다. 어떻게 생각하나요?",
           options: [
-            "1. 전액 재투자한다 — 지금은 성장이 먼저다",
-            "2. 재투자와 창업자 보상을 나눠서 배분한다",
-            "3. 급여 인상이나 인센티브를 먼저 챙긴다",
-            "4. 적립해두고 팀이 함께 결정할 때 쓴다"
+            "1. 아직 이르다 — 수익은 전액 재투자해야 한다",
+            "2. 맞다 — 지속 가능하게 일하려면 보상이 먼저다",
+            "3. 재투자와 급여 인상을 병행하되 비율은 합의한다",
+            "4. 외부 투자 유치 전까지는 현금을 아껴야 한다"
           ],
           value: profitDistribution,
           onSelect: setProfitDistribution,
@@ -460,6 +469,7 @@ export default function OnboardingDiagnosisPage() {
   const [showAdvancedPrompt, setShowAdvancedPrompt] = useState(false);
   const [milestone, setMilestone] = useState<string | null>(null);
   const [goToHandled, setGoToHandled] = useState(false);
+
   const [pendingSelection, setPendingSelection] = useState<{
     questionId: string;
     option: string;
@@ -499,16 +509,16 @@ export default function OnboardingDiagnosisPage() {
     if (goToHandled) return;
     const goTo = searchParams.get("goTo");
     if (goTo === "q12") {
-      const exitIdx = categories.findIndex((c) => c.id === "exit");
-      if (exitIdx !== -1) {
-        setCategoryIndex(exitIdx);
-        setQuestionIndex(categories[exitIdx].questions.length - 1);
+      const fundingIdx = categories.findIndex((c) => c.id === "funding");
+      if (fundingIdx !== -1) {
+        setCategoryIndex(fundingIdx);
+        setQuestionIndex(categories[fundingIdx].questions.length - 1);
       }
       setGoToHandled(true);
     } else if (goTo === "q13") {
-      const visionIdx = categories.findIndex((c) => c.id === "vision");
-      if (visionIdx !== -1) {
-        setCategoryIndex(visionIdx);
+      const decisionIdx = categories.findIndex((c) => c.id === "decision");
+      if (decisionIdx !== -1) {
+        setCategoryIndex(decisionIdx);
         setQuestionIndex(0);
       }
       setGoToHandled(true);
@@ -551,8 +561,8 @@ export default function OnboardingDiagnosisPage() {
       setQuestionIndex((prev) => prev + 1);
       return;
     }
-    // 1차 진단(exit) 완료 시점 — 완료 페이지로 이동
-    if (currentCategory.id === "exit") {
+    // 1차 진단(funding) 완료 시점 — 완료 페이지로 이동
+    if (currentCategory.id === "funding") {
       router.push("/onboarding/diagnosis/complete");
       return;
     }
@@ -568,13 +578,14 @@ export default function OnboardingDiagnosisPage() {
   const hasTeam = Boolean(profile?.teamIds?.length);
 
   const handleSaveAndProceed = async (destination: string) => {
-    if (!user) { router.push("/login"); return; }
+    if (!user) { router.push("/register"); return; }
     const teamId = profile?.teamIds?.[0];
     const answers = {
+      extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+      exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+      exitVision, pivotCriteria, dealbreaker,
+      fundingRunway, spendingApproval, investmentCriteria,
       decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
-      extraWorkPrinciple, extraWorkPriority, underperformanceAction, workstyleConstraint,
-      handoverMethod, exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
-      exitVision, pivotCriteria, conflictResolution, dealbreaker,
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
     if (teamId) {
@@ -604,27 +615,27 @@ export default function OnboardingDiagnosisPage() {
 
   const handleFinish = async () => {
     if (!user) {
-      router.push("/login");
+      router.push("/register");
       return;
     }
     const teamId = profile?.teamIds?.[0];
     const answers = {
-      decisionStructure,
-      decisionFailure,
-      actionVsConsensus,
-      deadlockTolerance,
-      extraWorkPrinciple,
       extraWorkPriority,
+      extraWorkPrinciple,
       underperformanceAction,
-      workstyleConstraint,
-      handoverMethod,
       exitRecoveryPriority,
       exitCleanupTiming,
       exitDisputeResolution,
       exitVision,
       pivotCriteria,
-      conflictResolution,
       dealbreaker,
+      fundingRunway,
+      spendingApproval,
+      investmentCriteria,
+      decisionStructure,
+      decisionFailure,
+      actionVsConsensus,
+      deadlockTolerance,
       salaryStructure,
       equityStructure,
       profitDistribution,
@@ -660,6 +671,7 @@ export default function OnboardingDiagnosisPage() {
     });
     router.push("/workspace");
   };
+
 
   return (
     <main className="page diagnosis-page">
@@ -883,6 +895,7 @@ export default function OnboardingDiagnosisPage() {
           </div>
         </div>
       )}
+
     </main>
   );
 }

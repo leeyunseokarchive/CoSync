@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { TopNav } from "../components/TopNav";
 import { Footer } from "../components/Footer";
+import { Lock } from "lucide-react";
 
 function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: number }) {
   const ringRef = useRef<HTMLDivElement | null>(null);
@@ -493,7 +494,7 @@ export default function LandingPage() {
           <Link href="/onboarding" className="btn btn-primary btn-lg">
             지금 우리 팀 기준 맞추기 시작하기
           </Link>
-          <p className="cta-hint mt-4">🔒 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>
+          <p className="cta-hint mt-4" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Lock size={13} /> 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>
         </div>
       </section>
 

@@ -3,17 +3,18 @@
 import { useRouter } from "next/navigation";
 import { TopNav } from "../../../components/TopNav";
 import { Footer } from "../../../components/Footer";
+import { Compass, Settings, Pin, Scale, Banknote, DoorOpen, ClipboardList, Handshake, MessageCircle, Lightbulb } from "lucide-react";
 
 const CATEGORIES_BASIC = [
-  { icon: "🧭", title: "비전", desc: "왜 하는가", detail: "회사를 어디까지 키울 건지, 무엇을 위해 하는지" },
-  { icon: "⚙️", title: "실행", desc: "어떻게 일하는가", detail: "업무 몰입 수준, 협업 리듬, 결정 속도" },
-  { icon: "📌", title: "책임", desc: "누가 맡는가", detail: "역할 경계, 회색지대 업무, 성과 기준" },
+  { icon: <Compass size={18} />, title: "비전", desc: "왜 하는가", detail: "회사를 어디까지 키울 건지, 무엇을 위해 하는지" },
+  { icon: <Settings size={18} />, title: "실행", desc: "어떻게 일하는가", detail: "업무 몰입 수준, 협업 리듬, 결정 속도" },
+  { icon: <Pin size={18} />, title: "책임", desc: "누가 맡는가", detail: "역할 경계, 회색지대 업무, 성과 기준" },
 ];
 
 const CATEGORIES_PREMIUM = [
-  { icon: "⚖️", title: "권한", desc: "누가 결정하는가", detail: "담당 영역별 결정권, 공동 의사결정 기준" },
-  { icon: "💰", title: "돈", desc: "무엇을 나누는가", detail: "지분 구조, 급여 기준, 투자 유치 방향" },
-  { icon: "🚪", title: "종료", desc: "깨질 때 어떻게 하는가", detail: "이탈 시 인수인계, 지분 정리, 권한 차단" },
+  { icon: <Scale size={18} />, title: "권한", desc: "누가 결정하는가", detail: "담당 영역별 결정권, 공동 의사결정 기준" },
+  { icon: <Banknote size={18} />, title: "돈", desc: "무엇을 나누는가", detail: "지분 구조, 급여 기준, 투자 유치 방향" },
+  { icon: <DoorOpen size={18} />, title: "종료", desc: "깨질 때 어떻게 하는가", detail: "이탈 시 인수인계, 지분 정리, 권한 차단" },
 ];
 
 const STEPS = [
@@ -46,21 +47,21 @@ export default function AgreementPreviewPage() {
         {/* Trust */}
         <div className="agreement-trust-block">
           <div className="trust-legal-badge">
-            <span>⚖️</span> 주주간계약 자문 변호사 MOU 체결 &amp; 법률 검토 완료
+            <Scale size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }} /> 변호사 감수 · 실제 분쟁 판례 반영
           </div>
           <div className="trust-cards">
             <div className="trust-card">
-              <div className="trust-card-icon">📋</div>
+              <div className="trust-card-icon"><ClipboardList size={22} /></div>
               <div className="trust-card-title">주주간계약 필수 조항 기반</div>
               <div className="trust-card-desc">실제 주주간계약서에서 분쟁이 가장 많이 발생하는 필수 조항을 바탕으로 설계되었습니다.</div>
             </div>
             <div className="trust-card">
-              <div className="trust-card-icon">🤝</div>
+              <div className="trust-card-icon"><Handshake size={22} /></div>
               <div className="trust-card-title">변호사 협력 검증 템플릿</div>
               <div className="trust-card-desc">스타트업 전문 변호사와 협력하여 합의 항목의 법적 유효성과 실효성을 검토했습니다.</div>
             </div>
             <div className="trust-card">
-              <div className="trust-card-icon">💬</div>
+              <div className="trust-card-icon"><MessageCircle size={22} /></div>
               <div className="trust-card-title">팀 필수 대화 설계</div>
               <div className="trust-card-desc">창업 초기 팀이 반드시 나눠야 하지만 꺼내기 어려운 대화를 구조화된 질문으로 담았습니다.</div>
             </div>
@@ -171,7 +172,7 @@ export default function AgreementPreviewPage() {
 
         {/* Upgrade note */}
         <div className="upgrade-note-block">
-          <span className="upgrade-note-icon">💡</span>
+          <Lightbulb size={18} className="upgrade-note-icon" />
           <p>Basic으로 시작하고 나중에 Premium으로 업그레이드할 수 있습니다. 업그레이드 시 차액 <strong>₩200,000</strong>만 추가됩니다.</p>
         </div>
 
@@ -186,7 +187,7 @@ export default function AgreementPreviewPage() {
         }
         .agreement-badge {
           display: inline-block;
-          background: linear-gradient(120deg, #5858e2, #777ef0);
+          background: linear-gradient(135deg, #5858e2, #8b5cf6);
           color: #fff;
           font-size: 0.75rem;
           font-weight: 700;
@@ -243,13 +244,14 @@ export default function AgreementPreviewPage() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: linear-gradient(to right, rgba(139,92,246,0.1), rgba(139,92,246,0.05));
-          border: 1px solid rgba(139,92,246,0.2);
-          color: #7c3aed;
-          padding: 10px 20px;
+          background: rgba(99, 102, 241, 0.1);
+          border: 1.5px solid rgba(99, 102, 241, 0.45);
+          color: #4338ca;
+          padding: 8px 18px;
           border-radius: 999px;
-          font-size: 0.85rem;
-          font-weight: 600;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
           width: fit-content;
         }
         .trust-cards {
@@ -262,7 +264,6 @@ export default function AgreementPreviewPage() {
         }
         .trust-card {
           background: #fff;
-          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 24px 20px;
           display: flex;
@@ -278,7 +279,6 @@ export default function AgreementPreviewPage() {
           padding: 32px;
           background: #f8fafc;
           border-radius: 20px;
-          border: 1px solid #e2e8f0;
         }
         .agreement-step { display: flex; gap: 20px; align-items: flex-start; position: relative; }
         .step-num {
@@ -310,7 +310,6 @@ export default function AgreementPreviewPage() {
         }
         .pricing-card {
           background: #fff;
-          border: 2px solid #e2e8f0;
           border-radius: 24px;
           padding: 32px 28px;
           display: flex;

@@ -15,10 +15,11 @@ export default function DiagnosisCompletePage() {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const {
+    extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+    exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+    exitVision, pivotCriteria, dealbreaker,
+    fundingRunway, spendingApproval, investmentCriteria,
     decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
-    extraWorkPrinciple, extraWorkPriority, underperformanceAction, workstyleConstraint,
-    handoverMethod, exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
-    exitVision, pivotCriteria, conflictResolution, dealbreaker,
     salaryStructure, equityStructure, profitDistribution, growthStrategy,
     role, progress
   } = useAppState();
@@ -29,10 +30,11 @@ export default function DiagnosisCompletePage() {
     if (!user) { router.push("/register"); return; }
     const teamId = profile?.teamIds?.[0];
     const answers = {
+      extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+      exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+      exitVision, pivotCriteria, dealbreaker,
+      fundingRunway, spendingApproval, investmentCriteria,
       decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
-      extraWorkPrinciple, extraWorkPriority, underperformanceAction, workstyleConstraint,
-      handoverMethod, exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
-      exitVision, pivotCriteria, conflictResolution, dealbreaker,
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
     if (teamId) {
@@ -90,7 +92,7 @@ export default function DiagnosisCompletePage() {
 
           <p className="diag-complete-desc">
             {hasTeam
-              ? <>공동창업자와 결과를 비교하거나,<br /><strong>비전·가치관·돈/보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
+              ? <>공동창업자와 결과를 비교하거나,<br /><strong>의사결정·지분&amp;보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
               : <>심화 진단을 계속하거나,<br />공동창업자/팀원을 초대해서 진단 결과를 확인하세요.</>
             }
           </p>

@@ -39,22 +39,25 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
           <rect x="80" y="50" width="160" height="110" rx="8" fill="white" stroke={neutral} strokeWidth="3" />
           <path d="M140 160 v30 m-30 0 h60" stroke={neutral} strokeWidth="4" strokeLinecap="round" />
           <path d="M100 130 l30 -20 l20 10 l40 -40 l20 50" fill="none" stroke={danger} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          <Person cx="300" cy="180" color={primary} />
-          <circle cx="270" cy="120" r="8" fill={primary} />
-          <path d="M 300 80 Q 280 40 320 40 Q 360 40 340 80 Q 350 110 320 110 Q 300 110 300 80 Z" fill={secondary} />
-          <text x="320" y="85" fontSize="24" fill={primary} fontWeight="bold" textAnchor="middle">?</text>
+          <Person cx="320" cy="180" color={primary} />
+          {/* Clean Thought Bubble */}
+          <ellipse cx="280" cy="80" rx="30" ry="25" fill="white" stroke={primary} strokeWidth="3" />
+          <circle cx="300" cy="120" r="6" fill="white" stroke={primary} strokeWidth="2.5" />
+          <circle cx="312" cy="138" r="3.5" fill="white" stroke={primary} strokeWidth="2" />
+          <text x="280" y="88" fontSize="24" fill={primary} fontWeight="bold" textAnchor="middle">?</text>
         </svg>
       );
     case "decisionFailure":
       return (
         <svg {...svgProps}>
-          <rect x="140" y="10" width="120" height="150" rx="6" fill="white" stroke={danger} strokeWidth="3" />
-          <text x="200" y="80" fontSize="60" fill={danger} fontWeight="bold" textAnchor="middle">0</text>
-          <rect x="160" y="100" width="80" height="6" rx="3" fill={neutral} />
-          <rect x="160" y="120" width="50" height="6" rx="3" fill={neutral} />
-          <Person cx="200" cy="180" color={primary} />
-          <circle cx="160" cy="140" r="10" fill={primary} />
-          <circle cx="240" cy="140" r="10" fill={primary} />
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={neutral} flip={true} />
+          <g transform="translate(200, 100)">
+            <rect x="-35" y="-40" width="70" height="75" rx="6" fill="white" stroke={danger} strokeWidth="3" />
+            <text x="0" y="5" fontSize="36" fill={danger} fontWeight="bold" textAnchor="middle">0</text>
+            <rect x="-20" y="15" width="40" height="4" rx="2" fill={neutral} opacity="0.5" />
+            <rect x="-20" y="25" width="25" height="4" rx="2" fill={neutral} opacity="0.5" />
+          </g>
         </svg>
       );
     case "actionVsConsensus":
@@ -86,19 +89,25 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
     case "extraWorkPriority":
       return (
         <svg {...svgProps}>
-          <Person cx="200" cy="180" color={primary} />
-          <path d="M 170 130 q 30 -20 60 0" fill="none" stroke="#9CA3AF" strokeWidth="2" />
-          <circle cx="170" cy="120" r="4" fill="#60A5FA" />
-          <g fill="white" stroke={neutral} strokeWidth="2">
-            <path d="M 60 80 h 50 v 40 h -20 l -10 10 v -10 h -20 z" />
-            <path d="M 150 40 h 50 v 40 h -20 l -10 10 v -10 h -20 z" />
-            <path d="M 240 50 h 50 v 40 h -20 l -10 10 v -10 h -20 z" />
-            <path d="M 310 110 h 50 v 40 h -20 l -10 10 v -10 h -20 z" />
+          <Person cx="120" cy="180" color={primary} />
+          
+          {/* Inquiry 1 */}
+          <g transform="translate(260, 70)">
+            <path d="M -20 -15 h 40 a 8 8 0 0 1 8 8 v 20 a 8 8 0 0 1 -8 8 h -10 l -10 10 l 0 -10 h -20 a 8 8 0 0 1 -8 -8 v -20 a 8 8 0 0 1 8 -8 z" fill="white" stroke={neutral} strokeWidth="3" strokeLinejoin="round" />
+            <text x="0" y="7" fontSize="16" fill={neutral} fontWeight="bold" textAnchor="middle">?</text>
           </g>
-          <text x="85" y="105" fontSize="16" fill={danger} fontWeight="bold" textAnchor="middle">?</text>
-          <text x="175" y="65" fontSize="16" fill={danger} fontWeight="bold" textAnchor="middle">?</text>
-          <text x="265" y="75" fontSize="16" fill={danger} fontWeight="bold" textAnchor="middle">?</text>
-          <text x="335" y="135" fontSize="16" fill={danger} fontWeight="bold" textAnchor="middle">?</text>
+          
+          {/* Inquiry 2 (Urgent/Highlighted) */}
+          <g transform="translate(200, 110)">
+            <path d="M -20 -15 h 40 a 8 8 0 0 1 8 8 v 20 a 8 8 0 0 1 -8 8 h -10 l -10 10 l 0 -10 h -20 a 8 8 0 0 1 -8 -8 v -20 a 8 8 0 0 1 8 -8 z" fill="white" stroke={highlight} strokeWidth="3" strokeLinejoin="round" />
+            <text x="0" y="7" fontSize="16" fill={highlight} fontWeight="bold" textAnchor="middle">?</text>
+          </g>
+          
+          {/* Inquiry 3 */}
+          <g transform="translate(280, 150)">
+            <path d="M -20 -15 h 40 a 8 8 0 0 1 8 8 v 20 a 8 8 0 0 1 -8 8 h -10 l -10 10 l 0 -10 h -20 a 8 8 0 0 1 -8 -8 v -20 a 8 8 0 0 1 8 -8 z" fill="white" stroke={neutral} strokeWidth="3" strokeLinejoin="round" />
+            <text x="0" y="7" fontSize="16" fill={neutral} fontWeight="bold" textAnchor="middle">?</text>
+          </g>
         </svg>
       );
     case "extraWorkPrinciple":
@@ -121,51 +130,29 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
       return (
         <svg {...svgProps}>
           <Person cx="120" cy="180" color={primary} />
-          <circle cx="160" cy="130" r="8" fill={primary} />
-          <path d="M 160 130 l 30 -20" fill="none" stroke={primary} strokeWidth="4" strokeLinecap="round" />
-          <rect x="200" y="40" width="140" height="140" rx="8" fill="white" stroke={neutral} strokeWidth="3" />
-          <rect x="200" y="40" width="140" height="35" fill={danger} />
-          <circle cx="230" cy="40" r="4" fill="white" />
-          <circle cx="310" cy="40" r="4" fill="white" />
-          <rect x="220" y="90" width="40" height="20" rx="4" fill="#FEE2E2" />
-          <text x="240" y="105" fontSize="10" fill={danger} fontWeight="bold" textAnchor="middle">DELAY</text>
-          <rect x="270" y="120" width="40" height="20" rx="4" fill="#FEE2E2" />
-          <text x="290" y="135" fontSize="10" fill={danger} fontWeight="bold" textAnchor="middle">DELAY</text>
-          <rect x="220" y="150" width="40" height="20" rx="4" fill="#FEE2E2" />
-          <text x="240" y="165" fontSize="10" fill={danger} fontWeight="bold" textAnchor="middle">DELAY</text>
-        </svg>
-      );
-    case "workstyleConstraint":
-      return (
-        <svg {...svgProps}>
-          <Person cx="140" cy="180" color={primary} />
-          <circle cx="140" cy="70" r="30" fill="white" stroke={neutral} strokeWidth="4" />
-          <path d="M 140 50 v 20 l 15 10" fill="none" stroke={danger} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M 140 40 A 30 30 0 0 1 170 70" fill="none" stroke={danger} strokeWidth="4" />
           <Person cx="280" cy="180" color={neutral} flip={true} />
-          <g opacity="0.8">
-            <path d="M 250 120 l 60 60 m 0 -60 l -60 60" stroke="white" strokeWidth="12" strokeLinecap="round" />
-            <path d="M 250 120 l 60 60 m 0 -60 l -60 60" stroke={danger} strokeWidth="6" strokeLinecap="round" />
+          
+          <g transform="translate(200, 100)">
+            {/* Calendar Base */}
+            <rect x="-50" y="-50" width="100" height="100" rx="6" fill="white" />
+            {/* Red Header */}
+            <path d="M -50 -20 v -24 a 6 6 0 0 1 6 -6 h 88 a 6 6 0 0 1 6 6 v 24 z" fill={danger} />
+            {/* Rings */}
+            <circle cx="-25" cy="-42" r="4" fill="white" />
+            <circle cx="25" cy="-42" r="4" fill="white" />
+            {/* Calendar Stroke */}
+            <rect x="-50" y="-50" width="100" height="100" rx="6" fill="none" stroke={neutral} strokeWidth="3" />
+            
+            {/* DELAY boxes */}
+            <rect x="-40" y="-5" width="36" height="16" rx="4" fill="#FEE2E2" />
+            <text x="-22" y="6" fontSize="8" fill={danger} fontWeight="bold" textAnchor="middle">DELAY</text>
+            
+            <rect x="4" y="15" width="36" height="16" rx="4" fill="#FEE2E2" />
+            <text x="22" y="26" fontSize="8" fill={danger} fontWeight="bold" textAnchor="middle">DELAY</text>
           </g>
-          <text x="280" y="80" fontSize="24" fill={danger} fontWeight="bold" textAnchor="middle">부재중</text>
         </svg>
       );
-
     // 3. Exit
-    case "handoverMethod":
-      return (
-        <svg {...svgProps}>
-          <Person cx="100" cy="180" color={primary} />
-          <Person cx="300" cy="180" color={neutral} flip={true} />
-          <g fill="white" stroke={neutral} strokeWidth="2">
-            <rect x="150" y="80" width="40" height="50" rx="2" transform="rotate(-15 170 105)" />
-            <rect x="170" y="60" width="40" height="50" rx="2" transform="rotate(10 190 85)" />
-            <rect x="190" y="90" width="40" height="50" rx="2" transform="rotate(-5 210 115)" />
-            <rect x="210" y="70" width="40" height="50" rx="2" transform="rotate(20 230 95)" />
-          </g>
-          <path d="M 80 120 q 10 -15 20 0 q 0 10 -10 10 q -10 0 -10 -10 z" fill="#60A5FA" />
-        </svg>
-      );
     case "exitRecoveryPriority":
       return (
         <svg {...svgProps}>
@@ -247,19 +234,6 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
           </g>
         </svg>
       );
-    case "conflictResolution":
-      return (
-        <svg {...svgProps}>
-          <Person cx="120" cy="180" color={primary} />
-          <Person cx="280" cy="180" color={highlight} flip={true} />
-          <g transform="translate(200, 100)">
-            <circle cx="0" cy="0" r="35" fill={danger} opacity="0.1" />
-            <path d="M 5 -15 L -5 2 L 6 2 L -5 18" fill="none" stroke={danger} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M -40 0 L -15 0 M -25 -10 L -15 0 L -25 10" fill="none" stroke={primary} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M 40 0 L 15 0 M 25 -10 L 15 0 L 25 10" fill="none" stroke={highlight} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        </svg>
-      );
     case "dealbreaker":
       return (
         <svg {...svgProps}>
@@ -333,13 +307,89 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
              <rect x="7" y="-15" width="8" height="30" rx="2" fill={success} />
           </g>
           <g transform="translate(280, 100)">
-             <rect x="-30" y="-30" width="60" height="60" rx="8" fill={highlight} />
-             <path d="M 0 -15 L 10 5 L 0 0 L -10 5 Z" fill="white" />
-             <path d="M -5 5 L 0 15 L 5 5 Z" fill="white" opacity="0.6" />
+             <rect x="-30" y="-30" width="60" height="60" rx="8" fill="white" stroke={neutral} strokeWidth="3" />
+             <path d="M 0 -15 L 10 5 L 0 0 L -10 5 Z" fill={highlight} />
+             <path d="M -5 5 L 0 15 L 5 5 Z" fill={highlight} opacity="0.6" />
           </g>
         </svg>
       );
 
+    // 6. Funding
+    case "fundingRunway":
+      return (
+        <svg {...svgProps}>
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={neutral} flip={true} />
+          <g transform="translate(200, 100)">
+            {/* Hourglass */}
+            <path d="M -12 -20 L 12 -20 L 2 0 L 12 20 L -12 20 L -2 0 Z" fill="none" stroke={danger} strokeWidth="3" strokeLinejoin="round" />
+            <path d="M -15 -20 h 30 M -15 20 h 30" stroke={danger} strokeWidth="4" strokeLinecap="round" />
+            {/* Sand at bottom */}
+            <path d="M -8 20 L 8 20 L 0 8 Z" fill={danger} opacity="0.8" />
+            {/* Dollar sign at top */}
+            <text x="0" y="-4" fontSize="12" fill={danger} fontWeight="bold" textAnchor="middle">$</text>
+          </g>
+        </svg>
+      );
+    case "spendingApproval":
+      return (
+        <svg {...svgProps}>
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={neutral} flip={true} />
+          
+          <g transform="translate(140, 100)">
+            {/* Left Speech Bubble (Declaration) */}
+            <path d="M -25 -30 h 50 a 10 10 0 0 1 10 10 v 35 a 10 10 0 0 1 -10 10 h -25 l -15 15 l 5 -15 h -15 a 10 10 0 0 1 -10 -10 v -35 a 10 10 0 0 1 10 -10 z" fill="white" stroke={primary} strokeWidth="3" strokeLinejoin="round" />
+            
+            {/* Receipt */}
+            <g transform="translate(0, -4)">
+              <path d="M -12 -15 h 24 v 25 l -4 -2 l -4 2 l -4 -2 l -4 2 l -4 -2 l -4 2 z" fill="none" stroke={primary} strokeWidth="2.5" strokeLinejoin="round" />
+              <text x="0" y="0" fontSize="12" fill={primary} fontWeight="bold" textAnchor="middle">$</text>
+              <path d="M -6 6 h 12" fill="none" stroke={primary} strokeWidth="2" strokeLinecap="round" />
+            </g>
+            
+            {/* DONE Stamp (Unilateral Action) */}
+            <g transform="translate(12, 6) rotate(-15)">
+              <circle cx="0" cy="0" r="9" fill={danger} />
+              <path d="M -4 0 L -1 3 L 4 -3" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+          </g>
+          
+          <g transform="translate(260, 95)">
+            {/* Right Speech Bubble (Shock) */}
+            <path d="M -20 -25 h 40 a 10 10 0 0 1 10 10 v 30 a 10 10 0 0 1 -10 10 h -10 l 5 15 l -15 -15 h -20 a 10 10 0 0 1 -10 -10 v -30 a 10 10 0 0 1 10 -10 z" fill="white" stroke={danger} strokeWidth="3" strokeLinejoin="round" />
+            <text x="0" y="5" fontSize="24" fill={danger} fontWeight="bold" textAnchor="middle">?!</text>
+          </g>
+        </svg>
+      );
+    case "investmentCriteria":
+      return (
+        <svg {...svgProps}>
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={neutral} flip={true} />
+          <g transform="translate(150, 100)">
+            {/* Left Speech Bubble */}
+            <path d="M -20 -25 h 40 a 10 10 0 0 1 10 10 v 30 a 10 10 0 0 1 -10 10 h -20 l -15 15 l 5 -15 h -10 a 10 10 0 0 1 -10 -10 v -30 a 10 10 0 0 1 10 -10 z" fill="white" stroke={primary} strokeWidth="3" strokeLinejoin="round" />
+            <circle cx="0" cy="0" r="16" fill="none" stroke={highlight} strokeWidth="3" />
+            <text x="0" y="6" fontSize="18" fill={highlight} fontWeight="bold" textAnchor="middle">$</text>
+          </g>
+          <g transform="translate(250, 100)">
+            {/* Right Speech Bubble */}
+            <path d="M -20 -25 h 40 a 10 10 0 0 1 10 10 v 30 a 10 10 0 0 1 -10 10 h -10 l 5 15 l -15 -15 h -20 a 10 10 0 0 1 -10 -10 v -30 a 10 10 0 0 1 10 -10 z" fill="white" stroke={primary} strokeWidth="3" strokeLinejoin="round" />
+            <g transform="scale(1.4) translate(0, -1)">
+              {/* Center Person */}
+              <circle cx="0" cy="-5" r="4.5" fill={primary} />
+              <path d="M -7 5 c 0 -5 14 -5 14 0" fill="none" stroke={primary} strokeWidth="2.5" strokeLinecap="round" />
+              {/* Left Person */}
+              <circle cx="-10" cy="3" r="3.5" fill={neutral} />
+              <path d="M -15 11 c 0 -4 10 -4 10 0" fill="none" stroke={neutral} strokeWidth="2" strokeLinecap="round" />
+              {/* Right Person */}
+              <circle cx="10" cy="3" r="3.5" fill={neutral} />
+              <path d="M 5 11 c 0 -4 10 -4 10 0" fill="none" stroke={neutral} strokeWidth="2" strokeLinecap="round" />
+            </g>
+          </g>
+        </svg>
+      );
     default:
       return (
         <svg {...svgProps}>
