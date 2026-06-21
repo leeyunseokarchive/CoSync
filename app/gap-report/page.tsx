@@ -482,13 +482,6 @@ export default function GapReportPage() {
                 </div>
               </div>
 
-              <div className="heatmap-alert">
-                <div className="alert-icon"><FileText size={18} /></div>
-                <div className="alert-content">
-                  <div className="alert-title">상세 진단 리포트</div>
-                  <div className="alert-desc">20개 질문 전체에 대한 응답 비교와 갈등 원인 분석을 항목별로 확인할 수 있습니다.</div>
-                </div>
-              </div>
             </div>
 
             {/* 대화 흐름 섹션 — conflict만 */}
