@@ -714,7 +714,126 @@ export default function GapReportPage() {
             </div>
 
             <div className="premium-cards-section">
+              {/* 합의안 완성 일러스트 — 갭 공백이 곧 합의안 조항이 된다 */}
               <div className="teaser-header">
+                <h2>합의 공백을 기반으로 합의안을 완성하세요</h2>
+                <p>리포트에서 확인한 합의 공백은 그대로 우리 팀 합의안의 조항이 됩니다.</p>
+              </div>
+              <div className="agreement-flow-stage">
+                {/* 배경: 흐릿한 합의안 문서 */}
+                <div className="agreement-doc-mock" aria-hidden="true">
+                  <div className="agreement-doc-title">합의안</div>
+                  <div className="agreement-doc-lines">
+                    <i style={{ width: "42%" }} />
+                    <i style={{ width: "88%" }} />
+                    <i style={{ width: "80%" }} />
+                    <i style={{ width: "84%" }} />
+                    <i style={{ width: "38%", marginTop: "12px" }} />
+                    <i style={{ width: "76%" }} />
+                    <i style={{ width: "90%" }} />
+                    <i style={{ width: "64%" }} />
+                    <i style={{ width: "40%", marginTop: "12px" }} />
+                    <i style={{ width: "86%" }} />
+                    <i style={{ width: "82%" }} />
+                    <i style={{ width: "78%" }} />
+                    <i style={{ width: "58%" }} />
+                    <i style={{ width: "70%" }} />
+                  </div>
+                </div>
+
+                {/* 플로팅 카드 A — 우상단 (가장 치명적인 공백, 동적 라벨) */}
+                <div className="clause-float clause-float--top">
+                  <div className="clause-callout">
+                    현재 가장 치명적인 합의 공백은{" "}
+                    <span className="clause-callout-em">
+                      [{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "실패 대처"}]
+                    </span>{" "}
+                    입니다!
+                  </div>
+                  <div className="clause-card clause-card--danger">
+                    <div className="clause-card-title">
+                      <span className="clause-dot danger" /> 제8조 (사업 부진 및 실패 시 대응)
+                    </div>
+                    <p className="clause-card-lead">
+                      1. 사업이 목표에 중대하게 미달하거나 손실이 누적된 경우, 당사자들은 다음 기준에 따라 대응한다.
+                    </p>
+                    <ul className="clause-card-list">
+                      <li>
+                        핵심 지표가 <mark className="clause-mark">[목표치]의 50% 미만</mark>으로 떨어진 경우
+                      </li>
+                      <li>
+                        <mark className="clause-mark">연속 [3]개월 이상</mark> 개선 징후가 없는 경우
+                      </li>
+                      <li>역할 재조정 또는 추가 출자 여부를 우선 논의한다</li>
+                    </ul>
+                    <div className="clause-blur">
+                      <p>
+                        2. 위 대응에도 개선되지 않을 경우, 당사자별 책임 한도 및 손실 분담 기준은 다음과 같이
+                        정한다…
+                      </p>
+                      <ul className="clause-card-list">
+                        <li>3. 실패 책임에 따른 지분·보상 조정 기준</li>
+                        <li>4. 잔여 자산 및 부채의 처리 우선순위</li>
+                      </ul>
+                      <div className="clause-blur-overlay">
+                        <Lock size={13} /> 합의 시 전체 조항 공개
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-primary unlock-btn"
+                      onClick={() => router.push("/agreement/preview")}
+                    >
+                      합의를 위한 대화셋 보기
+                    </button>
+                  </div>
+                </div>
+
+                {/* 플로팅 카드 B — 좌하단 (97% 통계 + 필수 조항) */}
+                <div className="clause-float clause-float--bottom">
+                  <div className="clause-callout">
+                    스타트업의 97%는 <span className="clause-callout-em">&lsquo;이 조항&rsquo;</span>을<br />
+                    정하지 않아서 1년 안에 폐업합니다.
+                  </div>
+                  <div className="clause-card clause-card--brand">
+                    <div className="clause-card-title">
+                      <span className="clause-dot brand" /> 제1조 (사업의 해산 및 청산)
+                    </div>
+                    <p className="clause-card-lead">
+                      1. 당사자들은 다음 각 호의 사유가 발생한 경우 본 사업을 해산하고 청산 절차를 진행하기로 합의한다.
+                    </p>
+                    <ul className="clause-card-list">
+                      <li>가. 당사자 전원의 서면 합의가 있는 경우</li>
+                      <li>
+                        나. <mark className="clause-mark brand">재정적 임계점(Burn-rate) 도달</mark> 시
+                      </li>
+                      <li>
+                        다. <mark className="clause-mark brand">핵심 기술 인력의 50% 이상 이탈</mark> 시
+                      </li>
+                    </ul>
+                    <div className="clause-blur">
+                      <p>
+                        2. 위 각 호의 판단 기준이 되는 구체적 수치 및 기간은 당사자 합의로 정하며, 합의가
+                        성립하지 않을 경우…
+                      </p>
+                      <ul className="clause-card-list">
+                        <li>라. 경영권 교착(Deadlock) 발생 시 처리 절차</li>
+                        <li>마. 청산인 선임 및 권한 범위</li>
+                      </ul>
+                      <div className="clause-blur-overlay">
+                        <Lock size={13} /> 합의 시 전체 조항 공개
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-primary unlock-btn"
+                      onClick={() => router.push("/agreement/preview")}
+                    >
+                      필수 합의 조항 보기
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="teaser-header" style={{ marginTop: "72px" }}>
                 <div className="badge-legal" style={{ marginBottom: "20px" }}>
                   <Scale size={14} /> 변호사 감수 · 실제 분쟁 판례 반영
                 </div>
