@@ -35,7 +35,7 @@ body {
     radial-gradient(circle at 8% 90%, rgba(83, 220, 198, 0.12), transparent 40%),
     #f7f8fc;
   min-height: 100vh;
-  font-size: 14.5px;
+  font-size: clamp(13px, 3.5vw, 14.5px);
   letter-spacing: -0.25px;
   line-height: 1.55;
   word-break: keep-all;
@@ -488,14 +488,23 @@ button {
 }
 
 @media (max-width: 900px) {
+  .onboarding-page {
+    align-items: flex-start;
+    padding: 0;
+  }
+
   .onboarding-shell {
-    padding-bottom: 20px;
-    min-height: auto;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    padding-bottom: 40px;
+    min-height: 100vh;
     display: block;
+    margin-top: 0;
   }
 
   .onboarding-hero {
-    padding: 56px 0 72px;
+    padding: 40px 0 48px;
     gap: 16px;
   }
 
@@ -527,24 +536,35 @@ button {
   }
 
   .step-cards {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 12px;
     margin: 12px 0 24px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .step-cards::-webkit-scrollbar {
+    display: none;
   }
 
   .step-card {
-    padding: 22px 26px;
-    min-height: 150px;
-    border-radius: 24px;
+    padding: 18px 20px;
+    min-width: 160px;
+    flex-shrink: 0;
+    min-height: unset;
+    border-radius: 18px;
   }
 
   .step-card h3 {
-    font-size: 18px;
-    margin-bottom: 6px;
+    font-size: 16px;
+    margin-bottom: 4px;
   }
 
   .step-label {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .onboarding-footer-shell {
@@ -3821,12 +3841,14 @@ button {
 @media (max-width: 900px) {
   .process-steps {
     flex-direction: column;
+    gap: 4px;
   }
   .step-arrow {
     height: auto;
     width: 100%;
     transform: rotate(90deg);
-    padding: 10px 0;
+    padding: 0;
+    font-size: 18px;
   }
 }
 
@@ -4595,5 +4617,181 @@ button {
   .gap-heatmap-card,
   .gap-insight-card {
     padding: 24px;
+  }
+}
+
+/* ─── 통합 반응형 (태블릿 768px 이하) ─── */
+@media (max-width: 768px) {
+  /* 갭 리포트 */
+  .gap-insight-card {
+    padding: 20px 18px;
+  }
+  .gap-status {
+    padding: 18px;
+  }
+  .status-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .status-value {
+    font-size: 17px;
+  }
+  .insight-header h2 {
+    font-size: 17px;
+  }
+  .category-breakdown {
+    grid-template-columns: 1fr;
+  }
+  .gap-wrap {
+    padding: 6px 0 28px;
+    gap: 16px;
+  }
+  .gap-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 18px;
+    min-height: unset;
+  }
+  .gap-pair-grid {
+    grid-template-columns: 1fr;
+  }
+  .premium-card-list {
+    grid-template-columns: 1fr !important;
+  }
+  .teaser-header h2 {
+    font-size: 18px;
+  }
+
+  /* 온보딩 진단 */
+  .diagnosis-card {
+    padding: 22px 18px 18px;
+    border-radius: 18px;
+    gap: 16px;
+  }
+  .diagnosis-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    min-height: unset;
+  }
+  .diagnosis-header h2 {
+    font-size: 19px;
+  }
+  .diagnosis-question-row {
+    max-width: 100%;
+  }
+  .scenario-media {
+    max-width: 100%;
+  }
+  .scenario-media img {
+    max-height: 160px;
+  }
+
+  /* 온보딩 인트로 */
+  .onboarding-hero h1 {
+    font-size: clamp(22px, 6vw, 30px);
+  }
+  .step-cards {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .step-card {
+    width: calc(50% - 6px);
+    min-width: 140px;
+  }
+
+  /* 랜딩 */
+  .hero-section {
+    padding: 40px 0 60px;
+  }
+  .hero-title {
+    font-size: clamp(28px, 7vw, 42px);
+  }
+  .hero-sub {
+    font-size: 15px;
+  }
+  /* 탑바 이름 */
+  .user-name {
+    display: none;
+  }
+
+  /* 공통 카드/패딩 */
+  .center-card {
+    padding: 28px 20px;
+  }
+  .auth-card h1 {
+    font-size: 20px;
+  }
+}
+
+/* ─── 모바일 480px 이하 ─── */
+@media (max-width: 480px) {
+  /* 탑바: 이름 텍스트 숨기기 */
+  .user-name {
+    display: none;
+  }
+  .topbar-inner {
+    padding: 10px 0;
+  }
+
+  /* 랜딩 히어로 여백 축소 */
+  .hero-section {
+    padding: 36px 0 56px;
+  }
+  /* 갭 리포트 */
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+  .gap-summary {
+    grid-template-columns: 1fr;
+  }
+  .gap-insight-card {
+    padding: 16px 14px;
+  }
+  .insight-header h2 {
+    font-size: 15px;
+  }
+  .score-pill {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+  .heatmap-grid {
+    grid-template-columns: 64px 1fr 1fr 1fr;
+    font-size: 11px;
+  }
+  .hm-item {
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  /* 온보딩 진단 */
+  .diagnosis-card {
+    padding: 16px 14px 14px;
+    min-height: unset;
+    border-radius: 14px;
+  }
+  .diagnosis-header h2 {
+    font-size: 17px;
+  }
+  .step-card {
+    width: 100%;
+  }
+
+  /* 랜딩 */
+  .hero-title {
+    font-size: clamp(24px, 9vw, 36px);
+  }
+  .section-title {
+    font-size: clamp(20px, 6vw, 26px);
+  }
+
+  /* 공통 */
+  .center-card {
+    padding: 22px 16px;
+  }
+  .auth-card h1 {
+    font-size: 18px;
+  }
+  .topbar-inner {
+    padding: 0 14px;
   }
 }
