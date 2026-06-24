@@ -79,7 +79,7 @@ export default function OnboardingIntroPage() {
           >
             {hasCompletedOnboarding ? "내 결과 보러가기 →" : "무료 진단 시작하기 →"}
           </Link>
-          <div className="hint">✓ 약 3분 소요</div>
+          <div className="hint">✓ 현재 41팀 진단 완료</div>
         </section>
 
         <div className="onboarding-footer-shell">

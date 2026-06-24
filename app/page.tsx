@@ -10,6 +10,7 @@ import { useUserProfile } from "../components/useUserProfile";
 import { useTeamMembers } from "../components/useTeamMembers";
 import type { OnboardingAnswers } from "../lib/gap";
 import { Lock } from "lucide-react";
+import { GapReportPreview } from "../components/GapReportPreview";
 
 function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: number }) {
   const ringRef = useRef<HTMLDivElement | null>(null);
@@ -86,25 +87,32 @@ function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: num
         width: "170px",
         height: "170px",
         borderRadius: "50%",
-        background: `conic-gradient(var(--brand) 0% ${fill}%, #f1f3f9 ${fill}% 100%)`,
+        background: `conic-gradient(var(--brand) 0% ${fill}%, #e2e5f5 ${fill}% 100%)`,
+        boxShadow: "0 10px 32px rgba(91,91,231,0.28), 0 3px 10px rgba(0,0,0,0.10)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         marginBottom: "32px"
       }}
     >
-      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", boxShadow: "inset 0 4px 10px rgba(0,0,0,0.06)" }} />
+      {/* 볼록 3D — 위쪽 하이라이트 + 아래쪽 그림자 */}
+      <div style={{
+        position: "absolute", inset: 0, borderRadius: "50%",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.30) 0%, transparent 45%, rgba(0,0,0,0.07) 100%)",
+        pointerEvents: "none"
+      }} />
       <div
         style={{
-          width: "130px",
-          height: "130px",
+          position: "relative",
+          width: "126px",
+          height: "126px",
           background: "#fff",
           borderRadius: "50%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.06)"
+          boxShadow: "0 2px 12px rgba(0,0,0,0.08)"
         }}
       >
         <div
@@ -173,30 +181,25 @@ export default function LandingPage() {
               CoSync는 공동창업자 간 기준 차이를 비교하고, 팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
             </p>
             <div className="hero-actions">
-              <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta">
-                우리 팀 기준 차이 확인하기
+              <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta" style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                <span>숨겨진 동업 리스크 진단하기</span>
+                <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}>⏱ 약 3분 소요</span>
               </Link>
-              <div className="hero-hint">✓ 현재 38개 이상 창업팀 대기 중</div>
             </div>
           </div>
-          <div className="hero-visual delay-2 animate-fade-up" style={{ position: "relative", width: "100%", aspectRatio: "4 / 3" }}>
-            <Image
-              src="/images/land1.png"
-              alt="CoSync 시나리오 진단 Q1 — 역할 & 책임"
-              width={2822}
-              height={1656}
-              className="fluid-img"
-              style={{ position: "absolute", top: 0, right: 0, width: "88%", height: "auto", opacity: 0.85 }}
-            />
-            <Image
-              src="/images/land2.png"
-              alt="CoSync 시나리오 진단 Q4 — 이탈 & 회수"
-              width={2726}
-              height={1656}
-              className="fluid-img"
-              priority
-              style={{ position: "absolute", bottom: 0, left: 0, width: "88%", height: "auto", zIndex: 1 }}
-            />
+          <div className="hero-visual delay-2 animate-fade-up" style={{ width: "100%", position: "relative", borderRadius: "24px", overflow: "hidden", boxShadow: "var(--shadow)" }}>
+            <GapReportPreview />
+            {/* 하단 그라디언트 페이드 */}
+            <div style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "42%",
+              background: "linear-gradient(to bottom, transparent 0%, #ffffff 85%)",
+              zIndex: 2,
+              pointerEvents: "none"
+            }} />
           </div>
         </div>
       </section>
@@ -426,15 +429,15 @@ export default function LandingPage() {
       <section id="output" className="section bg-dark">
         <div className="container">
           <div className="split-layout">
-            <div className="section-header dark animate-fade-up text-left" style={{ margin: 0 }}>
-              <h2 className="section-title" style={{ textAlign: "left" }}>최종 결과는 단순 리포트가 아니라,<br />우리 팀의 합의안입니다</h2>
-              <p className="section-sub" style={{ textAlign: "left" }}>
-                CoSync의 핵심 결과물은 팀 내부에서 채택한 운영 기준과 권리관계를 정리한 문서입니다. 
+            <div className="section-header dark animate-fade-up text-left output-text" style={{ margin: 0 }}>
+              <h2 className="section-title output-text">최종 결과는 단순 리포트가 아니라,<br />우리 팀의 합의안입니다</h2>
+              <p className="section-sub output-text">
+                CoSync의 핵심 결과물은 팀 내부에서 채택한 운영 기준과 권리관계를 정리한 문서입니다.
                 <br /><br />
-                단순히 성향을 보여주는 진단으로 끝나지 않습니다. 팀원별 기준 차이를 비교한 뒤, 우리 팀이 실제로 합의한 내용이 하나의 문서로 정리됩니다. 
+                단순히 성향을 보여주는 진단으로 끝나지 않습니다. 팀원별 기준 차이를 비교한 뒤, 우리 팀이 실제로 합의한 내용이 하나의 문서로 정리됩니다.
                 이 문서는 공동창업팀의 운영 기준을 명확히 남기기 위한 결과물이며, 필요 시 후속 법률 검토의 기초 자료로도 활용할 수 있습니다.
               </p>
-              
+
               <div className="grid-3" style={{ gridTemplateColumns: "1fr", marginTop: 40, gap: 16 }}>
                 <div className="card feature-card dark-card" style={{ padding: "20px 24px", display: "flex", flexDirection: "row", alignItems: "center", textAlign: "left", gap: 16 }}>
                   <div className="card-icon check-icon" style={{ marginBottom: 0, width: 36, height: 36, fontSize: 18, flexShrink: 0 }}>✓</div>
@@ -453,11 +456,11 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="output-visual animate-fade-up delay-2">
-              <Image 
-                src="/images/document.png" 
-                alt="Document Mockup" 
-                width={500} 
-                height={500} 
+              <Image
+                src="/images/document.png"
+                alt="Document Mockup"
+                width={500}
+                height={500}
               />
             </div>
           </div>
@@ -525,10 +528,10 @@ export default function LandingPage() {
             역할, 지분, 이탈 기준을 구두로 넘기지 말고<br />
             우리 팀이 실제로 채택할 합의안 문서로 정리해 보세요.
           </p>
-          <Link href={teamGapHref} className="btn btn-primary btn-lg">
-            지금 우리 팀 기준 맞추기 시작하기
+          <Link href={teamGapHref} className="btn btn-primary btn-lg" style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+            <span>숨겨진 동업 리스크 진단하기</span>
+            <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}><Lock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
           </Link>
-          <p className="cta-hint mt-4" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Lock size={13} /> 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>
         </div>
       </section>
 

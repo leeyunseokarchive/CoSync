@@ -354,6 +354,9 @@ button {
 .footer-link {
   color: #8e95a6;
   font-weight: 400;
+  text-decoration: none;
+  border: none;
+  outline: none;
 }
 
 @media (max-width: 900px) {
@@ -5050,4 +5053,83 @@ button {
   .topbar-inner {
     padding: 0 14px;
   }
+}
+
+
+/* ── GapReportPreview ───────────────────────────── */
+.grp-root {
+  background: #f8f9ff;
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: 'Pretendard', sans-serif;
+  user-select: none;
+}
+
+/* 헤더 */
+.grp-header {
+  background: linear-gradient(135deg, #4144c9 0%, #4f54d9 58%, #5a5ee1 100%);
+  padding: 16px 24px 14px;
+  text-align: center;
+}
+.grp-header-sub  { font-size: 9px; color: rgba(255,255,255,0.65); margin: 0 0 5px; letter-spacing: .08em; }
+.grp-header-title{ font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 7px; letter-spacing: -.3px; }
+.grp-header-bar  { width: 28px; height: 2px; background: #2fb9a7; border-radius: 2px; margin: 0 auto 8px; }
+.grp-header-team { font-size: 10px; color: rgba(255,255,255,.8); margin: 0; }
+
+/* 공통 카드 */
+.grp-card        { background: #fff; border-radius: 10px; border: 1px solid #edf0f7; }
+.grp-status-card { margin: 10px 10px 0; padding: 10px 14px; }
+.grp-insight-card{ margin: 8px 10px 10px; padding: 12px 14px; }
+.grp-section-title { font-size: 11px; font-weight: 700; color: #1f2430; margin: 0 0 10px; }
+.grp-divider     { border-top: 1px solid #edf0f7; margin: 10px 0; }
+
+/* 상태 그리드 */
+.grp-status-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+.grp-status-label{ font-size: 8px; color: #94a3b8; margin: 0 0 2px; font-weight: 600; }
+.grp-status-value{ font-size: 11px; font-weight: 700; margin: 0; }
+.grp-status-note { display: flex; align-items: center; gap: 5px; }
+.grp-status-note span:last-child { font-size: 9px; color: #64748b; }
+.grp-dot         { width: 5px; height: 5px; border-radius: 50%; background: #f59e0b; display: inline-block; flex-shrink: 0; }
+
+/* 인사이트 행 — flex wrap으로 자연스럽게 반응 */
+.grp-row         { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+
+/* 게이지 컬럼 */
+.grp-gauge-col   { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; }
+.grp-badge       { font-size: 8px; font-weight: 700; color: #ef4444; background: rgba(239,68,68,.1); padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+
+/* 텍스트 컬럼 */
+.grp-text-col    { display: flex; flex-direction: column; gap: 5px; flex: 1 1 140px; min-width: 0; text-align: left; }
+.grp-text-lead   { font-size: 10px; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.6; text-align: left; }
+.grp-text-sub    { font-size: 9px; color: #64748b; margin: 0; line-height: 1.6; text-align: left; }
+
+/* 수치 컬럼 */
+.grp-stats-col   { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.grp-stat-box    { background: #e8edf4; border-radius: 8px; padding: 4px 9px; min-width: 60px; }
+.grp-stat-box.danger { background: rgba(239,68,68,.1); }
+.grp-stat-label  { font-size: 7px; color: #64748b; font-weight: 700; display: block; margin-bottom: 3px; }
+.grp-stat-num    { font-size: 17px; font-weight: 800; color: #1f2430; }
+.grp-stat-num.danger { color: #ef4444; }
+.grp-stat-unit   { font-size: 9px; color: #94a3b8; margin-left: 1px; }
+.grp-stat-unit.danger { color: rgba(239,68,68,.4); }
+
+/* 카테고리 그리드 */
+.grp-cat-grid    { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 12px; flex: 1 1 160px; min-width: 0; align-content: center; }
+.grp-cat-item    {}
+.grp-cat-header  { display: flex; justify-content: space-between; margin-bottom: 2px; }
+.grp-cat-label   { font-size: 8px; font-weight: 600; color: #334155; }
+.grp-cat-status  { font-size: 8px; font-weight: 700; }
+.grp-cat-track   { height: 4px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
+.grp-cat-fill    { height: 100%; border-radius: 3px; }
+
+/* 좁을 때 카테고리 2열로 축소 */
+@media (max-width: 360px) {
+  .grp-cat-grid  { grid-template-columns: 1fr 1fr; }
+  .grp-status-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* output 섹션 모바일 중앙 정렬 */
+.output-text { text-align: left; }
+@media (max-width: 768px) {
+  .output-text { text-align: center !important; }
 }
