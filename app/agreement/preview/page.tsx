@@ -1,21 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { TopNav } from "../../../components/TopNav";
 import { Footer } from "../../../components/Footer";
-import { Compass, Settings, Pin, Scale, Banknote, DoorOpen, ClipboardList, Handshake, MessageCircle, Lightbulb } from "lucide-react";
-
-const CATEGORIES_BASIC = [
-  { icon: <Compass size={18} />, title: "비전", desc: "왜 하는가", detail: "회사를 어디까지 키울 건지, 무엇을 위해 하는지" },
-  { icon: <Settings size={18} />, title: "실행", desc: "어떻게 일하는가", detail: "업무 몰입 수준, 협업 리듬, 결정 속도" },
-  { icon: <Pin size={18} />, title: "책임", desc: "누가 맡는가", detail: "역할 경계, 회색지대 업무, 성과 기준" },
-];
-
-const CATEGORIES_PREMIUM = [
-  { icon: <Scale size={18} />, title: "권한", desc: "누가 결정하는가", detail: "담당 영역별 결정권, 공동 의사결정 기준" },
-  { icon: <Banknote size={18} />, title: "돈", desc: "무엇을 나누는가", detail: "지분 구조, 급여 기준, 투자 유치 방향" },
-  { icon: <DoorOpen size={18} />, title: "종료", desc: "깨질 때 어떻게 하는가", detail: "이탈 시 인수인계, 지분 정리, 권한 차단" },
-];
+import { Scale, ClipboardList, Handshake, MessageCircle } from "lucide-react";
 
 const STEPS = [
   { num: "01", title: "각자 독립 응답", desc: "상대방 답을 보지 않은 상태에서 각자 솔직하게 작성합니다." },
@@ -24,8 +11,6 @@ const STEPS = [
 ];
 
 export default function AgreementPreviewPage() {
-  const router = useRouter();
-
   return (
     <main className="page">
       <TopNav links={[{ label: "갭 리포트", href: "/gap-report" }]} active="합의안" />
@@ -86,94 +71,22 @@ export default function AgreementPreviewPage() {
           </div>
         </div>
 
-        {/* Pricing */}
-        <div className="agreement-section">
-          <div className="agreement-section-label">PRICING</div>
-          <h2 className="agreement-section-title">플랜을 선택하세요</h2>
-          <p className="agreement-section-desc">2인 기준 · 업그레이드 시 차액(₩200,000)만 추가</p>
-
-          <div className="pricing-grid">
-
-            {/* Basic */}
-            <div className="pricing-card">
-              <div className="pricing-plan-name">Basic</div>
-              <div className="pricing-amount">₩129,000</div>
-              <div className="pricing-per">2인 기준 · 1인당 ₩64,500</div>
-              <div className="pricing-divider" />
-              <div className="pricing-category-label">포함 카테고리 (3개)</div>
-              <div className="pricing-categories">
-                {CATEGORIES_BASIC.map((cat) => (
-                  <div key={cat.title} className="pricing-cat-item">
-                    <span className="pricing-cat-icon">{cat.icon}</span>
-                    <div>
-                      <div className="pricing-cat-title">{cat.title} <span className="pricing-cat-desc">{cat.desc}</span></div>
-                      <div className="pricing-cat-detail">{cat.detail}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="pricing-divider" />
-              <div className="pricing-features">
-                <div className="pricing-feature">✓ 팀 문화·운영 규칙 합의 문서</div>
-                <div className="pricing-feature">✓ 변호사 브리핑 자료로 활용 가능</div>
-                <div className="pricing-feature">✓ 버전 히스토리</div>
-                <div className="pricing-feature">✓ 양측 확인 서명</div>
-              </div>
-              <button
-                type="button"
-                className="btn btn-ghost pricing-cta-btn"
-                onClick={() => router.push("/agreement/start?plan=basic")}
-              >
-                Basic으로 시작하기
-              </button>
-            </div>
-
-            {/* Premium */}
-            <div className="pricing-card premium">
-              <div className="pricing-recommended">추천</div>
-              <div className="pricing-plan-name">Premium</div>
-              <div className="pricing-amount">₩329,000</div>
-              <div className="pricing-per">2인 기준 · 1인당 ₩164,500</div>
-              <div className="pricing-divider" />
-              <div className="pricing-category-label">포함 카테고리 (6개 전체)</div>
-              <div className="pricing-categories">
-                {[...CATEGORIES_BASIC, ...CATEGORIES_PREMIUM].map((cat) => (
-                  <div key={cat.title} className="pricing-cat-item">
-                    <span className="pricing-cat-icon">{cat.icon}</span>
-                    <div>
-                      <div className="pricing-cat-title">{cat.title} <span className="pricing-cat-desc">{cat.desc}</span></div>
-                      <div className="pricing-cat-detail">{cat.detail}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="pricing-divider" />
-              <div className="pricing-features">
-                <div className="pricing-feature">✓ Basic 전체 포함</div>
-                <div className="pricing-feature">✓ 권한·돈·종료 법적 핵심 영역 추가</div>
-                <div className="pricing-feature">✓ 빠짐없는 6개 카테고리 합의안</div>
-                <div className="pricing-feature premium-feature">✓ 스타트업 전문 변호사 컨택 가능</div>
-              </div>
-              <button
-                type="button"
-                className="btn btn-primary pricing-cta-btn"
-                onClick={() => router.push("/agreement/start?plan=premium")}
-              >
-                Premium으로 시작하기 →
-              </button>
-              <div className="pricing-lawyer-note">
-                변호사 검토는 선택 사항이며 별도 비용이 발생합니다.
-                <br />시중 주주간계약서 대비 합리적인 비용으로 연결됩니다.
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Upgrade note */}
-        <div className="upgrade-note-block">
-          <Lightbulb size={18} className="upgrade-note-icon" />
-          <p>Basic으로 시작하고 나중에 Premium으로 업그레이드할 수 있습니다. 업그레이드 시 차액 <strong>₩200,000</strong>만 추가됩니다.</p>
+        {/* Demo evaluation CTA */}
+        <div className="agreement-section" style={{ textAlign: "center" }}>
+          <h2 className="agreement-section-title">데모 평가에 참여해주세요</h2>
+          <p className="agreement-section-desc">
+            CoSync 서비스를 체험해 보신 소감을 알려주세요.<br />
+            여러분의 피드백이 더 나은 서비스를 만듭니다.
+          </p>
+          <a
+            href="https://forms.gle/h4Xyp7GD4jcicqpM8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary"
+            style={{ marginTop: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+          >
+            데모 평가 참여하기 →
+          </a>
         </div>
 
       </section>
@@ -299,76 +212,6 @@ export default function AgreementPreviewPage() {
         .step-content:last-child { padding-bottom: 0; }
         .step-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
         .step-desc { font-size: 0.9rem; color: #64748b; line-height: 1.6; }
-        .pricing-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          align-items: stretch;
-        }
-        @media (max-width: 700px) {
-          .pricing-grid { grid-template-columns: 1fr; }
-        }
-        .pricing-card {
-          background: #fff;
-          border-radius: 24px;
-          padding: 32px 28px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          position: relative;
-        }
-        .pricing-card.premium {
-          border-color: #5858e2;
-          box-shadow: 0 12px 40px rgba(88,88,226,0.12);
-        }
-        .pricing-recommended {
-          position: absolute;
-          top: -14px; left: 50%;
-          transform: translateX(-50%);
-          background: linear-gradient(120deg, #5858e2, #777ef0);
-          color: #fff;
-          font-size: 0.75rem;
-          font-weight: 700;
-          padding: 4px 16px;
-          border-radius: 999px;
-          letter-spacing: 1px;
-          white-space: nowrap;
-        }
-        .pricing-plan-name { font-size: 0.9rem; font-weight: 700; color: #64748b; letter-spacing: 1px; }
-        .pricing-amount { font-size: 2rem; font-weight: 800; color: #0f172a; letter-spacing: -1px; }
-        .pricing-per { font-size: 0.82rem; color: #94a3b8; margin-top: -6px; }
-        .pricing-divider { height: 1px; background: #f1f5f9; margin: 4px 0; }
-        .pricing-category-label { font-size: 0.8rem; font-weight: 700; color: #5858e2; letter-spacing: 1px; }
-        .pricing-categories { display: flex; flex-direction: column; gap: 10px; }
-        .pricing-cat-item { display: flex; gap: 10px; align-items: flex-start; }
-        .pricing-cat-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-        .pricing-cat-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; }
-        .pricing-cat-desc { font-size: 0.8rem; font-weight: 500; color: #5858e2; }
-        .pricing-cat-detail { font-size: 0.78rem; color: #94a3b8; line-height: 1.4; margin-top: 2px; }
-        .pricing-features { display: flex; flex-direction: column; gap: 8px; }
-        .pricing-feature { font-size: 0.88rem; color: #475569; }
-        .premium-feature { color: #5858e2; font-weight: 600; }
-        .pricing-cta-btn { width: 100%; margin-top: auto; padding-top: 8px; }
-        .pricing-lawyer-note {
-          font-size: 0.78rem;
-          color: #94a3b8;
-          line-height: 1.6;
-          text-align: center;
-          margin-top: -4px;
-        }
-        .upgrade-note-block {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          background: rgba(88,88,226,0.05);
-          border: 1px solid rgba(88,88,226,0.12);
-          border-radius: 16px;
-          padding: 20px 24px;
-          font-size: 0.9rem;
-          color: #475569;
-          line-height: 1.6;
-        }
-        .upgrade-note-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
       `}} />
     </main>
   );

@@ -5,6 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { TopNav } from "../components/TopNav";
 import { Footer } from "../components/Footer";
+import { useAuth } from "../components/AuthContext";
+import { useUserProfile } from "../components/useUserProfile";
+import { useTeamMembers } from "../components/useTeamMembers";
+import type { OnboardingAnswers } from "../lib/gap";
 import { Lock } from "lucide-react";
 
 function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: number }) {
@@ -122,6 +126,25 @@ function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: num
 }
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  const { profile } = useUserProfile();
+  const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0];
+  const { members } = useTeamMembers(activeTeamId);
+
+  const BASIC_FIELDS: (keyof OnboardingAnswers)[] = ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction", "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution", "exitVision", "pivotCriteria", "dealbreaker", "fundingRunway", "spendingApproval", "investmentCriteria"];
+  const ADVANCED_FIELDS: (keyof OnboardingAnswers)[] = ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance", "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"];
+
+  const myMember = user ? members.find(m => m.id === user.uid) : undefined;
+  const myAnswers = myMember?.answers as OnboardingAnswers | undefined;
+  const hasBasic = Boolean(myAnswers && BASIC_FIELDS.every(f => myAnswers[f]));
+  const hasAdvanced = Boolean(myAnswers && ADVANCED_FIELDS.every(f => myAnswers[f]));
+
+  const teamGapHref = !user || !hasBasic
+    ? "/onboarding"
+    : hasAdvanced
+      ? "/workspace"
+      : "/onboarding/diagnosis/complete";
+
   return (
     <main className="page landing-page">
       <TopNav 
@@ -150,20 +173,29 @@ export default function LandingPage() {
               CoSync는 공동창업자 간 기준 차이를 비교하고, 팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
             </p>
             <div className="hero-actions">
-              <Link href="/onboarding" className="btn btn-primary btn-lg motion-cta">
+              <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta">
                 우리 팀 기준 차이 확인하기
               </Link>
               <div className="hero-hint">✓ 현재 38개 이상 창업팀 대기 중</div>
             </div>
           </div>
-          <div className="hero-visual delay-2 animate-fade-up">
-            <Image 
-              src="/images/hero-v2.png" 
-              alt="CoSync Hero Concept" 
-              width={500} 
-              height={500}
+          <div className="hero-visual delay-2 animate-fade-up" style={{ position: "relative", width: "100%", aspectRatio: "4 / 3" }}>
+            <Image
+              src="/images/land1.png"
+              alt="CoSync 시나리오 진단 Q1 — 역할 & 책임"
+              width={2822}
+              height={1656}
+              className="fluid-img"
+              style={{ position: "absolute", top: 0, right: 0, width: "88%", height: "auto", opacity: 0.85 }}
+            />
+            <Image
+              src="/images/land2.png"
+              alt="CoSync 시나리오 진단 Q4 — 이탈 & 회수"
+              width={2726}
+              height={1656}
               className="fluid-img"
               priority
+              style={{ position: "absolute", bottom: 0, left: 0, width: "88%", height: "auto", zIndex: 1 }}
             />
           </div>
         </div>
@@ -493,7 +525,7 @@ export default function LandingPage() {
             역할, 지분, 이탈 기준을 구두로 넘기지 말고<br />
             우리 팀이 실제로 채택할 합의안 문서로 정리해 보세요.
           </p>
-          <Link href="/onboarding" className="btn btn-primary btn-lg">
+          <Link href={teamGapHref} className="btn btn-primary btn-lg">
             지금 우리 팀 기준 맞추기 시작하기
           </Link>
           <p className="cta-hint mt-4" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Lock size={13} /> 5분 만에 우리 팀의 기준 차이를 확인해보세요</p>

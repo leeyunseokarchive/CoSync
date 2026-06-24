@@ -59,6 +59,7 @@ type AppStateContextValue = AppState & {
   setGrowthStrategy: (value: string) => void;
   setDepartment: (value: string) => void;
   setRole: (value: string) => void;
+  resetState: () => void;
   progress: number;
 };
 
@@ -172,6 +173,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const setGrowthStrategy = useCallback((value: string) => setState((prev) => ({ ...prev, growthStrategy: value })), []);
   const setDepartment = useCallback((value: string) => setState((prev) => ({ ...prev, department: value })), []);
   const setRole = useCallback((value: string) => setState((prev) => ({ ...prev, role: value })), []);
+  const resetState = useCallback(() => {
+    setState(defaultState);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("cosync-state");
+      localStorage.removeItem("cosync-pending-save");
+    }
+  }, []);
 
   const value: AppStateContextValue = useMemo(
     () => ({
@@ -200,6 +208,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setGrowthStrategy,
       setDepartment,
       setRole,
+      resetState,
       progress
     }),
     [
@@ -228,6 +237,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setGrowthStrategy,
       setDepartment,
       setRole,
+      resetState,
       progress
     ]
   );

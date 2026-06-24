@@ -226,8 +226,8 @@ export default function WorkspaceHubPage() {
           {!teamsLoading &&
             teams.map((team) => (
               <div className="team-row" key={team.id}>
-                <TeamSessionCard team={team} canViewReport={(team.progress ?? 0) >= 100} />
-                {(team.progress ?? 0) >= 100 && <TeamGapSlot team={team} />}
+                <TeamSessionCard team={team} canViewReport={false} />
+                <TeamGapSlot team={team} />
               </div>
             ))}
         </div>

@@ -211,7 +211,11 @@ export default function GapReportPage() {
     });
   }, [members]);
 
-  const isTeamComplete = members.length >= 2 && members.every(m => (m.progress ?? 0) >= 100);
+  // 기본 진단(12문항)을 모두 마치면 리포트 공개. 심화(Q13~Q20)는 선택 사항이며 심화 히트맵에만 영향.
+  const BASIC_FIELDS: (keyof OnboardingAnswers)[] = ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction", "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution", "exitVision", "pivotCriteria", "dealbreaker", "fundingRunway", "spendingApproval", "investmentCriteria"];
+  const hasBasicComplete = (m: { answers?: unknown }) =>
+    BASIC_FIELDS.every(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f]));
+  const isTeamComplete = members.length >= 2 && members.every(hasBasicComplete);
 
   const teamInsight = useMemo(() => {
     if (!members.length) {
@@ -336,7 +340,7 @@ export default function GapReportPage() {
   const allHaveAdvancedData = useMemo(() => {
     if (members.length < 2) return false;
     const advancedFields: (keyof OnboardingAnswers)[] = ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance", "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"];
-    return members.every(m => advancedFields.some(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f])));
+    return members.every(m => advancedFields.every(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f])));
   }, [members]);
 
   const showAdvancedHeatmap = allHaveAdvancedData;
@@ -373,12 +377,12 @@ export default function GapReportPage() {
         {!isTeamComplete && members.length >= 2 && (
           <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 32px" }}>
             <div style={{ marginBottom: "16px", display: "flex", justifyContent: "center" }}><Lock size={32} color="#94a3b8" /></div>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>모든 팀원이 진단을 완료해야 리포트를 볼 수 있어요</h3>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>모든 팀원이 기본 진단을 완료해야 리포트를 볼 수 있어요</h3>
             <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, marginBottom: "24px" }}>
-              {members.filter(m => (m.progress ?? 0) < 100).map(m => (
+              {members.filter(m => !hasBasicComplete(m)).map(m => (
                 <span key={m.id}><strong>{m.name}</strong>의 진단 진행률: {m.progress ?? 0}%<br /></span>
               ))}
-              <br />전원 100% 완료 후 통합 리포트가 열립니다.
+              <br />전원이 기본 진단(12문항)을 마치면 통합 리포트가 열립니다.
             </p>
             <Link href="/onboarding/diagnosis" className="btn btn-primary" style={{ display: "inline-flex" }}>
               진단 계속하기 →
@@ -905,9 +909,6 @@ export default function GapReportPage() {
                           <ul className="clause-card-list">
                             {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
                           </ul>
-                          <div className="clause-blur-overlay">
-                            <Lock size={13} /> 합의 시 전체 조항 공개
-                          </div>
                         </div>
                         <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                           {clause.btnLabel}
@@ -945,9 +946,6 @@ export default function GapReportPage() {
                           <ul className="clause-card-list">
                             {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
                           </ul>
-                          <div className="clause-blur-overlay">
-                            <Lock size={13} /> 합의 시 전체 조항 공개
-                          </div>
                         </div>
                         <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
                           필수 합의 조항 보기

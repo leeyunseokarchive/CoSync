@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CircleAvatar } from "./Brand";
 import { useTeamMembers } from "./useTeamMembers";
+import type { OnboardingAnswers } from "../lib/gap";
 
 type Team = {
   id: string;
@@ -11,8 +12,13 @@ type Team = {
   progress?: number;
 };
 
-export function TeamSessionCard({ team, canViewReport }: { team: Team; canViewReport: boolean }) {
+const BASIC_FIELDS: (keyof OnboardingAnswers)[] = ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction", "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution", "exitVision", "pivotCriteria", "dealbreaker", "fundingRunway", "spendingApproval", "investmentCriteria"];
+const hasBasicComplete = (m: { answers?: unknown }) =>
+  BASIC_FIELDS.every(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f]));
+
+export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { team: Team; canViewReport: boolean }) {
   const { members, loading } = useTeamMembers(team.id);
+  const canViewReport = !loading && members.length >= 2 && members.every(hasBasicComplete);
   const progressValue = Math.max(0, Math.min(100, team.progress ?? 0));
   const progressLabel = `${progressValue}%`;
   const statusLabel = progressValue >= 100 ? "완료" : "진행중";

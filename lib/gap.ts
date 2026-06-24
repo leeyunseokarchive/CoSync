@@ -95,6 +95,19 @@ const CAT_LABELS = ["역할 & 책임", "이탈 & 회수", "비전 & 가치관", 
 // 정규화 가중치 (출처: 국내 스타트업 팀 와해 및 분쟁 원인 실증 분석 MVP V3)
 const CAT_WEIGHTS = [0.11, 0.11, 0.11, 0.17, 0.22, 0.28];
 
+// 한 질문에 대한 두 멤버 답변의 갭(0=일치, |옵션차|=차이, 3=치명적 충돌)
+const pairGap = (v1: string, v2: string, toxicPairs: [string, string][]): number => {
+  const s1 = v1[0];
+  const s2 = v2[0];
+  if (s1 === s2) return 0;
+  for (const [p1, p2] of toxicPairs) {
+    if ((s1 === p1 && s2 === p2) || (s1 === p2 && s2 === p1)) return 3;
+  }
+  const d1 = parseInt(s1);
+  const d2 = parseInt(s2);
+  return isNaN(d1) || isNaN(d2) ? 1 : Math.abs(d1 - d2);
+};
+
 export function computeGapSummary(members: OnboardingAnswers[]) {
   const N = CAT_LABELS.length;
 
@@ -110,84 +123,53 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
 
   if (members.length <= 1) return empty;
 
-  let worstScore = -1;
-  let saved = {
-    gapCount: 0,
-    rawScore: 0,
-    catGaps: Array(N).fill(0) as number[],
-    catCounts: Array(N).fill(0) as number[],
-  };
+  // 히트맵과 동일하게: 질문별로 모든 멤버 쌍 중 최악(max) 갭을 그 질문의 갭으로 사용
+  const catGapSums = Array(N).fill(0) as number[];
+  const catCounts = Array(N).fill(0) as number[];
+  let gapCount = 0;
 
-  for (let i = 0; i < members.length; i++) {
-    for (let j = i + 1; j < members.length; j++) {
-      const m1 = members[i];
-      const m2 = members[j];
-
-      const catGapSums = Array(N).fill(0) as number[];
-      const catCounts = Array(N).fill(0) as number[];
-      let gapCount = 0;
-
-      for (const q of QUESTION_CONFIGS) {
-        const v1 = m1[q.field];
-        const v2 = m2[q.field];
+  for (const q of QUESTION_CONFIGS) {
+    let worstGap = 0;
+    let answeredByPair = false;
+    for (let i = 0; i < members.length; i++) {
+      for (let j = i + 1; j < members.length; j++) {
+        const v1 = members[i][q.field];
+        const v2 = members[j][q.field];
         if (!v1 || !v2) continue;
-
-        const s1 = v1[0];
-        const s2 = v2[0];
-        catCounts[q.cat]++;
-
-        let gap = 0;
-        if (s1 !== s2) {
-          let isToxic = false;
-          for (const [p1, p2] of q.toxicPairs) {
-            if ((s1 === p1 && s2 === p2) || (s1 === p2 && s2 === p1)) {
-              isToxic = true;
-              break;
-            }
-          }
-          if (isToxic) {
-            gap = 3;
-          } else {
-            const d1 = parseInt(s1);
-            const d2 = parseInt(s2);
-            gap = isNaN(d1) || isNaN(d2) ? 1 : Math.abs(d1 - d2);
-          }
-        }
-
-        catGapSums[q.cat] += gap;
-        if (gap > 0) gapCount++;
-      }
-
-      // G_i: 카테고리별 평균 갭 (0~3)
-      const catGaps = catGapSums.map((sum, k) =>
-        catCounts[k] > 0 ? sum / catCounts[k] : 0
-      );
-
-      // S_total = Σ W'_i × G_i (max = 3, since Σ W'_i = 1 and max G_i = 3)
-      const rawScore = catGaps.reduce((acc, g, k) => acc + CAT_WEIGHTS[k] * g, 0);
-
-      if (rawScore > worstScore) {
-        worstScore = rawScore;
-        saved = { gapCount, rawScore, catGaps, catCounts };
+        answeredByPair = true;
+        const g = pairGap(v1, v2, q.toxicPairs);
+        if (g > worstGap) worstGap = g;
       }
     }
+    if (!answeredByPair) continue; // 2명 이상이 답한 질문만 집계
+    catCounts[q.cat]++;
+    catGapSums[q.cat] += worstGap;
+    if (worstGap > 0) gapCount++;
   }
 
+  // G_i: 카테고리별 평균 갭 (0~3)
+  const catGaps = catGapSums.map((sum, k) =>
+    catCounts[k] > 0 ? sum / catCounts[k] : 0
+  );
+
+  // S_total = Σ W'_i × G_i (max = 3, since Σ W'_i = 1 and max G_i = 3)
+  const rawScore = catGaps.reduce((acc, g, k) => acc + CAT_WEIGHTS[k] * g, 0);
+
   // 미진단 카테고리를 제외하고, 실제 답변된 카테고리 가중치 합으로 정규화
-  const answeredWeight = saved.catCounts.reduce((sum, count, k) =>
+  const answeredWeight = catCounts.reduce((sum, count, k) =>
     count > 0 ? sum + CAT_WEIGHTS[k] : sum, 0);
   const overallAlignment = answeredWeight > 0
-    ? Math.round((1 - saved.rawScore / (answeredWeight * 3)) * 100)
+    ? Math.round((1 - rawScore / (answeredWeight * 3)) * 100)
     : 100;
 
   const categories: CategoryResult[] = CAT_LABELS.map((label, k) => {
-    if (saved.catCounts[k] === 0) {
+    if (catCounts[k] === 0) {
       return { label, score: 0, max: 0, alignment: null, gapScore: null };
     }
-    const alignment = Math.round((1 - saved.catGaps[k] / 3) * 100);
+    const alignment = Math.round((1 - catGaps[k] / 3) * 100);
     return {
       label,
-      score: Math.round(CAT_WEIGHTS[k] * saved.catGaps[k] * 100) / 100,
+      score: Math.round(CAT_WEIGHTS[k] * catGaps[k] * 100) / 100,
       max: CAT_WEIGHTS[k] * 3,
       alignment,
       gapScore: toGapScore(alignment),
@@ -195,9 +177,9 @@ export function computeGapSummary(members: OnboardingAnswers[]) {
   });
 
   return {
-    gapCount: saved.gapCount,
+    gapCount,
     gapScore: toGapScore(overallAlignment),
-    rawScore: saved.rawScore,
+    rawScore,
     overallAlignment,
     categories,
   };

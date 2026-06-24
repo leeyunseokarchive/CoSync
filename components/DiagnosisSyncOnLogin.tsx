@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useUserProfile } from "./useUserProfile";
-import { doc, setDoc, getDocs, collection, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, getDocs, collection, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { computeGapSummary, OnboardingAnswers } from "../lib/gap";
 import { computeTeamProgress } from "../lib/teamProgress";
@@ -50,6 +50,16 @@ export function DiagnosisSyncOnLogin() {
       if (!Object.keys(answerUpdates).length) return;
 
       const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+
+      // 이미 진단 답변이 있는 기존 계정에는 익명(비로그인) 답변을 절대 반영하지 않는다.
+      // 멤버 문서에 답변이 전혀 없는 최초 1회(신규 유입)만 동기화한다.
+      const existing = await getDoc(memberDocRef);
+      const existingAnswers = existing.exists() ? (existing.data()?.answers as Record<string, unknown> | undefined) : undefined;
+      if (existingAnswers && Object.keys(existingAnswers).length > 0) {
+        localStorage.removeItem("cosync-state");
+        return;
+      }
+
       await setDoc(memberDocRef, {
         name: profile.name || user.displayName || "팀원",
         role: state.role || "MEMBER",

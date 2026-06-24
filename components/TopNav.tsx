@@ -5,6 +5,7 @@ import { BrandMark, CircleAvatar } from "./Brand";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useAuth } from "./AuthContext";
+import { useAppState } from "./AppState";
 
 export function TopNav({
   links,
@@ -22,12 +23,15 @@ export function TopNav({
   hideAuthLinks?: boolean;
 }) {
   const { user } = useAuth();
+  const { resetState } = useAppState();
   const isAuthed = Boolean(user);
   void showBell;
   void rightName;
   void rightLabel;
   const handleLogout = async () => {
     await signOut(auth);
+    // 로그아웃 시 익명 진단 상태(localStorage)를 정리해 다음 사용자/세션으로 유입되지 않도록 한다
+    resetState();
   };
   return (
     <header className="topbar">

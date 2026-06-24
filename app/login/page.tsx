@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase";
+import { auth } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
-import { useAppState } from "../../components/AppState";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,25 +14,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { department, role, progress } = useAppState();
 
   const handleLogin = async () => {
     setError("");
     setLoading(true);
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      if (department || role || progress > 0) {
-        await setDoc(
-          doc(db, "users", cred.user.uid),
-          {
-            department,
-            role,
-            onboardingProgress: progress,
-            updatedAt: serverTimestamp()
-          },
-          { merge: true }
-        );
-      }
+      // 로그인은 인증만 수행한다. 익명(비로그인) 진단 상태를 계정에 기록하지 않는다.
+      await signInWithEmailAndPassword(auth, email, password);
       router.push("/workspace");
     } catch (err) {
       const code = (err as { code?: string })?.code;
@@ -123,9 +109,6 @@ export default function LoginPage() {
         <button className="btn btn-primary full" type="button" onClick={handleLogin} disabled={loading}>
           {loading ? "로그인 중..." : "로그인하기 →"}
         </button>
-        <div className="auth-footer">
-          계정 정보를 잊으셨나요? <strong>계정 찾기</strong>
-        </div>
       </section>
       <Footer />
     </main>
