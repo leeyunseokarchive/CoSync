@@ -27,6 +27,7 @@ function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: num
 
     observer.observe(node);
 
+
     return () => observer.disconnect();
   }, []);
 
@@ -61,6 +62,7 @@ function AnimatedStatRing({ value, delayMs = 0 }: { value: number; delayMs?: num
       };
 
       frameId = window.requestAnimationFrame(tick);
+    
     }, delayMs);
 
     return () => {

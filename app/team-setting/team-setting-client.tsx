@@ -122,7 +122,7 @@ export function TeamSettingClient() {
     if (teamStatus === "dissolved" || teamStatus === "exited") {
       updateData.dissolvedReason = dissolvedReason.trim();
     }
-    await updateDoc(doc(db, "teams", teamId), updateData);
+    await updateDoc(doc(db, "teams", teamId), updateData as any);
     setSaving(false);
   };
 

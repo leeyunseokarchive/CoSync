@@ -14,7 +14,7 @@ import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale } from "lucide-react";
+import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
@@ -23,32 +23,39 @@ type QuestionDef = {
   label: string;
   field: keyof OnboardingAnswers;
   toxicPairs: [string, string][];
-  insight: string;
+  optionLabels: Record<string, string>;
+  question: string;
 };
+
+function generateInsight(def: QuestionDef): string {
+  const stake = SCRIPTS[def.id]?.stake;
+  const question = `지금 맞춰볼 질문: ${def.question}`;
+  return stake ? `${stake} ${question}` : question;
+}
 
 // Q1~Q12: 기본 진단 (역할3 + 이탈3 + 비전3 + 조달3)
 // Q13~Q20: 심화 진단 (의사결정4 + 지분4)
 const QUESTION_DEFS: QuestionDef[] = [
-  { id: "q1",  label: "회색지대 업무 배정",   field: "extraWorkPriority",    toxicPairs: [["3","4"]],          insight: "담당자 없는 일이 생겼을 때 한 명은 당연히 A가 해야 한다고 보고, 당사자는 '왜 나냐'고 할 때 반복 마찰이 생깁니다. 지금 맞춰볼 질문: 회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?" },
-  { id: "q2",  label: "업무 몰입 시간 기대",   field: "extraWorkPrinciple",   toxicPairs: [["1","3"],["1","4"]], insight: "한 명이 저녁·주말에 메시지를 보내거나, 반대로 업무 시간 후엔 연락이 안 될 때 기대치 차이가 드러납니다. 지금 맞춰볼 질문: 서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?" },
-  { id: "q3",  label: "퍼포먼스 조치",         field: "underperformanceAction",toxicPairs: [["1","4"],["3","4"]], insight: "한 명이 계속 목표를 못 채울 때, 한 명은 '역할을 조정해야 한다'고 보고 상대방은 '좀 더 기다려야 한다'고 볼 때 감정과 지분 문제가 함께 엮입니다. 지금 맞춰볼 질문: 성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?" },
-  { id: "q4",  label: "우선 정리 권한",         field: "exitRecoveryPriority", toxicPairs: [["1","2"],["2","4"]], insight: "이탈 상황에서 한 명은 서버 권한부터 차단해야 한다고 하고, 상대방은 고객 연락처가 먼저라고 할 때 초기 몇 시간이 엉키면서 공백이 생깁니다. 지금 맞춰볼 질문: 이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?" },
-  { id: "q5",  label: "권한 차단 타이밍",       field: "exitCleanupTiming",    toxicPairs: [["1","3"],["1","4"]], insight: "퇴사 의사를 밝혔지만 법적 처리가 안 된 상황에서 한 명은 이미 외부인으로 보고 상대방은 여전히 팀원으로 대할 때 보안과 신뢰 모두 위험해집니다. 지금 맞춰볼 질문: 퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?" },
-  { id: "q6",  label: "이탈 시 지분 정리",      field: "exitDisputeResolution",toxicPairs: [["1","4"],["2","4"]], insight: "이탈 당사자는 '나의 기여를 인정해달라'고 하고, 남은 사람은 '계약 기준으로만 처리하자'고 할 때 감정이 최고조로 올라갑니다. 지금 맞춰볼 질문: 이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?" },
-  { id: "q7",  label: "회사 출구 전략",          field: "exitVision",           toxicPairs: [["1","3"]],          insight: "한 명은 빠른 M&A 엑싯을 목표로 달리고, 상대방은 독립 운영을 원할 때 투자 유치 방향, 성장 속도, 핵심 결정 기준이 전부 어긋납니다. 지금 맞춰볼 질문: 3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?" },
-  { id: "q8",  label: "피벗/중단 기준",          field: "pivotCriteria",        toxicPairs: [["1","2"]],          insight: "한 명은 '자금이 다 떨어지기 전에는 계속 간다'고 하고, 상대방은 '시장 반응이 없으면 먼저 멈춰야 한다'고 할 때 버티는 기준 자체가 달라 결정적 순간에 충돌합니다. 지금 맞춰볼 질문: 방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?" },
-  { id: "q9",  label: "절대 용납 못하는 것",     field: "dealbreaker",          toxicPairs: [["1","4"]],          insight: "한 명이 가장 못 참는 것이 상대방의 가장 자연스러운 행동 방식일 때 반복 마찰의 근원이 됩니다. 지금 맞춰볼 질문: 서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?" },
-  { id: "q10", label: "런웨이 위기 대응",         field: "fundingRunway",        toxicPairs: [["1","4"],["2","3"]], insight: "한 명은 '인원 먼저 줄이자'고 하고, 상대방은 '내 급여를 유예하면 버틸 수 있다'고 할 때 누가 더 희생하느냐를 두고 감정이 쌓입니다. 지금 맞춰볼 질문: 런웨이 X개월 이하가 되면 어떤 순서로 대응할지 기준이 있나요?" },
-  { id: "q11", label: "지출 승인 기준",           field: "spendingApproval",     toxicPairs: [["1","4"]],          insight: "한 명이 '내 결정 범위 안이니까 괜찮다'고 하고, 상대방은 '왜 나한테 말 안 했냐'고 할 때 반복 마찰이 생깁니다. 지금 맞춰볼 질문: 단독 집행 가능한 금액 기준이 지금 합의되어 있나요?" },
-  { id: "q12", label: "투자 조건 수락 기준",      field: "investmentCriteria",   toxicPairs: [["1","4"],["1","2"]], insight: "한 명은 '밸류에이션이 낮으면 안 받는다'고 하고, 상대방은 '지금 빨리 받는 게 맞다'고 할 때 실제 투자 기회가 왔을 때 충돌합니다. 지금 맞춰볼 질문: 투자 수락/거절의 최우선 기준이 맞춰진 적 있나요?" },
-  { id: "q13", label: "단독 결정권 범위",         field: "decisionStructure",    toxicPairs: [["1","3"]],          insight: "한 명이 담당 영역에서 결정하고 나중에 알렸는데, 상대방이 '왜 나한테 먼저 안 물어봤냐'고 할 때 터집니다. 지금 맞춰볼 질문: 각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?" },
-  { id: "q14", label: "실패 후 반응",             field: "decisionFailure",      toxicPairs: [["1","4"]],          insight: "실패 직후 한 명은 '빨리 다음 거 가자'고 하고, 상대방은 '왜 맨날 회고도 안 하냐'고 할 때 터집니다. 지금 맞춰볼 질문: 실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?" },
-  { id: "q15", label: "반대 의견 처리",           field: "actionVsConsensus",    toxicPairs: [["1","2"]],          insight: "결정이 됐는데 반대했던 사람이 계속 납득 안 된다며 재논의를 요구할 때 팀 실행 속도가 반복적으로 막힙니다. 지금 맞춰볼 질문: 결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?" },
-  { id: "q16", label: "결정 속도 vs 확신",        field: "deadlockTolerance",    toxicPairs: [["1","2"]],          insight: "한 명은 '70%면 충분하니 지금 가자'고 하고, 상대방은 '좀 더 확인하고 가자'고 할 때 반복 충돌합니다. 지금 맞춰볼 질문: 중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?" },
-  { id: "q17", label: "급여 구조",                field: "salaryStructure",      toxicPairs: [["1","2"]],          insight: "한 명은 '기여도가 다르면 급여도 달라야 한다'고 하고, 상대방은 '초기엔 같아야 공평하다'고 할 때 불만이 쌓이다 터집니다. 지금 맞춰볼 질문: 공동창업자 간 급여 차등 기준이 지금 합의되어 있나요?" },
-  { id: "q18", label: "지분 구조 철학",           field: "equityStructure",      toxicPairs: [["1","2"]],          insight: "한 명은 '처음 합의한 구조가 맞다'고 하고, 상대방은 '기여도가 달라지면 지분도 바뀌어야 한다'고 할 때 가장 큰 감정 충돌이 생깁니다. 지금 맞춰볼 질문: 지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?" },
-  { id: "q19", label: "창업자 보상 기준",         field: "profitDistribution",   toxicPairs: [["1","2"],["2","4"]], insight: "흑자 전환 첫 달, 한 명은 '당연히 더 버텨야 한다'고 하고, 상대방은 '이제 시장가로 받아야 한다'고 할 때 처음 생긴 수익이 갈등의 도화선이 됩니다. 지금 맞춰볼 질문: 흑자 전환 시 창업자 급여 인상 기준이 미리 합의되어 있나요?" },
-  { id: "q20", label: "성장 전략",                field: "growthStrategy",       toxicPairs: [["1","2"]],          insight: "한 명은 투자를 받아 빠르게 성장하고 싶고, 상대방은 지분을 지키며 생존하고 싶을 때 투자 유치 기회가 올 때마다 충돌합니다. 지금 맞춰볼 질문: 외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?" },
+  { id: "q1",  label: "회색지대 업무 배정",   field: "extraWorkPriority",    toxicPairs: [["3","4"]],          optionLabels: {"1":"일단 직접 처리","2":"담당자 정해 역할 나눔","3":"현재 우선순위 유지","4":"구조적으로 해결"}, question: "회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?" },
+  { id: "q2",  label: "업무 몰입 시간 기대",   field: "extraWorkPrinciple",   toxicPairs: [["1","3"],["1","4"]], optionLabels: {"1":"초기엔 당연히 해야지","2":"하되 미리 알려줘야","3":"개인 시간은 지켜야","4":"업무 외 시간 요청은 거절"}, question: "서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?" },
+  { id: "q3",  label: "퍼포먼스 조치",         field: "underperformanceAction",toxicPairs: [["1","4"],["3","4"]], optionLabels: {"1":"즉시 역할 조정","2":"기준·타임라인 설정","3":"원인 파악 후 지원","4":"구조 변경 논의"}, question: "성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?" },
+  { id: "q4",  label: "우선 정리 권한",         field: "exitRecoveryPriority", toxicPairs: [["1","2"],["2","4"]], optionLabels: {"1":"시스템 권한 회수 우선","2":"고객 관계 인수인계 우선","3":"운영 문서 정리 우선","4":"법적 처리 우선"}, question: "이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?" },
+  { id: "q5",  label: "권한 차단 타이밍",       field: "exitCleanupTiming",    toxicPairs: [["1","3"],["1","4"]], optionLabels: {"1":"즉시 모든 권한 차단","2":"인수인계 후 단계적 차단","3":"2~4주 순차 처리","4":"절차 완료 후 차단"}, question: "퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?" },
+  { id: "q6",  label: "이탈 시 지분 정리",      field: "exitDisputeResolution",toxicPairs: [["1","4"],["2","4"]], optionLabels: {"1":"등기 지분 그대로 인정","2":"기여도 기준 재산정","3":"제3자 통해 결정","4":"직접 협의"}, question: "이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?" },
+  { id: "q7",  label: "회사 출구 전략",          field: "exitVision",           toxicPairs: [["1","3"]],          optionLabels: {"1":"M&A 엑싯","2":"IPO","3":"수익성 독립 운영","4":"아직 미정"}, question: "3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?" },
+  { id: "q8",  label: "피벗/중단 기준",          field: "pivotCriteria",        toxicPairs: [["1","2"]],          optionLabels: {"1":"자금 고갈 시","2":"시장 반응 없을 때","3":"핵심 팀원 이탈 시","4":"파트너 합의 불가 시"}, question: "방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?" },
+  { id: "q9",  label: "절대 용납 못하는 것",     field: "dealbreaker",          toxicPairs: [["1","4"]],          optionLabels: {"1":"결정 미루거나 느리게 움직임","2":"말한 것 지키지 않음","3":"결과 없이 이유만 댐","4":"방향 불일치 시 맞추지 않음"}, question: "서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?" },
+  { id: "q10", label: "런웨이 위기 대응",         field: "fundingRunway",        toxicPairs: [["1","4"],["2","3"]], optionLabels: {"1":"인원 감축 포함 비용 절감","2":"브릿지 투자 유치","3":"매출로 자체 생존","4":"급여 유예로 버팀"}, question: "런웨이 X개월 이하가 되면 어떤 순서로 대응할지 기준이 있나요?" },
+  { id: "q11", label: "지출 승인 기준",           field: "spendingApproval",     toxicPairs: [["1","4"]],          optionLabels: {"1":"역할 범위 내 단독 결정","2":"금액 기준 사전 협의","3":"항목별 자율/협의 구분","4":"금액 무관 공동 승인"}, question: "단독 집행 가능한 금액 기준이 지금 합의되어 있나요?" },
+  { id: "q12", label: "투자 조건 수락 기준",      field: "investmentCriteria",   toxicPairs: [["1","4"],["1","2"]], optionLabels: {"1":"밸류에이션 최우선","2":"투자자 전략적 가치 우선","3":"런웨이 확보 여부 기준","4":"속도 우선"}, question: "투자 수락/거절의 최우선 기준이 맞춰진 적 있나요?" },
+  { id: "q13", label: "단독 결정권 범위",         field: "decisionStructure",    toxicPairs: [["1","3"]],          optionLabels: {"1":"내 영역이면 바로 실행","2":"알림만 보내고 진행","3":"의견 맞추고 진행","4":"함께 검토 후 결정"}, question: "각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?" },
+  { id: "q14", label: "실패 후 반응",             field: "decisionFailure",      toxicPairs: [["1","4"]],          optionLabels: {"1":"즉시 전략 변경","2":"원인 분석 후 논의","3":"데이터 더 수집 후 판단","4":"전략 유지 방식만 수정"}, question: "실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?" },
+  { id: "q15", label: "반대 의견 처리",           field: "actionVsConsensus",    toxicPairs: [["1","2"]],          optionLabels: {"1":"결정된 이상 최선","2":"계속 재검토 요청","3":"실행하되 이견 기록","4":"언급 않고 결과 지켜봄"}, question: "결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?" },
+  { id: "q16", label: "결정 속도 vs 확신",        field: "deadlockTolerance",    toxicPairs: [["1","2"]],          optionLabels: {"1":"담당 영역 결정 존중","2":"실험으로 데이터 판단","3":"외부 멘토 판단 위임","4":"완전한 설득 후 진행"}, question: "중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?" },
+  { id: "q17", label: "급여 구조",                field: "salaryStructure",      toxicPairs: [["1","2"]],          optionLabels: {"1":"스톡옵션으로 유치","2":"성과 기반 현금 인센티브","3":"안정 후 보상 구조 설정","4":"급여만으로 운영"}, question: "파트너 간 급여 차등 기준이 지금 합의되어 있나요?" },
+  { id: "q18", label: "지분 구조 철학",           field: "equityStructure",      toxicPairs: [["1","2"]],          optionLabels: {"1":"시장 관행 구조","2":"기여도·역할 비례","3":"핵심인력 외 최소화","4":"비슷한 비율로 나눔"}, question: "지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?" },
+  { id: "q19", label: "창업자 보상 기준",         field: "profitDistribution",   toxicPairs: [["1","2"],["2","4"]], optionLabels: {"1":"전액 재투자","2":"보상이 먼저","3":"재투자·인상 병행","4":"투자 전까지 현금 절약"}, question: "흑자 전환 시 창업자 급여 인상 기준이 미리 합의되어 있나요?" },
+  { id: "q20", label: "성장 전략",                field: "growthStrategy",       toxicPairs: [["1","2"]],          optionLabels: {"1":"외부 투자로 빠른 성장","2":"수익으로 지분 지킴","3":"선택적 투자 유치","4":"비희석 자금 우선"}, question: "외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?" },
 ];
 
 type ScriptEntry = { topic: string; open: string; steps: { title: string; qs: string[] }[]; keywords: string[]; stat: string; stake: string; dispute: string; guide: string };
@@ -73,7 +80,60 @@ const SCRIPTS: Record<string, ScriptEntry> = {
   q17: { topic: "급여 기준", open: "급여 얘기 꺼내기 뻘쭘하지만 지금 안 정하면 나중에 더 힘들 것 같아.", steps: [{ title: "각자 생각 꺼내기", qs: ["지금 급여 구조 어떻게 생각해?", "차이가 있어야 한다고 봐, 없어야 한다고 봐?"] }, { title: "공통 전제 찾기", qs: ["지금 상황과 역할이 반영돼야 한다는 건 동의해?"] }, { title: "기준 정하기", qs: ["어떤 기준으로 차이를 둘까?", "언제 다시 조정하기로 할까?"] }], keywords: ["급여 차등 기준", "재조정 시점"], stat: "스타트업 재직자 보상 불만율이 37%로 이탈 요인 1위입니다. 근무 만족도는 역대 최저인 35%입니다.", stake: "초기에 같은 급여로 시작해도 역할과 기여도가 달라지는 시점이 옵니다. 이때 기준이 없으면 '나는 더 하는데 왜 같냐'는 불만이 쌓입니다.", dispute: "급여 조정을 요구했을 때 기준이 없으면 서로 다른 근거를 들고 싸우게 됩니다. 특히 투자 유치 후 급여 인상 타이밍에서 갈등이 자주 터집니다.", guide: "기준을 역할 또는 수익 기반으로 나누세요. '어떤 지표가 달성되면 급여를 재논의한다'는 트리거를 지금 합의하면, 그때 가서 감정적으로 요구하지 않아도 됩니다." },
   q18: { topic: "지분 구조", open: "처음에 정한 지분, 지금도 맞는지 한번 얘기해보고 싶어.", steps: [{ title: "각자 생각 꺼내기", qs: ["지금 지분 구조 어떻게 생각해?", "기여도 달라지면 바뀔 수 있어야 한다고 봐?"] }, { title: "공통 전제 찾기", qs: ["처음 합의가 출발점이었다는 건 둘 다 동의하지?"] }, { title: "조건 정하기", qs: ["조정이 필요하다면 어떤 상황일 때?", "베스팅이랑 cliff는 어떻게 볼까?"] }], keywords: ["베스팅 기간 & cliff", "조정 트리거"], stat: "전체 동업 분쟁의 40%가 지분 분쟁입니다. 50:50 고집이 가장 큰 원인이고, 베스팅 없는 구조는 파산급 리스크입니다.", stake: "베스팅 조항이 없으면 이탈한 창업자가 기여 없이 지분을 그대로 가져갑니다. 투자 유치 시 이 구조가 드러나면 투자자가 계약을 철회합니다. 풋옵션이 잘못 설계되면 주식 소각 후에도 수억 원 지급 의무가 발생한 실제 판례가 있습니다.", dispute: "법인 설립 후 6개월~2년 사이에 기여도 차이가 극명해지며 지분 분쟁이 터집니다. 50:50 구조는 이 시점에 의사결정 교착까지 동시에 만듭니다.", guide: "베스팅 기간(통상 3~4년), cliff(통상 1년), 이탈 시 회수 가격(액면가 vs 시가)을 주주간계약에 명시하세요. 이걸 정하지 않으면 나중에 변호사를 끼고 협상해야 합니다." },
   q19: { topic: "수익 나면 급여", open: "흑자 나면 어떻게 할지 지금 안 맞춰두면 그때 가서 싸울 것 같아.", steps: [{ title: "각자 기대 꺼내기", qs: ["돈 벌리기 시작하면 급여 어떻게 됐으면 좋겠어?", "언제부터 올려야 한다고 생각해?"] }, { title: "공통 전제 찾기", qs: ["회사 상황 안정되면 제대로 받아야 한다는 건 동의하지?"] }, { title: "트리거 정하기", qs: ["어떤 숫자나 조건이 충족되면 급여 얘기 꺼내기로 할까?"] }], keywords: ["급여 인상 트리거", "인상 조건"], stat: "보상 불만이 스타트업 핵심 인재 이탈 원인 1위입니다 (37%). 수익 발생 후 보상 갈등이 팀 분열의 전환점이 되는 경우가 많습니다.", stake: "매출이 나기 시작하면 각자 기대하는 급여 인상 타이밍이 다릅니다. 한 명은 지금 당장 올려야 한다고 보고, 다른 한 명은 더 안정될 때까지 기다리자고 합니다.", dispute: "수익이 생겼을 때 급여 기준이 없으면 '회사 돈을 왜 나한테 안 쓰냐'는 갈등이 옵니다. 이익 분배 방식이 불분명하면 세금, 재투자, 급여 비율을 두고 싸웁니다.", guide: "수익 트리거를 구체적으로 정하세요. '월 매출 X원을 3개월 연속 달성하면 급여 재논의 시작'처럼 숫자로 정해두면 감정 소모 없이 자동으로 대화가 시작됩니다." },
-  q20: { topic: "투자와 지분 희석", open: "투자 방향에 대해 우리 같은 생각인지 확인하고 싶어.", steps: [{ title: "각자 입장 꺼내기", qs: ["투자 받으면서 지분 줄어드는 거 어떻게 생각해?", "어느 선까지는 괜찮아?"] }, { title: "공통 전제 찾기", qs: ["통제권 잃지 않는 선에서 성장해야 한다는 건 동의해?"] }, { title: "한도 정하기", qs: ["희석 한도를 어느 % 선으로 볼까?", "그 이상 넘어가는 조건은 어떻게 처리하기로 할까?"] }], keywords: ["희석 한도 %", "거부권 조건"], stat: "투자 시장 위축을 체감하는 창업자 비율이 63.2%입니다. 지분 희석 조건에서 공동창업자 간 이견이 투자 무산으로 이어지는 사례가 많습니다.", stake: "투자를 받을수록 두 사람의 지분이 희석됩니다. 어느 선까지 희석을 감수할 것인지, 창업자 지분이 50% 아래로 떨어지는 걸 허용할 것인지 사전에 합의가 없으면 투자 제안 앞에서 즉흥적 결정이 나옵니다.", dispute: "한 명은 빠른 성장을 위해 더 많은 지분을 내줄 수 있다고 보고, 다른 한 명은 통제권 확보를 최우선으로 합니다. 투자사 앞에서 이 견해 차이가 드러나면 신뢰를 잃습니다.", guide: "창업자 합산 지분 하한선을 먼저 정하세요. '시리즈 A 이후에도 창업팀 합산 지분 51% 이상 유지' 같은 기준 하나로 많은 결정이 쉬워집니다." },
+  q20: { topic: "투자와 지분 희석", open: "투자 방향에 대해 우리 같은 생각인지 확인하고 싶어.", steps: [{ title: "각자 입장 꺼내기", qs: ["투자 받으면서 지분 줄어드는 거 어떻게 생각해?", "어느 선까지는 괜찮아?"] }, { title: "공통 전제 찾기", qs: ["통제권 잃지 않는 선에서 성장해야 한다는 건 동의해?"] }, { title: "한도 정하기", qs: ["희석 한도를 어느 % 선으로 볼까?", "그 이상 넘어가는 조건은 어떻게 처리하기로 할까?"] }], keywords: ["희석 한도 %", "거부권 조건"], stat: "투자 시장 위축을 체감하는 창업자 비율이 63.2%입니다. 지분 희석 조건에서 파트너 간 이견이 투자 무산으로 이어지는 사례가 많습니다.", stake: "투자를 받을수록 두 사람의 지분이 희석됩니다. 어느 선까지 희석을 감수할 것인지, 창업자 지분이 50% 아래로 떨어지는 걸 허용할 것인지 사전에 합의가 없으면 투자 제안 앞에서 즉흥적 결정이 나옵니다.", dispute: "한 명은 빠른 성장을 위해 더 많은 지분을 내줄 수 있다고 보고, 다른 한 명은 통제권 확보를 최우선으로 합니다. 투자사 앞에서 이 견해 차이가 드러나면 신뢰를 잃습니다.", guide: "창업자 합산 지분 하한선을 먼저 정하세요. '시리즈 A 이후에도 창업팀 합산 지분 51% 이상 유지' 같은 기준 하나로 많은 결정이 쉬워집니다." },
+};
+
+type ClauseDef = {
+  title: string;
+  lead: string;
+  items: string[];
+  blurItems: string[];
+  btnLabel: string;
+};
+
+const CLAUSE_DEFS: Record<string, ClauseDef> = {
+  "역할 & 책임": {
+    title: "역할 분담 및 미이행 책임",
+    lead: "각 당사자의 역할과 담당 업무를 구체적으로 정하고, 미이행 시 책임 기준을 합의한다.",
+    items: ["각자 단독으로 결정할 수 있는 업무 범위", "회색지대 업무 발생 시 우선 담당자 지정 기준", "근속의무 및 성과 부진 시 역할 재조정 조건"],
+    blurItems: ["지식재산권(IP) 귀속 기준 (창업 전 개발 포함)", "역할 미이행 시 주식 강제매각 청구권(콜옵션) 발동 조건"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
+  "이탈 & 회수": {
+    title: "주식 처분 제한(Lock-up) 및 이탈 처리",
+    lead: "당사자 이탈 시 주식 처리 절차와 권한 회수 기준을 합의한다.",
+    items: ["베스팅(Vesting) 기간 및 클리프(Cliff) 조건", "주식 처분 제한(Lock-up) 기간 및 예외 조건", "이탈 시 주식 정산 기준 (액면가 vs 시가)"],
+    blurItems: ["주식 강제매각 청구권(콜옵션) 발동 사유 및 절차", "법인 인감·계좌·시스템 접근권 반환 기한"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
+  "비전 & 가치관": {
+    title: "계약해지 및 교착상태 해소(Deadlock)",
+    lead: "사업 방향 전환 기준과 계약 해지 사유, Deadlock 발생 시 처리 절차를 합의한다.",
+    items: ["피벗·사업 중단 트리거 기준 및 해지 사유", "교착상태(Deadlock) 지속 시 처리 방식", "당사자 전원 서면 합의 시 계약 해지 절차"],
+    blurItems: ["엑싯 방향(M&A / IPO / 독립 운영) 우선순위 합의", "Deadlock 해소를 위한 우선매수권(ROFR) 발동 조건"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
+  "조달 & 운용": {
+    title: "자금 집행 승인권 및 신주인수우선권",
+    lead: "단독 집행 가능한 지출 한도, 투자 유치 조건, 신주 발행 시 기존 주주 보호 기준을 합의한다.",
+    items: [],
+    blurItems: ["자금 집행 승인권 — 단독 결정 한도 금액 기준", "신주인수우선권 — 신주 발행 시 기존 지분율 보호", "런웨이 위기 시 대응 우선순위 (삭감 순서)", "우선매수권(ROFR) / 동반매도참여권(Tag-along) / 동반매도청구권(Drag-along) 발동 조건", "투자 조건 거부권 행사 기준 및 지분 희석 한도"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
+  "의사결정 & 실행": {
+    title: "의사결정 구조 및 경업금지의무",
+    lead: "단독 결정 범위와 공동 결정 사안, 퇴사 후 경업금지 기준을 합의한다.",
+    items: ["단독 결정 가능 사안 기준 (금액·영향 범위)", "공동 결정 필요 사안 및 Deadlock 시 처리 방식", "경업금지의무 — 재직 중 및 퇴사 후 적용 기간"],
+    blurItems: ["결정 번복 가능 조건 및 재논의 절차", "비밀유지의무(NDA) — 대상 정보 범위 및 위반 시 위약벌"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
+  "지분 & 보상": {
+    title: "지분 배분 및 손해배상·위약벌",
+    lead: "지분 구조, 창업자 보상 기준, 계약 위반 시 손해배상 조건을 합의한다.",
+    items: [],
+    blurItems: ["파트너 간 급여 차등 기준 및 흑자 전환 시 재논의 트리거", "베스팅(Vesting) 기간 및 이탈 시 지분 회수 가격 기준", "손해배상 및 위약벌 — 위반 유형별 책임 한도", "동반매도참여권(Tag-along) / 동반매도청구권(Drag-along) 행사 조건", "분쟁해결 — 관할 법원 및 중재 절차"],
+    btnLabel: "합의를 위한 대화셋 보기",
+  },
 };
 
 const statusRank = (s: IssueStatus): number => {
@@ -92,6 +152,8 @@ export default function GapReportPage() {
   const [teamName, setTeamName] = useState("격차 리포트");
   const [teamCreator, setTeamCreator] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [openGuides, setOpenGuides] = useState<Set<string>>(new Set());
+  const toggleGuide = (id: string) => setOpenGuides(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
 
@@ -113,11 +175,12 @@ export default function GapReportPage() {
   const teamIssues = useMemo(() => {
     if (members.length < 2) return [] as Array<{
       id: string; label: string; status: IssueStatus; conflict: boolean;
-      memberValues: Array<{name: string; value: string}>;
+      memberValues: Array<{id: string; name: string; value: string}>;
       leftValue: string; rightValue: string; insight: string;
     }>;
     return QUESTION_DEFS.map(def => {
       const memberValues = members.map(m => ({
+        id: m.id,
         name: m.name || "팀원",
         value: (m.answers as OnboardingAnswers | undefined)?.[def.field] || "미입력"
       }));
@@ -143,7 +206,7 @@ export default function GapReportPage() {
         memberValues,
         leftValue: memberValues[0]?.value || "미입력",
         rightValue: memberValues[1]?.value || "미입력",
-        insight: def.insight
+        insight: generateInsight(def)
       };
     });
   }, [members]);
@@ -182,44 +245,70 @@ export default function GapReportPage() {
     const diffCount = teamIssues.filter((i) => i.status === "diff" || i.status === "conflict").length;
     const highRiskCount = teamIssues.filter((i) => i.status === "conflict").length;
 
-    const topPriorityIssuesList = teamIssues.filter((i) => i.status === "conflict");
-    if (topPriorityIssuesList.length < 3) {
-      topPriorityIssuesList.push(...teamIssues.filter((i) => i.status === "diff").slice(0, 3 - topPriorityIssuesList.length));
-    }
+    const CAT_WEIGHT_BY_ID_TOP: Record<string, number> = {
+      q1: 0.11, q2: 0.11, q3: 0.11,
+      q4: 0.11, q5: 0.11, q6: 0.11,
+      q7: 0.11, q8: 0.11, q9: 0.11,
+      q10: 0.17, q11: 0.17, q12: 0.17,
+      q13: 0.22, q14: 0.22, q15: 0.22, q16: 0.22,
+      q17: 0.28, q18: 0.28, q19: 0.28, q20: 0.28,
+    };
+    const topPriorityIssuesList = teamIssues
+      .filter((i) => i.status === "conflict")
+      .sort((a, b) => (CAT_WEIGHT_BY_ID_TOP[b.id] ?? 0) - (CAT_WEIGHT_BY_ID_TOP[a.id] ?? 0));
     const topPriorityIssuesArray = topPriorityIssuesList.slice(0, 3);
     const topPriorityLabels = topPriorityIssuesArray.length > 0 ? topPriorityIssuesArray.map(i => i.label).join(", ") : "없음";
 
     const leadSentence = (() => {
-      if (gapScore === "CRITICAL") return "지금 방치하면 실행 단계에서 분열로 이어질 수 있는 수준의 인식 차이입니다.";
-      if (gapScore === "HIGH") return "합의 없이 넘어가면 일이 커질 때 충돌로 터질 가능성이 높습니다.";
-      if (gapScore === "MID") return "지금은 괜찮아 보여도, 빠르게 성장할수록 이 차이가 더 크게 벌어집니다.";
-      return "팀원 간 기본 인식이 잘 맞습니다. 지금 문서화해두면 나중에 분쟁이 줄어듭니다.";
+      if (gapScore === "CRITICAL") return "현재 팀의 인식 차이는 실행 단계에서 경영권 분쟁으로 전환될 수 있는 수준입니다.";
+      if (gapScore === "HIGH") return "지금 정리하지 않으면, 중요한 결정이 생길 때마다 이 차이가 충돌로 터질 가능성이 높습니다.";
+      if (gapScore === "MID") return "현재는 큰 문제가 없어 보이지만, 성장 속도가 빨라질수록 이 간극이 실행력을 잠식합니다.";
+      return "팀원 간 핵심 기준이 잘 맞춰져 있습니다. 지금 문서화해두면 이후 분쟁 가능성을 크게 낮출 수 있습니다.";
     })();
 
     const hotAreas = sorted.filter(s => s.count > 0);
     const detailSentence = (() => {
-      if (gapScore === "LOW") return "현재 흐름을 유지하면서 필요한 부분만 보완하세요.";
-      if (hotAreas.length === 0) return "세부 기준을 지금 정리해두면 실행할 때 흔들리지 않습니다.";
+      if (gapScore === "LOW") return "현재 흐름을 유지하면서 주요 합의 항목만 문서로 남겨두세요.";
+      if (hotAreas.length === 0) return "세부 운영 기준을 지금 정리해두면 실행 단계에서의 혼선을 줄일 수 있습니다.";
       if (hotAreas.length >= 2 && top.count === second.count) {
-        return `특히 ${top.label}과 ${second.label}에서 서로 다른 기준으로 움직이고 있어요.`;
+        return `특히 ${top.label}과 ${second.label}에서 서로 다른 기준으로 움직이고 있습니다.`;
       }
-      return `특히 ${top.label} 영역에서 팀원 간 기준이 가장 다릅니다.`;
+      return `특히 ${top.label} 영역에서 파트너 간 기준 차이가 가장 두드러집니다.`;
     })();
 
     const shortAnswer = (v: string) => v.replace(/^\d+\.\s*/, "").slice(0, 30);
+    const eunNeun = (name: string) => {
+      const code = name.charCodeAt(name.length - 1);
+      if (code < 0xAC00 || code > 0xD7A3) return "은(는)";
+      return (code - 0xAC00) % 28 === 0 ? "는" : "은";
+    };
+    const eulReul = (text: string) => {
+      const last = text[text.length - 1];
+      const code = last?.charCodeAt(0) ?? 0;
+      if (code < 0xAC00 || code > 0xD7A3) return "을(를)";
+      return (code - 0xAC00) % 28 === 0 ? "를" : "을";
+    };
 
     const topIssue = topPriorityIssuesArray[0] ?? null;
     const scriptEntry = topIssue ? SCRIPTS[topIssue.id] : null;
     const specificSentence = (() => {
-      if (!topIssue || !scriptEntry) return "";
+      if (!topIssue || !scriptEntry) return { nameCompare: { self: "", others: "" }, stake: "", dispute: "" };
       const mv = topIssue.memberValues;
-      if (mv.length >= 2 && mv[0].value !== "미입력" && mv[1].value !== "미입력") {
-        return `${mv[0].name}는 '${shortAnswer(mv[0].value)}'를, ${mv[1].name}는 '${shortAnswer(mv[1].value)}'를 선택했습니다. ${scriptEntry.stake} ${scriptEntry.dispute}`;
-      }
-      return `${scriptEntry.stake} ${scriptEntry.dispute}`;
+      const answeredMv = mv.filter(m => m.value !== "미입력");
+      const myUid = user?.uid ?? "";
+      const me = answeredMv.find(m => m.id === myUid);
+      const others = answeredMv.filter(m => m.id !== myUid);
+      const mePart = me
+        ? (() => { const a = shortAnswer(me.value); return `${me.name}(나)${eunNeun(me.name)} '${a}'${eulReul(a)} 선택했습니다.`; })()
+        : "";
+      const othersPart = others.length > 0 && answeredMv.length >= 2
+        ? "반면, " + others.map(m => { const a = shortAnswer(m.value); return `${m.name}${eunNeun(m.name)} '${a}'${eulReul(a)}`; }).join(", ") + " 선택했습니다."
+        : "";
+      const nameCompare = { self: mePart, others: othersPart };
+      return { nameCompare, stake: scriptEntry.stake, dispute: scriptEntry.dispute };
     })();
 
-    const text = [leadSentence, detailSentence, specificSentence]
+    const text = [leadSentence, detailSentence, specificSentence.nameCompare.self, specificSentence.nameCompare.others, specificSentence.stake, specificSentence.dispute]
       .filter(Boolean)
       .join(" ");
 
@@ -227,6 +316,9 @@ export default function GapReportPage() {
       gapCount,
       gapScore,
       text,
+      leadSentence,
+      detailSentence,
+      specificSentence,
       diffCount,
       highRiskCount,
       topPriorityLabels,
@@ -235,7 +327,7 @@ export default function GapReportPage() {
       categories,
       overallAlignment,
     };
-  }, [members, teamIssues]);
+  }, [members, teamIssues, user]);
 
   const alignmentScore = teamInsight.overallAlignment ?? 0;
 
@@ -343,10 +435,29 @@ export default function GapReportPage() {
                 </div>
 
                 {/* 상단 우: 인사이트 텍스트 */}
-                <div style={{ display: "flex", alignItems: "center", paddingBottom: "28px" }}>
-                  <p style={{ fontSize: "16px", lineHeight: "1.75", color: "#334155", fontWeight: "500", margin: 0 }}>
-                    {teamInsight.text}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingBottom: "28px" }}>
+                  <p style={{ fontSize: "15px", lineHeight: "1.7", color: "#0f172a", fontWeight: "700", margin: 0 }}>
+                    {teamInsight.leadSentence}
                   </p>
+                  {teamInsight.detailSentence && (
+                    <p style={{ fontSize: "14px", lineHeight: "1.7", color: "#475569", fontWeight: "500", margin: 0 }}>
+                      {teamInsight.detailSentence}
+                    </p>
+                  )}
+                  {(teamInsight.specificSentence?.nameCompare.self || teamInsight.specificSentence?.nameCompare.others) && (
+                    <div style={{ borderLeft: "3px solid #e2e8f0", paddingLeft: "12px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {teamInsight.specificSentence.nameCompare.self && (
+                        <p style={{ fontSize: "13px", lineHeight: "1.65", color: "#64748b", fontWeight: "500", margin: 0 }}>
+                          {teamInsight.specificSentence.nameCompare.self}
+                        </p>
+                      )}
+                      {teamInsight.specificSentence.nameCompare.others && (
+                        <p style={{ fontSize: "13px", lineHeight: "1.65", color: "#64748b", fontWeight: "500", margin: 0 }}>
+                          {teamInsight.specificSentence.nameCompare.others}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 구분선 */}
@@ -487,9 +598,18 @@ export default function GapReportPage() {
             {/* 대화 흐름 섹션 — conflict만 */}
             {(() => {
 
+              const CAT_WEIGHT_BY_ID: Record<string, number> = {
+                q1: 0.11, q2: 0.11, q3: 0.11,
+                q4: 0.11, q5: 0.11, q6: 0.11,
+                q7: 0.11, q8: 0.11, q9: 0.11,
+                q10: 0.17, q11: 0.17, q12: 0.17,
+                q13: 0.22, q14: 0.22, q15: 0.22, q16: 0.22,
+                q17: 0.28, q18: 0.28, q19: 0.28, q20: 0.28,
+              };
               const scriptIssues = teamIssues
                 .filter(i => i.status === "conflict")
-                .slice(0, 6);
+                .sort((a, b) => (CAT_WEIGHT_BY_ID[b.id] ?? 0) - (CAT_WEIGHT_BY_ID[a.id] ?? 0))
+                .slice(0, 3);
 
               if (scriptIssues.length === 0) return null;
 
@@ -514,16 +634,17 @@ export default function GapReportPage() {
                       }
                       return t;
                     };
+                    const rankIdx = scriptIssues.indexOf(issue);
                     return (
-                      <div key={issue.id} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "20px", overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                      <div key={issue.id} style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)" }}>
 
-                        {/* 헤더 — 섹션 제목 + 토픽 */}
-                        <div style={{ background: "#fafafa", padding: "24px 28px", borderBottom: "1px solid #f1f5f9" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                            <span style={{ background: "#fff1f0", color: "#ef4444", fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px" }}>고위험 충돌</span>
-                            <span style={{ fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>지금 당장 얘기해야 할 것들</span>
+                        {/* 헤더 */}
+                        <div style={{ padding: "24px 28px 20px", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", gap: "20px" }}>
+                          <span style={{ fontSize: "36px", fontWeight: "900", color: "#5b5be7", lineHeight: 1, letterSpacing: "-2px", flexShrink: 0 }}>0{rankIdx + 1}</span>
+                          <div>
+                            <span style={{ fontSize: "11px", fontWeight: "700", color: "#dc2626", display: "block", marginBottom: "5px" }}>고위험 충돌</span>
+                            <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0, lineHeight: "1.35" }}>{script.topic}</p>
                           </div>
-                          <p style={{ fontSize: "20px", fontWeight: "800", color: "#111827", margin: 0 }}>{script.topic}</p>
                         </div>
 
                         <div style={{ padding: "32px", display: "flex", flexDirection: "column", gap: "32px" }}>
@@ -547,23 +668,35 @@ export default function GapReportPage() {
                             dangerouslySetInnerHTML={{ __html: hlBody(script.stake, script.dispute) }}
                           />
 
-                          {/* 통계 근거 */}
+                          {/* 통계 근거 — 항상 표시 */}
                           {statSentence && (
                             <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
                               <TrendingUp size={14} color="#9ca3af" style={{ flexShrink: 0, marginTop: "2px" }} />
                               <p style={{ fontSize: "13px", color: "#9ca3af", fontWeight: "500", margin: 0, lineHeight: "1.6" }}>
-                                {statSentence}{statSource && <span style={{ fontWeight: "400" }}>{"  "}({statSource})</span>}
+                                {statSentence}
                               </p>
                             </div>
                           )}
 
-                          {/* 대화 가이드 */}
-                          <div style={{ background: "#f5f3ff", borderRadius: "16px", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "14px" }}>
-                            <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                              <MessageCircle size={16} color="#9ca3af" style={{ flexShrink: 0, marginTop: "2px" }} />
-                              <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: "1.8", margin: 0 }}>{script.guide}</p>
-                            </div>
-                            <p style={{ fontSize: "14px", color: "#4f46e5", fontWeight: "700", margin: 0, lineHeight: "1.65", paddingLeft: "24px" }}>&#8594; {script.steps[2].qs[0]}</p>
+                          {/* 대화 가이드 아코디언 */}
+                          <div style={{ border: "1.5px solid #ddddf5", borderRadius: "12px", overflow: "hidden" }}>
+                            <button
+                              type="button"
+                              onClick={() => toggleGuide(issue.id)}
+                              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", background: "#f0f0fc", border: "none", cursor: "pointer", padding: "12px 18px", color: "#4a4ad6", fontSize: "14px", fontWeight: "700", width: "100%" }}
+                            >
+                              <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <MessageCircle size={16} />
+                                대화 가이드 보기
+                              </span>
+                              <span style={{ fontSize: "16px", transition: "transform 0.2s", display: "inline-block", transform: openGuides.has(issue.id) ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+                            </button>
+                            {openGuides.has(issue.id) && (
+                              <div style={{ padding: "16px 18px 18px", borderTop: "1px solid #e8e8f8", display: "flex", flexDirection: "column", gap: "12px", background: "#f8f8fe" }}>
+                                <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: "1.8", margin: 0, paddingLeft: "24px" }}>{script.guide}</p>
+                                <p style={{ fontSize: "14px", color: "#4f46e5", fontWeight: "600", margin: 0, lineHeight: "1.65", paddingLeft: "23px" }}>&#8594; {script.steps[2].qs[0]}</p>
+                              </div>
+                            )}
                           </div>
 
                         </div>
@@ -687,7 +820,7 @@ export default function GapReportPage() {
               {/* 리뷰 세로 스크롤 */}
               <div className="reviews-scroll-col">
                 <div className="teaser-header">
-                  <h2 style={{ color: "#000", marginTop: "32px" }}>REVIEWS</h2>
+                  <h2 style={{ color: "#000" }}>REVIEWS</h2>
                   <p>이미 수많은 초기 창업팀이 CoSync로 빈틈없는 합의를 마쳤습니다.</p>
                 </div>
                 <div className="reviews-scroll-window">
@@ -713,7 +846,7 @@ export default function GapReportPage() {
               </div>
             </div>
 
-            <div className="premium-cards-section">
+            <div className="premium-cards-section" style={{ marginTop: "80px" }}>
               {/* 합의안 완성 일러스트 — 갭 공백이 곧 합의안 조항이 된다 */}
               <div className="teaser-header">
                 <h2>합의 공백을 기반으로 합의안을 완성하세요</h2>
@@ -741,96 +874,88 @@ export default function GapReportPage() {
                   </div>
                 </div>
 
-                {/* 플로팅 카드 A — 우상단 (가장 치명적인 공백, 동적 라벨) */}
-                <div className="clause-float clause-float--top">
-                  <div className="clause-callout">
-                    현재 가장 치명적인 합의 공백은{" "}
-                    <span className="clause-callout-em">
-                      [{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "실패 대처"}]
-                    </span>{" "}
-                    입니다!
-                  </div>
-                  <div className="clause-card clause-card--danger">
-                    <div className="clause-card-title">
-                      <span className="clause-dot danger" /> 제8조 (사업 부진 및 실패 시 대응)
-                    </div>
-                    <p className="clause-card-lead">
-                      1. 사업이 목표에 중대하게 미달하거나 손실이 누적된 경우, 당사자들은 다음 기준에 따라 대응한다.
-                    </p>
-                    <ul className="clause-card-list">
-                      <li>
-                        핵심 지표가 <mark className="clause-mark">[목표치]의 50% 미만</mark>으로 떨어진 경우
-                      </li>
-                      <li>
-                        <mark className="clause-mark">연속 [3]개월 이상</mark> 개선 징후가 없는 경우
-                      </li>
-                      <li>역할 재조정 또는 추가 출자 여부를 우선 논의한다</li>
-                    </ul>
-                    <div className="clause-blur">
-                      <p>
-                        2. 위 대응에도 개선되지 않을 경우, 당사자별 책임 한도 및 손실 분담 기준은 다음과 같이
-                        정한다…
-                      </p>
-                      <ul className="clause-card-list">
-                        <li>3. 실패 책임에 따른 지분·보상 조정 기준</li>
-                        <li>4. 잔여 자산 및 부채의 처리 우선순위</li>
-                      </ul>
-                      <div className="clause-blur-overlay">
-                        <Lock size={13} /> 합의 시 전체 조항 공개
+                {/* 플로팅 카드 A — 우상단 (충돌 1위 카테고리) */}
+                {(() => {
+                  const cats = teamInsight.categories ?? [];
+                  const sorted = [...cats].filter(c => c.alignment !== null).sort((a, b) => (a.alignment ?? 100) - (b.alignment ?? 100));
+                  const topCat = sorted[0];
+                  const clause = topCat ? CLAUSE_DEFS[topCat.label] : null;
+                  if (!clause) return null;
+                  return (
+                    <div className="clause-float clause-float--top">
+                      <div className="clause-callout">
+                        현재 가장 치명적인 합의 공백은{" "}
+                        <span className="clause-callout-em">
+                          [{teamInsight.topPriorityIssuesArray?.[0]?.label ?? topCat.label}]
+                        </span>{" "}
+                        입니다!
+                      </div>
+                      <div className="clause-card clause-card--danger">
+                        <div className="clause-card-badge">주주간계약서 기반</div>
+                        <div className="clause-card-title">
+                          <span className="clause-dot danger" /> {clause.title}
+                        </div>
+                        <p className="clause-card-lead">{clause.lead}</p>
+                        {clause.items.length > 0 && (
+                          <ul className="clause-card-list">
+                            {clause.items.map((item, i) => <li key={i}>{item}</li>)}
+                          </ul>
+                        )}
+                        <div className="clause-blur">
+                          <ul className="clause-card-list">
+                            {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
+                          </ul>
+                          <div className="clause-blur-overlay">
+                            <Lock size={13} /> 합의 시 전체 조항 공개
+                          </div>
+                        </div>
+                        <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                          {clause.btnLabel}
+                        </button>
                       </div>
                     </div>
-                    <button
-                      className="btn btn-primary unlock-btn"
-                      onClick={() => router.push("/agreement/preview")}
-                    >
-                      합의를 위한 대화셋 보기
-                    </button>
-                  </div>
-                </div>
+                  );
+                })()}
 
-                {/* 플로팅 카드 B — 좌하단 (97% 통계 + 필수 조항) */}
-                <div className="clause-float clause-float--bottom">
-                  <div className="clause-callout">
-                    스타트업의 97%는 <span className="clause-callout-em">&lsquo;이 조항&rsquo;</span>을<br />
-                    정하지 않아서 1년 안에 폐업합니다.
-                  </div>
-                  <div className="clause-card clause-card--brand">
-                    <div className="clause-card-title">
-                      <span className="clause-dot brand" /> 제1조 (사업의 해산 및 청산)
-                    </div>
-                    <p className="clause-card-lead">
-                      1. 당사자들은 다음 각 호의 사유가 발생한 경우 본 사업을 해산하고 청산 절차를 진행하기로 합의한다.
-                    </p>
-                    <ul className="clause-card-list">
-                      <li>가. 당사자 전원의 서면 합의가 있는 경우</li>
-                      <li>
-                        나. <mark className="clause-mark brand">재정적 임계점(Burn-rate) 도달</mark> 시
-                      </li>
-                      <li>
-                        다. <mark className="clause-mark brand">핵심 기술 인력의 50% 이상 이탈</mark> 시
-                      </li>
-                    </ul>
-                    <div className="clause-blur">
-                      <p>
-                        2. 위 각 호의 판단 기준이 되는 구체적 수치 및 기간은 당사자 합의로 정하며, 합의가
-                        성립하지 않을 경우…
-                      </p>
-                      <ul className="clause-card-list">
-                        <li>라. 경영권 교착(Deadlock) 발생 시 처리 절차</li>
-                        <li>마. 청산인 선임 및 권한 범위</li>
-                      </ul>
-                      <div className="clause-blur-overlay">
-                        <Lock size={13} /> 합의 시 전체 조항 공개
+                {/* 플로팅 카드 B — 좌하단 (충돌 2위 카테고리) */}
+                {(() => {
+                  const cats = teamInsight.categories ?? [];
+                  const sorted = [...cats].filter(c => c.alignment !== null).sort((a, b) => (a.alignment ?? 100) - (b.alignment ?? 100));
+                  const secondCat = sorted[1];
+                  const clause = secondCat ? CLAUSE_DEFS[secondCat.label] : null;
+                  if (!clause) return null;
+                  return (
+                    <div className="clause-float clause-float--bottom">
+                      <div className="clause-callout">
+                        팀 구성 문제로 실패하는 스타트업,<br />
+                        CB Insights 분석 기준 <span className="clause-callout-em">23%</span>에 달합니다.
+                      </div>
+                      <div className="clause-card clause-card--brand">
+                        <div className="clause-card-badge">주주간계약서 기반</div>
+                        <div className="clause-card-title">
+                          <span className="clause-dot brand" /> {clause.title}
+                        </div>
+                        <p className="clause-card-lead">{clause.lead}</p>
+                        {clause.items.length > 0 && (
+                          <ul className="clause-card-list">
+                            {clause.items.map((item, i) => <li key={i}>{item}</li>)}
+                          </ul>
+                        )}
+                        <div className="clause-blur">
+                          <ul className="clause-card-list">
+                            {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
+                          </ul>
+                          <div className="clause-blur-overlay">
+                            <Lock size={13} /> 합의 시 전체 조항 공개
+                          </div>
+                        </div>
+                        <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                          필수 합의 조항 보기
+                        </button>
                       </div>
                     </div>
-                    <button
-                      className="btn btn-primary unlock-btn"
-                      onClick={() => router.push("/agreement/preview")}
-                    >
-                      필수 합의 조항 보기
-                    </button>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
 
               <div className="teaser-header" style={{ marginTop: "72px" }}>
@@ -850,7 +975,7 @@ export default function GapReportPage() {
                   </div>
                   <div className="clear-preview" style={{ marginBottom: "8px" }}>
                     <p style={{ fontSize: "0.95rem", color: "#334155", lineHeight: "1.6" }}>
-                      이 안건을 문서화하지 않을 경우, 공동창업자 이탈 시 지분 회수가 불가능해져 <strong>후속 투자가 전면 무산</strong>될 수 있습니다.
+                      이 안건을 문서화하지 않을 경우, 파트너 이탈 시 지분 회수가 불가능해져 <strong>후속 투자가 전면 무산</strong>될 수 있습니다.
                     </p>
                   </div>
                   <div className="card-blur-area" style={{ marginTop: "8px" }}>
@@ -877,9 +1002,12 @@ export default function GapReportPage() {
                     <p className="clear-text">성공한 스타트업들이 채택한 가장 안전하고 검증된 운영 기준은...</p>
                   </div>
                   <div className="clear-preview">
-                    <div className="option-box" style={{ borderColor: "#cbd5e1", background: "#f1f5f9" }}>
-                      <h4 style={{ color: "#0f172a", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>옵션 A: {teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정 <Star size={13} color="#f59e0b" fill="#f59e0b" /></h4>
-                      <p style={{ color: "#475569", fontSize: "0.9rem" }}>사유: 성공하는 스타트업은 가장 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 페널티와 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
+                    <div style={{ borderLeft: "3px solid #5b5be7", paddingLeft: "16px", background: "#fff" }}>
+                      <p style={{ fontSize: "11px", fontWeight: "700", color: "#5b5be7", letterSpacing: "0.5px", margin: "0 0 6px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "5px" }}>
+                        권장 옵션 <Star size={11} color="#f59e0b" fill="#f59e0b" />
+                      </p>
+                      <p style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a", margin: "0 0 6px" }}>{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정</p>
+                      <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, lineHeight: "1.7" }}>성공하는 스타트업은 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 기준과 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
                     </div>
                   </div>
                   <div className="card-blur-area" style={{ marginTop: "12px" }}>
@@ -910,15 +1038,19 @@ export default function GapReportPage() {
                     <p className="clear-text">막연했던 대화를 명확한 운영규칙과 권리관계 합의 문서로. 팀의 성장에 맞춰 지속적으로 업데이트하세요:</p>
                   </div>
                   <div className="clear-preview doc-style-area">
-                    <p style={{ fontFamily: "monospace", fontSize: "0.95rem", background: "#f8fafc", padding: "12px", borderLeft: "3px solid #6366f1", borderRadius: "6px", color: "#334155" }}>
-                      <strong>제 4조 ({teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}의 처리)</strong><br/> 위 조항과 관련하여 창업 멤버 간의 중대한 이견이나 성과 미달이 발생할 시, 본 합의서는 다음 기준에 따라 조율한다...
+                    <p style={{ fontWeight: "700", color: "#0f172a", margin: "0 0 8px", fontSize: "0.9rem" }}>제 4조 ({teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}에 관한 의사결정 및 분쟁 처리)</p>
+                    <p style={{ color: "#475569", fontSize: "0.875rem", margin: 0, lineHeight: "1.85" }}>
+                      ① 창업 멤버 간 본 안건에 관한 의사결정 불일치 발생 시, 발생일로부터 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "36px" }}>&nbsp;&nbsp;&nbsp;&nbsp;</span>일 이내 전원 합의를 우선 시도한다.<br />
+                      ② 합의 불성립 시 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "80px" }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 기준으로 결정하며, 이견 지속 시 대표이사의 결정에 따른다.<br />
+                      ③ 어느 일방이 본 조항에 관하여 이의를 제기한 경우, <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "36px" }}>&nbsp;&nbsp;&nbsp;&nbsp;</span>일 이내 제3자 조정 절차를 개시한다.<br />
+                      ④ 조정 불성립 시 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "100px" }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>의 중재에 따르며, 중재 판정은 최종적·구속적 효력을 가진다.
                     </p>
                   </div>
                   <div className="card-blur-area doc-style-area" style={{ marginTop: "12px" }}>
-                    <p><strong>제 5조 ({teamInsight.topPriorityIssuesArray?.[1]?.label ?? "후속 조치"})</strong> 발생한 문제에 대하여 시장 표준에 따라 대표이사가 선제적으로...</p>
-                    <p><strong>제 6조 (주식 매수 선택권 및 부여 기준)</strong> 인재 영입을 위한 스톡옵션 풀(Pool)은 총 발행 주식의 10% 범위 내에서...</p>
-                    <p><strong>제 7조 (영업비밀 유지 의무)</strong> 본 합의서 체결 이후 지득한 회사의 기술, 재무, 인적 자원 등 일체의 정보는...</p>
-                    <p><strong>제 8조 (경업 금지 의무)</strong> 퇴사 후 최소 2년간 회사가 영위하는 동종 업종의 창업 및 취업을...</p>
+                    <p><strong>제 5조 ({teamInsight.topPriorityIssuesArray?.[1]?.label ?? "후속 조치"} 관련 멤버 이탈 시 처리 기준)</strong> ① 창업 멤버가 자발적으로 이탈하는 경우, 이탈 확정일로부터 ____일 이내 보유 지분에 대해 잔존 멤버에게 우선매수권을 부여한다. ② 매수가액은 ____________ 기준으로 산정하며, 잔존 멤버가 이를 거절하는 경우 제3자 매각을 허용하되 잔존 멤버 전원의 동의를 요한다...</p>
+                    <p><strong>제 6조 (주식매수선택권 부여 기준)</strong> ① 임직원에 대한 주식매수선택권의 총 한도는 발행주식 총수의 ____% 이내로 한다. ② 행사 조건은 근속 ____년 이상을 원칙으로 하며, 개인별 부여 한도 및 행사 가격은 이사회 결의로 정한다. ③ 퇴직 시 미행사 옵션의 처리 기준은 ____________ 으로 한다...</p>
+                    <p><strong>제 7조 (영업비밀 및 기밀 유지 의무)</strong> ① 창업 멤버는 본 합의서 체결 이후 지득한 회사의 기술·재무·인적 자원·사업 전략 등 일체의 비공개 정보에 대하여 멤버 지위 종료 후 ____년간 비밀을 유지할 의무를 진다. ② 위반 시 손해배상 범위는 ____________ 으로 한다...</p>
+                    <p><strong>제 8조 (경업 금지 의무)</strong> ① 창업 멤버는 멤버 지위 종료일로부터 ____년간 회사와 동종의 사업을 영위하는 법인을 설립하거나 임직원으로 종사할 수 없다. ② 지역적 범위는 ____________ 으로 하며, 위반 시 위약벌은 ____________ 으로 한다...</p>
                     <p style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "12px", color: "var(--primary)", display: "flex", alignItems: "center", gap: "6px" }}><RefreshCw size={13} /><strong>버전 1.0 생성됨 (변경 이력 추적 중)</strong></p>
                     <div className="card-unlock-overlay">
                       <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
@@ -1005,20 +1137,22 @@ export default function GapReportPage() {
               </div>
               <h2>{activeIssue.label}</h2>
               <div className="modal-grid" style={{ gridTemplateColumns: `repeat(${Math.min(members.length, 3)}, 1fr)` }}>
-                {(activeIssue as typeof teamIssues[number]).memberValues.map((mv) => (
-                  <div key={mv.name} className="modal-user">
+                {[...(activeIssue as typeof teamIssues[number]).memberValues]
+                  .sort((a, b) => (a.id === user?.uid ? -1 : b.id === user?.uid ? 1 : 0))
+                  .map((mv) => (
+                  <div key={mv.id} className="modal-user">
                     <div className="user-head">
                       <div className="avatar">{mv.name?.[0] ?? "?"}</div>
-                      <div className="user-name">{mv.name}</div>
+                      <div className="user-name">{mv.name}{mv.id === user?.uid ? " (나)" : ""}</div>
                     </div>
                     <div className="quote">{mv.value}</div>
                   </div>
                 ))}
               </div>
               <div className="insight">
-                <span className="spark">✦</span>
+                <span className="spark"><Lightbulb size={18} /></span>
                 <div>
-                  <p>{activeIssue.insight}</p>
+                  <p>{activeIssue.insight.split("지금 맞춰볼 질문:")[0].trim()}</p>
                 </div>
               </div>
               <div className="modal-footer">

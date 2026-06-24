@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useAppState } from "../../../components/AppState";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../components/AuthContext";
@@ -36,7 +36,7 @@ type Question = SingleQuestion | ProfileQuestion;
 const isSingleQuestion = (question: Question): question is SingleQuestion =>
   question.type === "single";
 
-export default function OnboardingDiagnosisPage() {
+function OnboardingDiagnosisPageInner() {
   const {
     decisionStructure,
     setDecisionStructure,
@@ -130,7 +130,7 @@ export default function OnboardingDiagnosisPage() {
           id: "extraWorkPrinciple",
           label: "",
           type: "single",
-          scenario: "토요일 밤 12시, 공동창업자 카톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 30분만 같이 봐줘.' 어떻게 할 것 같아요?",
+          scenario: "토요일 밤 12시, 파트너 카톡이 왔습니다. '내일 오전 투자자 미팅 전에 IR 덱 30분만 같이 봐줘.' 어떻게 할 것 같아요?",
           options: [
             "1. 당연히 해야지 — 초기엔 이런 게 기본이다",
             "2. 하겠지만 미리 알려줬으면 좋겠다",
@@ -145,7 +145,7 @@ export default function OnboardingDiagnosisPage() {
           id: "underperformanceAction",
           label: "",
           type: "single",
-          scenario: "공동창업자가 맡은 개발 일정이 이번 달도 밀렸습니다. 저번 달에 이어 두 번째인데, 매번 이유는 있어요. 어떻게 할 것 같아요?",
+          scenario: "파트너가 맡은 개발 일정이 이번 달도 밀렸습니다. 저번 달에 이어 두 번째인데, 매번 이유는 있어요. 어떻게 할 것 같아요?",
           options: [
             "1. 즉시 역할 조정이나 업무 대행을 검토한다",
             "2. 기준과 타임라인을 정하고 이행을 확인한다",
@@ -167,7 +167,7 @@ export default function OnboardingDiagnosisPage() {
           id: "exitRecoveryPriority",
           label: "",
           type: "single",
-          scenario: "떠나는 공동창업자가 GitHub, AWS, 고객 연락처, 법인 계좌 권한을 모두 갖고 있어요. 가장 먼저 뭘 챙길 것 같아요?",
+          scenario: "떠나는 파트너가 GitHub, AWS, 고객 연락처, 법인 계좌 권한을 모두 갖고 있어요. 가장 먼저 뭘 챙길 것 같아요?",
           options: [
             "1. 핵심 시스템 권한 회수와 백업을 처리한다",
             "2. 주요 고객 관계 인수인계를 먼저 챙긴다",
@@ -182,7 +182,7 @@ export default function OnboardingDiagnosisPage() {
           id: "exitCleanupTiming",
           label: "",
           type: "single",
-          scenario: "공동창업자가 오늘 갑자기 퇴사를 통보했어요. 인수인계는 시작도 안 됐고 시스템 권한은 그대로예요. 계정과 권한, 어떻게 할 것 같아요?",
+          scenario: "파트너가 오늘 갑자기 퇴사를 통보했어요. 인수인계는 시작도 안 됐고 시스템 권한은 그대로예요. 계정과 권한, 어떻게 할 것 같아요?",
           options: [
             "1. 통보 즉시 모든 권한을 차단한다",
             "2. 핵심 인수인계 완료 직후 단계적으로 차단한다",
@@ -197,12 +197,12 @@ export default function OnboardingDiagnosisPage() {
           id: "exitDisputeResolution",
           label: "",
           type: "single",
-          scenario: "1년 함께한 공동창업자가 떠납니다. 약속한 지분은 20%인데, 실제 기여도 평가가 서로 달라요. 어떤 기준으로 정리할 것 같아요?",
+          scenario: "2년간 함께 일한 파트너(지분 20%)가 팀을 떠납니다. 이탈 시 지분 처리 기준을 별도로 정해둔 게 없는 상황, 어떻게 하겠어요?",
           options: [
-            "1. 처음 합의한 계약 내용을 그대로 이행한다",
-            "2. 기여도와 활동 기간 기준으로 재산정한다",
-            "3. 변호사 등 제3자의 도움을 받아 결정한다",
-            "4. 서로 납득할 수 있는 선에서 협의한다"
+            "1. 등기된 지분 20%를 그대로 인정하고 마무리한다",
+            "2. 실제 기여 기간과 성과를 기준으로 지분을 재산정한다",
+            "3. 변호사 등 제3자를 통해 적정 수준을 결정한다",
+            "4. 서로 납득할 수 있는 선에서 직접 협의한다"
           ],
           value: exitDisputeResolution,
           onSelect: setExitDisputeResolution,
@@ -239,7 +239,7 @@ export default function OnboardingDiagnosisPage() {
             "1. 자금이 부족해 더 이상 운영이 어려울 때",
             "2. 일정 기간 동안 시장 반응이 거의 없을 때",
             "3. 핵심 팀원이 이탈하거나 계속 흔들릴 때",
-            "4. 공동창업자 간 합의가 되지 않을 때"
+            "4. 파트너 간 합의가 되지 않을 때"
           ],
           value: pivotCriteria,
           onSelect: setPivotCriteria,
@@ -249,7 +249,7 @@ export default function OnboardingDiagnosisPage() {
           id: "dealbreaker",
           label: "",
           type: "single",
-          scenario: "공동창업자에게 이것만큼은 절대 용납할 수 없다고 느끼는 게 있다면 무엇인가요?",
+          scenario: "함께 일하다 보면 반복적으로 불편함을 느끼는 순간이 생깁니다. 파트너에게 이것만큼은 절대 용납할 수 없다 싶은 게 있다면 무엇인가요?",
           options: [
             "1. 결정을 미루거나 느리게 움직이는 것",
             "2. 말한 것을 지키지 않는 것",
@@ -276,7 +276,7 @@ export default function OnboardingDiagnosisPage() {
             "1. 즉시 비용을 대폭 절감한다 — 인원 감축도 포함",
             "2. 브릿지 투자를 빠르게 유치한다 — 희석을 감수",
             "3. 매출을 끌어올려 자체 생존을 우선한다",
-            "4. 공동창업자들이 급여를 유예하고 버틴다"
+            "4. 파트너들이 급여를 유예하고 버틴다"
           ],
           value: fundingRunway,
           onSelect: setFundingRunway,
@@ -286,7 +286,7 @@ export default function OnboardingDiagnosisPage() {
           id: "spendingApproval",
           label: "",
           type: "single",
-          scenario: "공동창업자가 마케팅 집행을 위해 500만 원을 사전 합의 없이 단독으로 집행했습니다. 어떻게 생각하나요?",
+          scenario: "파트너가 마케팅 집행을 위해 500만 원을 사전 합의 없이 단독으로 집행했습니다. 어떻게 생각하나요?",
           options: [
             "1. 역할 범위 내 결정이면 문제없다 — 실행 속도가 중요",
             "2. 금액 기준을 정해두고 그 이상은 반드시 사전 협의한다",
@@ -324,7 +324,7 @@ export default function OnboardingDiagnosisPage() {
           id: "decisionStructure",
           label: "",
           type: "single",
-          scenario: "온보딩 첫 화면 전환율이 낮아서 플로우를 바꾸면 될 것 같습니다. 아직 공동창업자와 이야기하지 않은 상황, 어떻게 할 것 같아요?",
+          scenario: "온보딩 첫 화면 전환율이 낮아서 플로우를 바꾸면 될 것 같습니다. 아직 파트너와 이야기하지 않은 상황, 어떻게 할 것 같아요?",
           options: [
             "1. 내 영역이면 바로 수정하고 결과를 공유한다",
             "2. 간단히 알림만 보내고 바로 진행한다",
@@ -369,12 +369,12 @@ export default function OnboardingDiagnosisPage() {
           id: "deadlockTolerance",
           label: "",
           type: "single",
-          scenario: "경쟁사가 유사 기능을 먼저 출시했습니다. 1주 내 단순화 출시 vs 2주 더 다듬어 완성도 출시, 어떻게 할 것 같아요?",
+          scenario: "제품 방향에 대해 파트너와 의견이 갈렸어요. 각자 논리가 있고 서로 설득이 안 되는 상황, 어떻게 풀 것 같아요?",
           options: [
-            "1. 단순화해서 당장 내보낸다 — 속도 우선",
-            "2. 2주 더 다듬어서 출시한다 — 완성도 우선",
-            "3. 공동창업자와 논의해서 기준을 정한다",
-            "4. 핵심 기능만 추려 중간 타협점을 찾는다"
+            "1. 담당 영역 안에서는 서로의 결정을 존중한다",
+            "2. 논쟁 대신 실험을 돌린다 — 데이터로 판단한다",
+            "3. 외부 멘토에게 판단을 구해 함께 따른다",
+            "4. 서로 설득이 완료되어야만 다음으로 넘어간다"
           ],
           value: deadlockTolerance,
           onSelect: setDeadlockTolerance,
@@ -406,12 +406,12 @@ export default function OnboardingDiagnosisPage() {
           id: "equityStructure",
           label: "",
           type: "single",
-          scenario: "지분을 6:4로 합의했지만 1년이 지난 지금, 두 사람의 기여도와 시간 투자가 달라졌어요. 지분 구조, 어떻게 생각하나요?",
+          scenario: "파트너와 지분 이야기를 솔직하게 나눠보려 합니다. 어떤 기준이 중요하다고 생각하나요?",
           options: [
-            "1. 투자 유치에 맞게 시장 관행 구조를 유지한다",
-            "2. 기여도가 달라지면 지분도 조정해야 한다",
-            "3. 처음 합의한 지분은 어떤 상황에서도 지킨다",
-            "4. 지분 고정 후 급여·옵션으로 기여도를 보완한다"
+            "1. 투자를 잘 받을 수 있는 시장 관행 구조로 정한다",
+            "2. 기여도와 역할에 비례해서 나눈다",
+            "3. 지분 배분은 핵심인력 외에는 최소화한다",
+            "4. 큰 차이 없이, 비슷한 비율로 나눈다"
           ],
           value: equityStructure,
           onSelect: setEquityStructure,
@@ -421,7 +421,7 @@ export default function OnboardingDiagnosisPage() {
           id: "profitDistribution",
           label: "",
           type: "single",
-          scenario: "출시 18개월차, 처음으로 월 영업이익이 났습니다. 공동창업자가 '이제 우리 급여를 시장가로 올리자'고 합니다. 어떻게 생각하나요?",
+          scenario: "출시 18개월차, 처음으로 월 영업이익이 났습니다. 파트너가 '이제 우리 급여를 시장가로 올리자'고 합니다. 어떻게 생각하나요?",
           options: [
             "1. 아직 이르다 — 수익은 전액 재투자해야 한다",
             "2. 맞다 — 지속 가능하게 일하려면 보상이 먼저다",
@@ -577,8 +577,25 @@ export default function OnboardingDiagnosisPage() {
 
   const hasTeam = Boolean(profile?.teamIds?.length);
 
+  const saveAnswer = useCallback(async (fieldId: string, value: string) => {
+    if (!user || !value) return;
+    const teamId = profile?.teamIds?.[0];
+    if (!teamId) return;
+    const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+    try {
+      await updateDoc(memberDocRef, { [`answers.${fieldId}`]: value });
+    } catch {
+      await setDoc(memberDocRef, {
+        name: profile?.name || user.displayName || "팀원",
+        role: role || "MEMBER",
+        status: "active",
+        answers: { [fieldId]: value }
+      }, { merge: true });
+    }
+  }, [user, profile, role]);
+
   const handleSaveAndProceed = async (destination: string) => {
-    if (!user) { router.push("/register"); return; }
+    if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
     const teamId = profile?.teamIds?.[0];
     const answers = {
       extraWorkPriority, extraWorkPrinciple, underperformanceAction,
@@ -589,13 +606,19 @@ export default function OnboardingDiagnosisPage() {
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
     if (teamId) {
-      await setDoc(doc(db, "teams", teamId, "members", user.uid), {
+      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+      await setDoc(memberDocRef, {
         name: profile?.name || user.displayName || "팀원",
         role: role || "MEMBER",
         status: "active",
         progress,
-        answers
       }, { merge: true });
+      const answerUpdates = Object.fromEntries(
+        Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
+      );
+      if (Object.keys(answerUpdates).length > 0) {
+        await updateDoc(memberDocRef, answerUpdates);
+      }
       const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
       const memberDocs = membersSnapshot.docs.map((d) => d.data());
       const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
@@ -615,6 +638,7 @@ export default function OnboardingDiagnosisPage() {
 
   const handleFinish = async () => {
     if (!user) {
+      localStorage.setItem("cosync-pending-save", "true");
       router.push("/register");
       return;
     }
@@ -642,17 +666,23 @@ export default function OnboardingDiagnosisPage() {
       growthStrategy
     };
     if (teamId) {
+      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
       await setDoc(
-        doc(db, "teams", teamId, "members", user.uid),
+        memberDocRef,
         {
           name: profile?.name || user.displayName || "팀원",
           role: role || "MEMBER",
           status: "active",
           progress,
-          answers
         },
         { merge: true }
       );
+      const answerUpdates = Object.fromEntries(
+        Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
+      );
+      if (Object.keys(answerUpdates).length > 0) {
+        await updateDoc(memberDocRef, answerUpdates);
+      }
       const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
       const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
       const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
@@ -765,6 +795,7 @@ export default function OnboardingDiagnosisPage() {
                           option
                         });
                         currentQuestion.onSelect(option);
+                        saveAnswer(currentQuestion.id, option);
 
                         if (currentQuestion.autoNext) {
                           autoNextTimeoutRef.current = setTimeout(() => {
@@ -856,8 +887,8 @@ export default function OnboardingDiagnosisPage() {
             <h2 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "12px" }}>기본 진단이 끝났습니다</h2>
             <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6", marginBottom: "28px" }}>
               {hasTeam
-                ? <>공동창업자와 결과를 비교하거나,<br /><strong style={{ color: "#0f172a" }}>비전·가치관·돈/보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
-                : <>심화 진단을 계속하거나,<br /><strong style={{ color: "#0f172a" }}>지금 팀을 만들고 공동창업자를 초대</strong>해서<br />진단 결과를 함께 비교하세요.</>
+                ? <>파트너와 결과를 비교하거나,<br /><strong style={{ color: "#0f172a" }}>비전·가치관·돈/보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
+                : <>심화 진단을 계속하거나,<br /><strong style={{ color: "#0f172a" }}>지금 팀을 만들고 파트너를 초대</strong>해서<br />진단 결과를 함께 비교하세요.</>
               }
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -885,7 +916,7 @@ export default function OnboardingDiagnosisPage() {
                   onClick={() => handleSaveAndProceed("/workspace/create")}
                   style={{ width: "100%", justifyContent: "center" }}
                 >
-                  팀 만들고 공동창업자 초대하기
+                  팀 파트너 초대하기
                 </button>
               )}
             </div>
@@ -897,5 +928,14 @@ export default function OnboardingDiagnosisPage() {
       )}
 
     </main>
+  );
+}
+
+
+export default function OnboardingDiagnosisPage() {
+  return (
+    <Suspense>
+      <OnboardingDiagnosisPageInner />
+    </Suspense>
   );
 }

@@ -82,10 +82,10 @@ const QUESTION_CONFIGS: QuestionConfig[] = [
   { field: "decisionStructure", toxicPairs: [["1","3"]], cat: 4 },
   { field: "decisionFailure", toxicPairs: [["1","4"]], cat: 4 },
   { field: "actionVsConsensus", toxicPairs: [["1","2"]], cat: 4 },
-  { field: "deadlockTolerance", toxicPairs: [["1","2"]], cat: 4 },
+  { field: "deadlockTolerance", toxicPairs: [["1","4"]], cat: 4 },
   // 지분 & 보상 (cat 5) — 심화 진단 4q
   { field: "salaryStructure", toxicPairs: [["1","2"]], cat: 5 },
-  { field: "equityStructure", toxicPairs: [["1","2"]], cat: 5 },
+  { field: "equityStructure", toxicPairs: [["2","4"]], cat: 5 },
   { field: "profitDistribution", toxicPairs: [["1","2"],["2","4"]], cat: 5 },
   { field: "growthStrategy", toxicPairs: [["1","2"]], cat: 5 },
 ];
