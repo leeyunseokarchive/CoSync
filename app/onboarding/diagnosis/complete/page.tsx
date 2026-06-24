@@ -27,7 +27,7 @@ export default function DiagnosisCompletePage() {
   const hasTeam = Boolean(profile?.teamIds?.length);
 
   const handleSaveAndProceed = async (destination: string) => {
-    if (!user) { router.push("/register"); return; }
+    if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
     const teamId = profile?.teamIds?.[0];
     const answers = {
       extraWorkPriority, extraWorkPrinciple, underperformanceAction,
@@ -38,13 +38,19 @@ export default function DiagnosisCompletePage() {
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
     if (teamId) {
-      await setDoc(doc(db, "teams", teamId, "members", user.uid), {
+      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+      await setDoc(memberDocRef, {
         name: profile?.name || user.displayName || "팀원",
         role: role || "MEMBER",
         status: "active",
         progress,
-        answers
       }, { merge: true });
+      const answerUpdates = Object.fromEntries(
+        Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
+      );
+      if (Object.keys(answerUpdates).length > 0) {
+        await updateDoc(memberDocRef, answerUpdates);
+      }
       await appendDiagnosisHistory(teamId, user.uid, answers, progress);
       const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
       const memberDocs = membersSnapshot.docs.map((d) => d.data());
@@ -101,7 +107,7 @@ export default function DiagnosisCompletePage() {
             <button
               className="btn btn-primary diag-complete-btn"
               type="button"
-              onClick={() => router.push("/onboarding/diagnosis?goTo=q13")}
+              onClick={() => handleSaveAndProceed("/onboarding/diagnosis?goTo=q13")}
             >
               심화 진단 계속하기 (Q13~Q20)
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

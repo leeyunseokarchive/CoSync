@@ -2,11 +2,15 @@
 
 import { AppStateProvider } from "./AppState";
 import { AuthProvider } from "./AuthContext";
+import { DiagnosisSyncOnLogin } from "./DiagnosisSyncOnLogin";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <AppStateProvider>{children}</AppStateProvider>
+      <AppStateProvider>
+        <DiagnosisSyncOnLogin />
+        {children}
+      </AppStateProvider>
     </AuthProvider>
   );
 }
