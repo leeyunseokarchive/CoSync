@@ -14,7 +14,7 @@ import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb, BarChart2 } from "lucide-react";
+import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
@@ -136,14 +136,6 @@ const CLAUSE_DEFS: Record<string, ClauseDef> = {
   },
 };
 
-const CATEGORY_RISK_DESC: Record<string, string> = {
-  "역할 & 책임": "책임 경계가 불분명하면 긴급 상황에서 서로 기다리는 공백이 반복됩니다. 이 공백이 쌓이면 신뢰 문제로 번집니다.",
-  "이탈 & 회수": "이탈 시 지분·자산·접근권 처리 기준이 없으면 법적 분쟁으로 가장 빠르게 번지는 영역입니다.",
-  "비전 & 가치관": "방향성이 다른 채로 투자 유치나 피벗 결정이 오면 처음으로 충돌이 폭발합니다.",
-  "조달 & 운용": "자금 집행 권한 기준이 없으면 소액 지출도 갈등이 됩니다. 런웨이 위기 시 감정적 결정으로 이어집니다.",
-  "의사결정 & 실행": "결정 권한이 불명확하면 교착상태가 반복됩니다. 50:50 구조에서 가장 빠르게 터집니다.",
-  "지분 & 보상": "기여도 차이가 커지는 순간 분쟁이 시작됩니다. 투자 유치 시 이 구조가 드러나면 계약이 무산될 수 있습니다.",
-};
 
 const statusRank = (s: IssueStatus): number => {
   if (s === "conflict") return 3;
@@ -269,7 +261,8 @@ export default function GapReportPage() {
     const topPriorityIssuesList = teamIssues
       .filter((i) => i.status === "conflict")
       .sort((a, b) => (CAT_WEIGHT_BY_ID_TOP[b.id] ?? 0) - (CAT_WEIGHT_BY_ID_TOP[a.id] ?? 0));
-    const topPriorityIssuesArray = topPriorityIssuesList.slice(0, 3);
+    const topPriorityConflicts = topPriorityIssuesList.slice(0, 9);
+    const topPriorityIssuesArray = topPriorityConflicts.slice(0, 3);
     const topPriorityLabels = topPriorityIssuesArray.length > 0 ? topPriorityIssuesArray.map(i => i.label).join(", ") : "없음";
 
     const leadSentence = (() => {
@@ -336,6 +329,7 @@ export default function GapReportPage() {
       highRiskCount,
       topPriorityLabels,
       topPriorityIssuesArray,
+      topPriorityConflicts,
       rawScore,
       categories,
       overallAlignment,
@@ -979,40 +973,55 @@ export default function GapReportPage() {
               
               <div className="premium-card-list">
 
-                {/* Card: 카테고리별 심층 리스크 분석 */}
-                <div className="premium-item-card">
-                  <div className="card-header" style={{ marginBottom: "12px" }}>
-                    <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><BarChart2 size={18} color="#6366f1" /> 카테고리별 심층 리스크 분석</h3>
-                    <p className="clear-text">6개 영역 중 <strong>{(teamInsight.categories ?? []).filter(c => c.alignment !== null && (c.gapScore === "HIGH" || c.gapScore === "CRITICAL")).length}개</strong> 영역에서 즉각 조치가 필요한 리스크가 발견됐습니다.</p>
-                  </div>
-                  <div className="clear-preview">
-                    {[...(teamInsight.categories ?? [])].filter(c => c.alignment !== null).sort((a, b) => (a.alignment ?? 100) - (b.alignment ?? 100)).slice(0, 2).map(cat => (
-                      <div key={cat.label} style={{ marginBottom: "10px", padding: "14px 16px", background: "#fff8f8", borderRadius: "12px", borderLeft: "3px solid #ef4444" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                          <span style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a" }}>{cat.label}</span>
-                          <span style={{ fontSize: "12px", fontWeight: "700", color: "#ef4444" }}>일치율 {cat.alignment}%</span>
+                {/* Card: 나머지 고위험 충돌 대화세트 */}
+                {(() => {
+                  const remaining = (teamInsight.topPriorityConflicts ?? []).slice(3);
+                  if (remaining.length === 0) return null;
+                  const shown = remaining.slice(0, 1);
+                  const blurred = remaining.slice(1);
+                  const renderItem = (issue: typeof remaining[number], rankIdx: number) => {
+                    const script = SCRIPTS[issue.id];
+                    if (!script) return null;
+                    return (
+                      <div key={issue.id} style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e8edf4", overflow: "hidden", marginBottom: "10px" }}>
+                        <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", gap: "14px" }}>
+                          <span style={{ fontSize: "28px", fontWeight: "900", color: "#5b5be7", lineHeight: 1, letterSpacing: "-1px", flexShrink: 0 }}>0{rankIdx + 1}</span>
+                          <div>
+                            <span style={{ fontSize: "11px", fontWeight: "700", color: "#dc2626", display: "block", marginBottom: "4px" }}>고위험 충돌</span>
+                            <p style={{ fontSize: "15px", fontWeight: "800", color: "#1f2430", margin: 0 }}>{script.topic}</p>
+                          </div>
                         </div>
-                        <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.6" }}>{CATEGORY_RISK_DESC[cat.label] ?? "이 영역의 인식 차이가 실행 충돌로 번질 수 있습니다."}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="card-blur-area">
-                    {[...(teamInsight.categories ?? [])].filter(c => c.alignment !== null).sort((a, b) => (a.alignment ?? 100) - (b.alignment ?? 100)).slice(2).map(cat => (
-                      <div key={cat.label} style={{ marginBottom: "10px", padding: "14px 16px", background: "#f8fafc", borderRadius: "12px", borderLeft: "3px solid #e2e8f0" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                          <span style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a" }}>{cat.label}</span>
-                          <span style={{ fontSize: "12px", fontWeight: "700", color: "#94a3b8" }}>일치율 {cat.alignment}%</span>
+                        <div style={{ padding: "14px 20px" }}>
+                          <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.7", margin: "0 0 10px" }}>{script.stake.slice(0, 90)}...</p>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {script.keywords.map(kw => (
+                              <span key={kw} style={{ fontSize: "11px", fontWeight: "600", background: "#eef2ff", color: "#4f46e5", padding: "3px 10px", borderRadius: "999px" }}>{kw}</span>
+                            ))}
+                          </div>
                         </div>
-                        <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.6" }}>{CATEGORY_RISK_DESC[cat.label] ?? "이 영역의 인식 차이가 실행 충돌로 번질 수 있습니다."}</p>
                       </div>
-                    ))}
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                      </button>
+                    );
+                  };
+                  return (
+                    <div className="premium-item-card">
+                      <div className="card-header" style={{ marginBottom: "12px" }}>
+                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><ShieldAlert size={18} color="#dc2626" /> 고위험 충돌 대화세트 전체</h3>
+                        <p className="clear-text">상위 3개 외 <strong>{remaining.length}개</strong>의 충돌 안건 대화세트가 더 있습니다.</p>
+                      </div>
+                      <div className="clear-preview">
+                        {shown.map((issue, i) => renderItem(issue, 3 + i))}
+                      </div>
+                      <div className="card-blur-area">
+                        {blurred.map((issue, i) => renderItem(issue, 4 + i))}
+                        <div className="card-unlock-overlay">
+                          <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                            <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Card: 합의 우선순위 로드맵 */}
                 <div className="premium-item-card">
