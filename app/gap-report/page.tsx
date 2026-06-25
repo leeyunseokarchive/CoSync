@@ -1033,34 +1033,6 @@ export default function GapReportPage() {
                   </div>
                 </div>
 
-                {/* Card 5 */}
-                <div className="premium-item-card">
-                  <div className="card-header" style={{ marginBottom: "12px" }}>
-                    <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><FileText size={18} color="#6366f1" /> 주주간계약 전 필수 합의 문서 생성 및 버전 관리</h3>
-                    <p className="clear-text">진단 결과와 팀의 합의 내용을 바탕으로, 전문가가 검토한 템플릿에 맞춰 정교한 합의 문서를 작성합니다:</p>
-                  </div>
-                  <div className="clear-preview doc-style-area">
-                    <p style={{ fontWeight: "700", color: "#0f172a", margin: "0 0 8px", fontSize: "0.9rem" }}>제 4조 ({teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}에 관한 의사결정 및 분쟁 처리)</p>
-                    <p style={{ color: "#475569", fontSize: "0.875rem", margin: 0, lineHeight: "1.85" }}>
-                      ① 창업 멤버 간 본 안건에 관한 의사결정 불일치 발생 시, 발생일로부터 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "36px" }}>&nbsp;&nbsp;&nbsp;&nbsp;</span>일 이내 전원 합의를 우선 시도한다.<br />
-                      ② 합의 불성립 시 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "80px" }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 기준으로 결정하며, 이견 지속 시 대표이사의 결정에 따른다.<br />
-                      ③ 어느 일방이 본 조항에 관하여 이의를 제기한 경우, <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "36px" }}>&nbsp;&nbsp;&nbsp;&nbsp;</span>일 이내 제3자 조정 절차를 개시한다.<br />
-                      ④ 조정 불성립 시 <span style={{ borderBottom: "1.5px solid #94a3b8", display: "inline-block", minWidth: "100px" }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>의 중재에 따르며, 중재 판정은 최종적·구속적 효력을 가진다.
-                    </p>
-                  </div>
-                  <div className="card-blur-area doc-style-area" style={{ marginTop: "12px" }}>
-                    <p><strong>제 5조 ({teamInsight.topPriorityIssuesArray?.[1]?.label ?? "후속 조치"} 관련 멤버 이탈 시 처리 기준)</strong> ① 창업 멤버가 자발적으로 이탈하는 경우, 이탈 확정일로부터 ____일 이내 보유 지분에 대해 잔존 멤버에게 우선매수권을 부여한다. ② 매수가액은 ____________ 기준으로 산정하며, 잔존 멤버가 이를 거절하는 경우 제3자 매각을 허용하되 잔존 멤버 전원의 동의를 요한다...</p>
-                    <p><strong>제 6조 (주식매수선택권 부여 기준)</strong> ① 임직원에 대한 주식매수선택권의 총 한도는 발행주식 총수의 ____% 이내로 한다. ② 행사 조건은 근속 ____년 이상을 원칙으로 하며, 개인별 부여 한도 및 행사 가격은 이사회 결의로 정한다. ③ 퇴직 시 미행사 옵션의 처리 기준은 ____________ 으로 한다...</p>
-                    <p><strong>제 7조 (영업비밀 및 기밀 유지 의무)</strong> ① 창업 멤버는 본 합의서 체결 이후 지득한 회사의 기술·재무·인적 자원·사업 전략 등 일체의 비공개 정보에 대하여 멤버 지위 종료 후 ____년간 비밀을 유지할 의무를 진다. ② 위반 시 손해배상 범위는 ____________ 으로 한다...</p>
-                    <p><strong>제 8조 (경업 금지 의무)</strong> ① 창업 멤버는 멤버 지위 종료일로부터 ____년간 회사와 동종의 사업을 영위하는 법인을 설립하거나 임직원으로 종사할 수 없다. ② 지역적 범위는 ____________ 으로 하며, 위반 시 위약벌은 ____________ 으로 한다...</p>
-                    <p style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "12px", color: "var(--primary)", display: "flex", alignItems: "center", gap: "6px" }}><RefreshCw size={13} /><strong>버전 1.0 생성됨 (변경 이력 추적 중)</strong></p>
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                      </button>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </>
