@@ -855,7 +855,7 @@ export default function GapReportPage() {
               <div className="teaser-header">
                 <div className="badge-legal" style={{ marginBottom: "16px" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  동업계약서 전문 변호사 협력 템플릿 · 감수 완료
+                  동업계약서 전문 변호사 감수 완료
                 </div>
                 <h2>합의 공백을 기반으로 합의안을 완성하세요</h2>
                 <p>리포트에서 확인한 합의 공백은 그대로 우리 팀 합의안의 조항이 됩니다.</p>
