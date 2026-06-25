@@ -1024,50 +1024,80 @@ export default function GapReportPage() {
                 })()}
 
                 {/* Card: 합의 우선순위 로드맵 */}
-                <div className="premium-item-card">
-                  <div className="card-header" style={{ marginBottom: "12px" }}>
-                    <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><TrendingUp size={18} color="#10b981" /> 합의 우선순위 로드맵</h3>
-                    <p className="clear-text">팀 진단 결과를 바탕으로 어떤 안건부터 합의해야 하는지 순서를 제시합니다.</p>
-                  </div>
-                  <div className="clear-preview">
-                    {(teamInsight.topPriorityIssuesArray ?? []).slice(0, 2).map((issue, i) => (
-                      <div key={issue.id} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                        <div style={{ flexShrink: 0, width: "28px", height: "28px", borderRadius: "50%", background: "#ef4444", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800" }}>{i + 1}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-                            <span style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a" }}>{issue.label}</span>
-                            <span style={{ fontSize: "11px", fontWeight: "700", background: "#fee2e2", color: "#ef4444", padding: "2px 8px", borderRadius: "999px" }}>즉시</span>
+                {(() => {
+                  const allConflicts = teamInsight.topPriorityConflicts ?? [];
+                  if (allConflicts.length === 0) return null;
+                  const phaseOf = (i: number) => i < 2 ? { label: "지금 당장", color: "#ef4444", bg: "#fee2e2", dot: "#ef4444" } : i < 5 ? { label: "1개월 내", color: "#f97316", bg: "#fff7ed", dot: "#f97316" } : { label: "3개월 내", color: "#6366f1", bg: "#eef2ff", dot: "#6366f1" };
+                  const renderRoadmapItem = (issue: typeof allConflicts[number], idx: number) => {
+                    const script = SCRIPTS[issue.id];
+                    if (!script) return null;
+                    const phase = phaseOf(idx);
+                    const stakeSnippet = script.stake.length > 70 ? script.stake.slice(0, 70) + "…" : script.stake;
+                    const disputeSnippet = script.dispute.length > 60 ? script.dispute.slice(0, 60) + "…" : script.dispute;
+                    return (
+                      <div key={issue.id} style={{ display: "flex", gap: "0", marginBottom: "0" }}>
+                        {/* 타임라인 컬럼 */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "40px", flexShrink: 0 }}>
+                          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: phase.dot, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "900", flexShrink: 0 }}>{idx + 1}</div>
+                          {idx < allConflicts.length - 1 && <div style={{ width: "2px", flex: 1, background: "#e2e8f0", minHeight: "20px", margin: "4px 0" }} />}
+                        </div>
+                        {/* 카드 컬럼 */}
+                        <div style={{ flex: 1, marginLeft: "12px", paddingBottom: "16px" }}>
+                          <div style={{ background: "#fff", border: "1.5px solid #e8edf4", borderRadius: "14px", overflow: "hidden" }}>
+                            <div style={{ padding: "12px 16px", background: idx === 0 ? "#fff8f8" : "#f8fafc", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <span style={{ fontWeight: "800", fontSize: "14px", color: "#0f172a" }}>{script.topic}</span>
+                              <span style={{ fontSize: "11px", fontWeight: "700", background: phase.bg, color: phase.color, padding: "3px 10px", borderRadius: "999px", flexShrink: 0 }}>{phase.label}</span>
+                            </div>
+                            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                              <div>
+                                <p style={{ fontSize: "11px", fontWeight: "700", color: phase.color, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>왜 지금인가?</p>
+                                <p style={{ fontSize: "13px", color: "#374151", margin: 0, lineHeight: "1.65" }}>{stakeSnippet}</p>
+                              </div>
+                              <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "10px" }}>
+                                <p style={{ fontSize: "11px", fontWeight: "700", color: "#94a3b8", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>방치하면?</p>
+                                <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.65" }}>{disputeSnippet}</p>
+                              </div>
+                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                {script.keywords.map(kw => (
+                                  <span key={kw} style={{ fontSize: "11px", fontWeight: "600", background: "#f1f5f9", color: "#475569", padding: "3px 10px", borderRadius: "999px" }}>{kw}</span>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                          <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.5" }}>현재 팀에서 충돌 가능성이 가장 높은 안건입니다. 이 기준이 없으면 이후 모든 결정이 흔들립니다.</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="card-blur-area">
-                    {(teamInsight.topPriorityIssuesArray ?? []).slice(2).map((issue, i) => {
-                      const timing = i < 2 ? "1개월 내" : "3개월 내";
-                      const timingColor = i < 2 ? "#f97316" : "#6366f1";
-                      const timingBg = i < 2 ? "#fff7ed" : "#eef2ff";
-                      return (
-                        <div key={issue.id} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                          <div style={{ flexShrink: 0, width: "28px", height: "28px", borderRadius: "50%", background: "#e2e8f0", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800" }}>{i + 3}</div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-                              <span style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a" }}>{issue.label}</span>
-                              <span style={{ fontSize: "11px", fontWeight: "700", background: timingBg, color: timingColor, padding: "2px 8px", borderRadius: "999px" }}>{timing}</span>
-                            </div>
-                            <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.5" }}>이 안건도 지금 기준이 없으면 팀 성장 단계에서 충돌로 이어질 수 있습니다.</p>
+                    );
+                  };
+                  const shownItems = allConflicts.slice(0, 2);
+                  const blurredItems = allConflicts.slice(2);
+                  return (
+                    <div className="premium-item-card">
+                      <div className="card-header" style={{ marginBottom: "16px" }}>
+                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><TrendingUp size={18} color="#10b981" /> 합의 우선순위 로드맵</h3>
+                        <p className="clear-text">팀 진단 결과 기반으로 {allConflicts.length}개 충돌 안건의 합의 순서와 이유를 제시합니다.</p>
+                        {/* 범례 */}
+                        <div style={{ display: "flex", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
+                          {[{ label: "지금 당장", color: "#ef4444", bg: "#fee2e2" }, { label: "1개월 내", color: "#f97316", bg: "#fff7ed" }, { label: "3개월 내", color: "#6366f1", bg: "#eef2ff" }].map(p => (
+                            <span key={p.label} style={{ fontSize: "11px", fontWeight: "700", background: p.bg, color: p.color, padding: "3px 10px", borderRadius: "999px" }}>{p.label}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="clear-preview">
+                        {shownItems.map((issue, i) => renderRoadmapItem(issue, i))}
+                      </div>
+                      {blurredItems.length > 0 && (
+                        <div className="card-blur-area">
+                          {blurredItems.map((issue, i) => renderRoadmapItem(issue, 2 + i))}
+                          <div className="card-unlock-overlay">
+                            <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                              <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
+                            </button>
                           </div>
                         </div>
-                      );
-                    })}
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                      </button>
+                      )}
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Card 1 */}
                 <div className="premium-item-card">
