@@ -4782,41 +4782,36 @@ button {
   box-shadow: none;
 }
 
-/* Responsive heatmap inline grid */
-.heatmap-flex-grid {
-  display: inline-grid;
-  grid-template-columns: 140px repeat(4, 72px);
-  gap: 8px;
-  align-items: center;
-}
-
+/* Heatmap empty cell visual style (sizing handled by inline style on desktop) */
 .hm-empty-cell {
   border-radius: 12px;
   background: #f1f5f9;
   border: 1.5px dashed #e2e8f0;
-  width: 72px;
-  height: 72px;
 }
 
+/* 모바일 전용: inline style을 !important로 오버라이드해서 히트맵 축소 */
 @media (max-width: 520px) {
-  .heatmap-flex-grid {
-    display: grid;
-    grid-template-columns: 68px repeat(4, 1fr);
-    gap: 5px;
-    width: 100%;
+  .hm-inline-grid {
+    grid-template-columns: 68px repeat(4, 1fr) !important;
+    gap: 5px !important;
+    width: 100% !important;
   }
-  .heatmap-flex-grid .hm-item {
+  .hm-inline-grid .hm-item {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
     font-size: 11px !important;
     border-radius: 9px !important;
   }
-  .heatmap-flex-grid .hm-row-label {
-    font-size: 10px !important;
+  .hm-inline-grid .hm-empty-cell {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 9px !important;
   }
-  .hm-empty-cell {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
-    border-radius: 9px;
+  .hm-inline-grid .hm-row-label {
+    font-size: 10px !important;
+    padding-right: 4px !important;
   }
 }
 
