@@ -55,12 +55,14 @@ export default function LoginPage() {
 
         <div className="form-grid">
           <label className="label">이메일 주소</label>
-          <input
-            className="input"
-            placeholder="example@cosync.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
+          <div className="password-row">
+            <input
+              className="input"
+              placeholder="example@cosync.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
           <label className="label">비밀번호</label>
           <div className="password-row">

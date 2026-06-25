@@ -2030,6 +2030,27 @@ button {
   gap: 24px;
 }
 
+/* 인사이트 2열 그리드 — 모바일에서 세로 스택 */
+.insight-grid {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 0 36px;
+  padding-left: 16px;
+}
+@media (max-width: 600px) {
+  .insight-grid {
+    grid-template-columns: 1fr;
+    padding-left: 0;
+    gap: 0;
+  }
+  .insight-gauge-col {
+    padding-bottom: 16px !important;
+  }
+  .insight-text-col {
+    padding-bottom: 20px !important;
+  }
+}
+
 .insight-gauge {
   display: flex;
   flex-direction: column;
@@ -2717,8 +2738,8 @@ button {
 
 .modal-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
 }
 
 .modal-user {
@@ -3203,13 +3224,46 @@ button {
 }
 
 @media (max-width: 800px) {
-  .modal-grid {
-    grid-template-columns: 1fr;
-  }
-
   .modal-footer {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-card {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+  .modal-card h2 {
+    font-size: 16px;
+    margin: 12px 0 14px;
+  }
+  .modal-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .modal-user {
+    padding: 12px 14px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .modal-user .user-head {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .modal-user .user-name {
+    font-size: 11px;
+  }
+  .modal-user .quote {
+    flex: 1;
+    min-width: 0;
   }
 }
 .gap-focus {
@@ -4301,8 +4355,8 @@ button {
 
 .clause-blur > p,
 .clause-blur > ul {
-  filter: blur(4px);
-  opacity: 0.55;
+  filter: blur(3.5px);
+  opacity: 0.7;
   user-select: none;
   pointer-events: none;
   font-size: 13px;
@@ -4446,17 +4500,17 @@ button {
 }
 
 .option-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
+  background: #e8edf4;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
 }
 
 .option-box h4 {
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #1e293b;
 }
 
 .doc-style-area p {
@@ -4726,6 +4780,44 @@ button {
   color: #94a3b8;
   cursor: default;
   box-shadow: none;
+}
+
+/* Responsive heatmap inline grid */
+.heatmap-flex-grid {
+  display: inline-grid;
+  grid-template-columns: 140px repeat(4, 72px);
+  gap: 8px;
+  align-items: center;
+}
+
+.hm-empty-cell {
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 1.5px dashed #e2e8f0;
+  width: 72px;
+  height: 72px;
+}
+
+@media (max-width: 520px) {
+  .heatmap-flex-grid {
+    display: grid;
+    grid-template-columns: 68px repeat(4, 1fr);
+    gap: 5px;
+    width: 100%;
+  }
+  .heatmap-flex-grid .hm-item {
+    font-size: 11px !important;
+    border-radius: 9px !important;
+  }
+  .heatmap-flex-grid .hm-row-label {
+    font-size: 10px !important;
+  }
+  .hm-empty-cell {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    border-radius: 9px;
+  }
 }
 
 /* Help Box */

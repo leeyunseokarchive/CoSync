@@ -419,10 +419,10 @@ export default function GapReportPage() {
               </div>
 
               {/* 2열 그리드 */}
-              <div style={{ display: "grid", gridTemplateColumns: "148px 1fr", gap: "0 36px", paddingLeft: "16px" }}>
+              <div className="insight-grid">
 
                 {/* 상단 좌: 게이지 + 단계 뱃지 */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", paddingBottom: "28px" }}>
+                <div className="insight-gauge-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", paddingBottom: "28px" }}>
                   <div className="gauge-shell">
                     <div className="gauge-fill" style={{ "--fill": `${alignmentScore}` } as CSSProperties} />
                     <div className="gauge-core">
@@ -439,7 +439,7 @@ export default function GapReportPage() {
                 </div>
 
                 {/* 상단 우: 인사이트 텍스트 */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingBottom: "28px" }}>
+                <div className="insight-text-col" style={{ display: "flex", flexDirection: "column", gap: "8px", paddingBottom: "28px" }}>
                   <p style={{ fontSize: "15px", lineHeight: "1.7", color: "#0f172a", fontWeight: "700", margin: 0 }}>
                     {teamInsight.leadSentence}
                   </p>
@@ -529,7 +529,7 @@ export default function GapReportPage() {
 
               {/* 카테고리=행, 질문=열 히트맵 */}
               <div style={{ overflowX: "auto", textAlign: "center" }}>
-              <div style={{ display: "inline-grid", gridTemplateColumns: "140px repeat(4, 72px)", gap: "8px", alignItems: "center" }}>
+              <div className="heatmap-flex-grid">
 
                 {/* 기본 진단 4개 행 */}
                 {[
@@ -539,13 +539,13 @@ export default function GapReportPage() {
                   { label: "조달 & 운용",  indices: [9, 10, 11] },
                 ].map((cat) => (
                   <React.Fragment key={cat.label}>
-                    <div style={{ fontSize: "12px", fontWeight: "700", color: "#334155", textAlign: "right", paddingRight: "8px", lineHeight: "1.3" }}>{cat.label}</div>
+                    <div className="hm-row-label" style={{ fontSize: "12px", fontWeight: "700", color: "#334155", textAlign: "right", paddingRight: "8px", lineHeight: "1.3" }}>{cat.label}</div>
                     {cat.indices.map((idx) => (
-                      <button key={idx} type="button" className={`hm-cell hm-item ${activeIssues[idx].status}`} onClick={() => setSelectedIssue(activeIssues[idx].id)} style={{ width: "72px", height: "72px" }}>
+                      <button key={idx} type="button" className={`hm-cell hm-item ${activeIssues[idx].status}`} onClick={() => setSelectedIssue(activeIssues[idx].id)}>
                         Q{idx + 1}
                       </button>
                     ))}
-                    <div style={{ width: "72px", height: "72px", borderRadius: "12px", background: "#f1f5f9", border: "1.5px dashed #e2e8f0" }} />
+                    <div className="hm-empty-cell" />
                   </React.Fragment>
                 ))}
 
@@ -563,9 +563,9 @@ export default function GapReportPage() {
                       { label: "지분 & 보상",     indices: [16, 17, 18, 19] },
                     ].map((cat) => (
                       <React.Fragment key={cat.label}>
-                        <div style={{ fontSize: "12px", fontWeight: "700", color: "#334155", textAlign: "right", paddingRight: "8px", lineHeight: "1.3" }}>{cat.label}</div>
+                        <div className="hm-row-label" style={{ fontSize: "12px", fontWeight: "700", color: "#334155", textAlign: "right", paddingRight: "8px", lineHeight: "1.3" }}>{cat.label}</div>
                         {cat.indices.map((idx) => (
-                          <button key={idx} type="button" className={`hm-cell hm-item ${activeIssues[idx].status}`} onClick={() => setSelectedIssue(activeIssues[idx].id)} style={{ width: "72px", height: "72px" }}>
+                          <button key={idx} type="button" className={`hm-cell hm-item ${activeIssues[idx].status}`} onClick={() => setSelectedIssue(activeIssues[idx].id)}>
                             Q{idx + 1}
                           </button>
                         ))}
@@ -1000,12 +1000,12 @@ export default function GapReportPage() {
                     <p className="clear-text">성공한 스타트업들이 채택한 가장 안전하고 검증된 운영 기준은...</p>
                   </div>
                   <div className="clear-preview">
-                    <div style={{ borderLeft: "3px solid #5b5be7", paddingLeft: "16px", background: "#fff" }}>
-                      <p style={{ fontSize: "11px", fontWeight: "700", color: "#5b5be7", letterSpacing: "0.5px", margin: "0 0 6px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <div style={{ background: "#e8edf4", borderRadius: "12px", padding: "14px 18px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: "700", color: "#6366f1", display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}>
                         권장 옵션 <Star size={11} color="#f59e0b" fill="#f59e0b" />
-                      </p>
-                      <p style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a", margin: "0 0 6px" }}>{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정</p>
-                      <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, lineHeight: "1.7" }}>성공하는 스타트업은 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 기준과 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
+                      </span>
+                      <p style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a", margin: "0 0 6px", lineHeight: "1.4" }}>{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정</p>
+                      <p style={{ color: "#475569", fontSize: "0.875rem", margin: 0, lineHeight: "1.7" }}>성공하는 스타트업은 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 기준과 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
                     </div>
                   </div>
                   <div className="card-blur-area" style={{ marginTop: "12px" }}>
@@ -1033,7 +1033,7 @@ export default function GapReportPage() {
                 <div className="premium-item-card">
                   <div className="card-header" style={{ marginBottom: "12px" }}>
                     <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><FileText size={18} color="#6366f1" /> 주주간계약 전 필수 합의 문서 생성 및 버전 관리</h3>
-                    <p className="clear-text">막연했던 대화를 명확한 운영규칙과 권리관계 합의 문서로. 팀의 성장에 맞춰 지속적으로 업데이트하세요:</p>
+                    <p className="clear-text">진단 결과와 팀의 합의 내용을 바탕으로, 전문가가 검토한 템플릿에 맞춰 정교한 합의 문서를 작성합니다:</p>
                   </div>
                   <div className="clear-preview doc-style-area">
                     <p style={{ fontWeight: "700", color: "#0f172a", margin: "0 0 8px", fontSize: "0.9rem" }}>제 4조 ({teamInsight.topPriorityIssuesArray?.[0]?.label ?? "핵심 안건"}에 관한 의사결정 및 분쟁 처리)</p>
@@ -1134,7 +1134,7 @@ export default function GapReportPage() {
                 </button>
               </div>
               <h2>{activeIssue.label}</h2>
-              <div className="modal-grid" style={{ gridTemplateColumns: `repeat(${Math.min(members.length, 3)}, 1fr)` }}>
+              <div className="modal-grid">
                 {[...(activeIssue as typeof teamIssues[number]).memberValues]
                   .sort((a, b) => (a.id === user?.uid ? -1 : b.id === user?.uid ? 1 : 0))
                   .map((mv) => (
