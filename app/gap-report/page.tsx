@@ -962,10 +962,10 @@ export default function GapReportPage() {
 
               <div className="teaser-header" style={{ marginTop: "72px" }}>
                 <div className="badge-legal" style={{ marginBottom: "20px" }}>
-                  <Scale size={14} /> 변호사 감수 · 실제 분쟁 판례 반영
+                  <Scale size={14} /> 실제 분쟁 판례 반영 · 변호사 감수
                 </div>
-                <h2>프리미엄 팀 합의 솔루션</h2>
-                <p>주주간계약 전 반드시 필요한 맞춤형 운영 및 권리관계 합의서를 완성하세요.</p>
+                <h2>심화 리포트</h2>
+                <p>우리 팀의 핵심 법적 리스크, 시장 표준 합의 가이드, 합의 문서 초안을 확인하세요.</p>
               </div>
               
               <div className="premium-card-list">
@@ -990,8 +990,8 @@ export default function GapReportPage() {
                     </ul>
                     <p>데이터에 따르면 초기 합의를 문서화하지 않은 팀의 60%가 1년 내에 이탈 및 지분 분쟁을 겪습니다.</p>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 우리 팀 맞춤 합의안 완성하기
+                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
                       </button>
                     </div>
                   </div>
@@ -1026,8 +1026,8 @@ export default function GapReportPage() {
                       <p>사유: 가장 안전해 보이지만 실제로는 교착 상태를 유발할 위험이 커 시장에서는 절대 권장하지 않는 방식입니다.</p>
                     </div>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 우리 팀 맞춤 합의안 완성하기
+                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
                       </button>
                     </div>
                   </div>
@@ -1055,8 +1055,8 @@ export default function GapReportPage() {
                     <p><strong>제 8조 (경업 금지 의무)</strong> ① 창업 멤버는 멤버 지위 종료일로부터 ____년간 회사와 동종의 사업을 영위하는 법인을 설립하거나 임직원으로 종사할 수 없다. ② 지역적 범위는 ____________ 으로 하며, 위반 시 위약벌은 ____________ 으로 한다...</p>
                     <p style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "12px", color: "var(--primary)", display: "flex", alignItems: "center", gap: "6px" }}><RefreshCw size={13} /><strong>버전 1.0 생성됨 (변경 이력 추적 중)</strong></p>
                     <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 우리 팀 맞춤 합의안 완성하기
+                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
                       </button>
                     </div>
                   </div>
@@ -1080,10 +1080,10 @@ export default function GapReportPage() {
             >
               ✕
             </button>
-            <h3>프리미엄 플로우로 합의를 완성하세요</h3>
+            <h3>심화 리포트 & 합의안 서비스 사전신청</h3>
             <p>
-              계약서 생성, 버전 히스토리, 합의 확정까지 이어지는 프리미엄
-              워크플로우가 곧 제공됩니다.
+              심화 리포트와 팀 맞춤 합의안 서비스가 곧 제공됩니다.<br />
+              사전신청하시면 오픈 시 가장 먼저 안내드립니다.
             </p>
             <div className="preview-slider">
               <Swiper
