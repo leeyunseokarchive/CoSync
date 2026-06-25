@@ -178,7 +178,7 @@ export default function LandingPage() {
             <p className="hero-sub">
               지분, 역할, 보상, 이탈 기준은 서로 연결되어 있습니다.
               <br />
-              CoSync는 공동창업자 간 기준 차이를 비교하고, 팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
+              CoSync는 공동창업자 간 기준 차이를 비교하고,<br />팀 운영에 필요한 핵심 기준을 하나의 합의안 문서로 정리하는 서비스입니다.
             </p>
             <div className="hero-actions">
               <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta" style={{ display: "flex", flexDirection: "column", gap: "3px" }}>

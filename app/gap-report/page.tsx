@@ -15,7 +15,7 @@ import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
 import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
 type QuestionDef = {
@@ -97,42 +97,42 @@ const CLAUSE_DEFS: Record<string, ClauseDef> = {
     lead: "각 당사자의 역할과 담당 업무를 구체적으로 정하고, 미이행 시 책임 기준을 합의한다.",
     items: ["각자 단독으로 결정할 수 있는 업무 범위", "회색지대 업무 발생 시 우선 담당자 지정 기준", "근속의무 및 성과 부진 시 역할 재조정 조건"],
     blurItems: ["지식재산권(IP) 귀속 기준 (창업 전 개발 포함)", "역할 미이행 시 주식 강제매각 청구권(콜옵션) 발동 조건"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
   "이탈 & 회수": {
     title: "주식 처분 제한(Lock-up) 및 이탈 처리",
     lead: "당사자 이탈 시 주식 처리 절차와 권한 회수 기준을 합의한다.",
     items: ["베스팅(Vesting) 기간 및 클리프(Cliff) 조건", "주식 처분 제한(Lock-up) 기간 및 예외 조건", "이탈 시 주식 정산 기준 (액면가 vs 시가)"],
     blurItems: ["주식 강제매각 청구권(콜옵션) 발동 사유 및 절차", "법인 인감·계좌·시스템 접근권 반환 기한"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
   "비전 & 가치관": {
     title: "계약해지 및 교착상태 해소(Deadlock)",
     lead: "사업 방향 전환 기준과 계약 해지 사유, Deadlock 발생 시 처리 절차를 합의한다.",
     items: ["피벗·사업 중단 트리거 기준 및 해지 사유", "교착상태(Deadlock) 지속 시 처리 방식", "당사자 전원 서면 합의 시 계약 해지 절차"],
     blurItems: ["엑싯 방향(M&A / IPO / 독립 운영) 우선순위 합의", "Deadlock 해소를 위한 우선매수권(ROFR) 발동 조건"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
   "조달 & 운용": {
     title: "자금 집행 승인권 및 신주인수우선권",
     lead: "단독 집행 가능한 지출 한도, 투자 유치 조건, 신주 발행 시 기존 주주 보호 기준을 합의한다.",
     items: [],
     blurItems: ["자금 집행 승인권 — 단독 결정 한도 금액 기준", "신주인수우선권 — 신주 발행 시 기존 지분율 보호", "런웨이 위기 시 대응 우선순위 (삭감 순서)", "우선매수권(ROFR) / 동반매도참여권(Tag-along) / 동반매도청구권(Drag-along) 발동 조건", "투자 조건 거부권 행사 기준 및 지분 희석 한도"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
   "의사결정 & 실행": {
     title: "의사결정 구조 및 경업금지의무",
     lead: "단독 결정 범위와 공동 결정 사안, 퇴사 후 경업금지 기준을 합의한다.",
     items: ["단독 결정 가능 사안 기준 (금액·영향 범위)", "공동 결정 필요 사안 및 Deadlock 시 처리 방식", "경업금지의무 — 재직 중 및 퇴사 후 적용 기간"],
     blurItems: ["결정 번복 가능 조건 및 재논의 절차", "비밀유지의무(NDA) — 대상 정보 범위 및 위반 시 위약벌"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
   "지분 & 보상": {
     title: "지분 배분 및 손해배상·위약벌",
     lead: "지분 구조, 창업자 보상 기준, 계약 위반 시 손해배상 조건을 합의한다.",
     items: [],
     blurItems: ["파트너 간 급여 차등 기준 및 흑자 전환 시 재논의 트리거", "베스팅(Vesting) 기간 및 이탈 시 지분 회수 가격 기준", "손해배상 및 위약벌 — 위반 유형별 책임 한도", "동반매도참여권(Tag-along) / 동반매도청구권(Drag-along) 행사 조건", "분쟁해결 — 관할 법원 및 중재 절차"],
-    btnLabel: "합의를 위한 대화셋 보기",
+    btnLabel: "팀 맞춤 합의안 생성하기",
   },
 };
 
@@ -154,6 +154,8 @@ export default function GapReportPage() {
   const [teamCreator, setTeamCreator] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
   const [openGuides, setOpenGuides] = useState<Set<string>>(new Set());
+  const [earlyBirdEmail, setEarlyBirdEmail] = useState("");
+  const [earlyBirdSubmitted, setEarlyBirdSubmitted] = useState(false);
   const toggleGuide = (id: string) => setOpenGuides(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
@@ -354,8 +356,7 @@ export default function GapReportPage() {
     { title: "계약서 생성", src: "/preview/document-view.png" },
     { title: "구체적인 질문 리스트", src: "/preview/questions.png" },
     { title: "AI 추천 문구", src: "/preview/version-diff.png" },
-    { title: "히스토리 관리", src: "/preview/version-history.png" },
-    { title: "최종 합의", src: "/preview/consensus.png" }
+    { title: "히스토리 관리", src: "/preview/version-history.png" }
   ];
 
   return (
@@ -380,7 +381,7 @@ export default function GapReportPage() {
         {!isTeamComplete && members.length >= 2 && (
           <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 32px" }}>
             <div style={{ marginBottom: "16px", display: "flex", justifyContent: "center" }}><Lock size={32} color="#94a3b8" /></div>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>모든 팀원이 기본 진단을 완료해야 리포트를 볼 수 있어요</h3>
+            <h3 style={{ fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>모든 팀원이 기본 진단을 완료해야 리포트를 볼 수 있어요</h3>
             <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, marginBottom: "24px" }}>
               {members.filter(m => !hasBasicComplete(m)).map(m => (
                 <span key={m.id}><strong>{m.name}</strong>의 진단 진행률: {m.progress ?? 0}%<br /></span>
@@ -637,7 +638,7 @@ export default function GapReportPage() {
                       let t = stake + " " + dispute;
                       t = t.replace(/'([^']+)'/g, '<mark style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:600">$1</mark>');
                       for (const w of WARN_WORDS) {
-                        t = t.replace(new RegExp(w, "g"), `<strong style="color:#b45309;font-weight:700">${w}</strong>`);
+                        t = t.replace(new RegExp(`(${w}[가-힣]*)`, "g"), `<strong style="color:#b45309;font-weight:700">$1</strong>`);
                       }
                       return t;
                     };
@@ -720,7 +721,7 @@ export default function GapReportPage() {
               .scenario-review-wrapper {
                 display: flex;
                 flex-direction: column;
-                gap: 40px;
+                gap: 72px;
                 width: 100%;
                 margin: 60px 0 0;
               }
@@ -728,7 +729,7 @@ export default function GapReportPage() {
                 .scenario-review-wrapper {
                   flex-direction: row;
                   align-items: flex-start;
-                  gap: 48px;
+                  gap: 72px;
                 }
                 .scenario-comic-col {
                   flex: 0 0 380px;
@@ -860,8 +861,8 @@ export default function GapReportPage() {
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   동업계약서 전문 변호사 감수 완료
                 </div>
-                <h2>합의 공백을 기반으로 합의안을 완성하세요</h2>
-                <p>리포트에서 확인한 합의 공백은 그대로 우리 팀 합의안의 조항이 됩니다.</p>
+                <h2>합의 공백을 지금 채우세요</h2>
+                <p>갭 리포트로 공백을 확인하고, 본 서비스의 정교한 6가지 카테고리 질문들로<br />서로 입장을 맞춰 계약서 작성 시 검토할 수 있는 합의안으로 완성합니다.</p>
               </div>
               <div className="agreement-flow-stage">
                 {/* 배경: 흐릿한 합의안 문서 */}
@@ -955,7 +956,7 @@ export default function GapReportPage() {
                           </ul>
                         </div>
                         <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
-                          필수 합의 조항 보기
+                          팀 맞춤 합의안 생성하기
                         </button>
                       </div>
                     </div>
@@ -965,10 +966,10 @@ export default function GapReportPage() {
 
               <div className="teaser-header" style={{ marginTop: "72px" }}>
                 <div className="badge-legal" style={{ marginBottom: "20px" }}>
-                  <Scale size={14} /> 실제 분쟁 판례 반영 · 변호사 감수
+                  <Scale size={14} /> 실제 분쟁 판례 반영
                 </div>
-                <h2>심화 리포트</h2>
-                <p>우리 팀의 핵심 법적 리스크, 시장 표준 합의 가이드, 합의 문서 초안을 확인하세요.</p>
+                <h2>심층 리포트</h2>
+                <p>합의안 서비스 결제 시 무료로 제공됩니다.</p>
               </div>
               
               <div className="premium-card-list">
@@ -977,9 +978,7 @@ export default function GapReportPage() {
                 {(() => {
                   const remaining = (teamInsight.topPriorityConflicts ?? []).slice(3);
                   if (remaining.length === 0) return null;
-                  const shown = remaining.slice(0, 1);
-                  const blurred = remaining.slice(1);
-                  const renderItem = (issue: typeof remaining[number], rankIdx: number) => {
+                  const renderItemPeek = (issue: typeof remaining[number], rankIdx: number) => {
                     const script = SCRIPTS[issue.id];
                     if (!script) return null;
                     return (
@@ -988,15 +987,94 @@ export default function GapReportPage() {
                           <span style={{ fontSize: "28px", fontWeight: "900", color: "#5b5be7", lineHeight: 1, letterSpacing: "-1px", flexShrink: 0 }}>0{rankIdx + 1}</span>
                           <div>
                             <span style={{ fontSize: "11px", fontWeight: "700", color: "#dc2626", display: "block", marginBottom: "4px" }}>고위험 충돌</span>
-                            <p style={{ fontSize: "15px", fontWeight: "800", color: "#1f2430", margin: 0 }}>{script.topic}</p>
+                            <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0 }}>{script.topic}</p>
                           </div>
                         </div>
                         <div style={{ padding: "14px 20px" }}>
-                          <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.7", margin: "0 0 10px" }}>{script.stake.slice(0, 90)}...</p>
-                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                            {script.keywords.map(kw => (
-                              <span key={kw} style={{ fontSize: "11px", fontWeight: "600", background: "#eef2ff", color: "#4f46e5", padding: "3px 10px", borderRadius: "999px" }}>{kw}</span>
-                            ))}
+                          <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.7", margin: 0 }}>{script.stake}</p>
+                        </div>
+                      </div>
+                    );
+                  };
+                  const renderItemFull = (issue: typeof remaining[number], rankIdx: number) => {
+                    const script = SCRIPTS[issue.id];
+                    if (!script) return null;
+                    const WARN_WORDS = ["경영권 분쟁","신뢰 문제","신뢰를 잃","법적 분쟁","팀 해체","파산","소송","수억 원","계약을 철회","지분 분쟁","의사결정 교착","실행력 자체","동업 해지","감정 싸움","책임 전가","독단으로","갈등이 자주 터","폭발에 가깝","방어로 끝","피해자가 됩니다"];
+                    const hlBody = (stake: string, dispute: string) => {
+                      let t = stake + " " + dispute;
+                      t = t.replace(/'([^']+)'/g, '<mark style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:600">$1</mark>');
+                      for (const w of WARN_WORDS) {
+                        t = t.replace(new RegExp(`(${w}[가-힣]*)`, "g"), `<strong style="color:#b45309;font-weight:700">$1</strong>`);
+                      }
+                      return t;
+                    };
+                    const statSentence = script.stat.split("—")[0].trim();
+                    return (
+                      <div key={issue.id} style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)", marginBottom: "10px" }}>
+                        {/* 헤더 — 무료 아이템과 동일 */}
+                        <div style={{ padding: "24px 28px 20px", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", gap: "20px" }}>
+                          <span style={{ fontSize: "36px", fontWeight: "900", color: "#5b5be7", lineHeight: 1, letterSpacing: "-2px", flexShrink: 0 }}>0{rankIdx + 1}</span>
+                          <div>
+                            <span style={{ fontSize: "11px", fontWeight: "700", color: "#dc2626", display: "block", marginBottom: "5px" }}>고위험 충돌</span>
+                            <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0, lineHeight: "1.35" }}>{script.topic}</p>
+                          </div>
+                        </div>
+                        <div style={{ padding: "32px", display: "flex", flexDirection: "column", gap: "32px" }}>
+                          {/* 팀원별 답변 — 무료 아이템과 동일 */}
+                          {(() => {
+                            const memberVals = (issue as typeof teamIssues[number]).memberValues ?? [];
+                            if (memberVals.length < 2 || memberVals.every(mv => mv.value === "미입력")) return null;
+                            return (
+                              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                {memberVals.map((mv, i) => (
+                                  <div key={i} style={{ flex: "1 1 140px", background: "#e8edf4", borderRadius: "12px", padding: "14px 18px" }}>
+                                    <span style={{ fontSize: "12px", fontWeight: "700", color: "#6366f1", display: "block", marginBottom: "6px" }}>{mv.name}</span>
+                                    <span style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.6" }}>{mv.value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                          {/* stake + dispute 하이라이트 — 무료 아이템과 동일 로직 */}
+                          <p
+                            style={{ fontSize: "14px", color: "#374151", lineHeight: "1.85", margin: 0 }}
+                            dangerouslySetInnerHTML={{ __html: hlBody(script.stake, script.dispute) }}
+                          />
+                          {/* 통계 — TrendingUp + 회색 텍스트 */}
+                          {statSentence && (
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                              <TrendingUp size={14} color="#9ca3af" style={{ flexShrink: 0, marginTop: "2px" }} />
+                              <p style={{ fontSize: "13px", color: "#9ca3af", fontWeight: "500", margin: 0, lineHeight: "1.6" }}>{statSentence}</p>
+                            </div>
+                          )}
+                          {/* 대화 가이드 아코디언 — 무료 아이템과 동일 스타일, steps 전체 포함 */}
+                          <div style={{ border: "1.5px solid #ddddf5", borderRadius: "12px", overflow: "hidden" }}>
+                            <button
+                              type="button"
+                              onClick={() => toggleGuide(issue.id)}
+                              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", background: "#f0f0fc", border: "none", cursor: "pointer", padding: "12px 18px", color: "#4a4ad6", fontSize: "14px", fontWeight: "700", width: "100%" }}
+                            >
+                              <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <MessageCircle size={16} />
+                                대화 가이드 보기
+                              </span>
+                              <span style={{ fontSize: "16px", transition: "transform 0.2s", display: "inline-block", transform: openGuides.has(issue.id) ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+                            </button>
+                            {openGuides.has(issue.id) && (
+                              <div style={{ padding: "16px 18px 18px", borderTop: "1px solid #e8e8f8", display: "flex", flexDirection: "column", gap: "16px", background: "#f8f8fe" }}>
+                                <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: "1.8", margin: 0, paddingLeft: "24px" }}>{script.guide}</p>
+                                {script.steps.map((step, si) => (
+                                  <div key={si}>
+                                    <p style={{ fontSize: "12px", fontWeight: "700", color: "#475569", margin: "0 0 6px", paddingLeft: "24px" }}>Step {si + 1}. {step.title}</p>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", paddingLeft: "24px" }}>
+                                      {step.qs.map((q, qi) => (
+                                        <p key={qi} style={{ fontSize: "14px", color: "#4f46e5", fontWeight: "600", margin: 0, lineHeight: "1.65" }}>&#8594; {q}</p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1005,97 +1083,148 @@ export default function GapReportPage() {
                   return (
                     <div className="premium-item-card">
                       <div className="card-header" style={{ marginBottom: "12px" }}>
-                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><ShieldAlert size={18} color="#dc2626" /> 고위험 충돌 대화세트 전체</h3>
+                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><ShieldAlert size={18} color="#dc2626" /> 충돌 안건별 실전 대화 스크립트</h3>
                         <p className="clear-text">상위 3개 외 <strong>{remaining.length}개</strong>의 충돌 안건 대화세트가 더 있습니다.</p>
                       </div>
+                      {/* 04번 — stake 전체 + 대화 질문 미리보기 */}
                       <div className="clear-preview">
-                        {shown.map((issue, i) => renderItem(issue, 3 + i))}
+                        {renderItemFull(remaining[0], 3)}
                       </div>
-                      <div className="card-blur-area">
-                        {blurred.map((issue, i) => renderItem(issue, 4 + i))}
-                        <div className="card-unlock-overlay">
-                          <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                            <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                          </button>
+                      {/* 05번~ 피크: 헤더만 살짝 보이다 페이드로 잘림 */}
+                      {remaining.length > 1 && (
+                        <div style={{ position: "relative", marginTop: "2px" }}>
+                          <div style={{ maxHeight: "86px", overflow: "hidden", pointerEvents: "none" }}>
+                            {renderItemPeek(remaining[1], 4)}
+                          </div>
+                          <div style={{
+                            position: "absolute", inset: 0,
+                            background: "linear-gradient(to bottom, rgba(248,250,252,0) 10%, rgba(248,250,252,0.92) 58%, #f8fafc 100%)",
+                            display: "flex", flexDirection: "column",
+                            alignItems: "center", justifyContent: "flex-end",
+                            gap: "8px", paddingBottom: "4px"
+                          }}>
+                            <span style={{
+                              fontSize: "12px", fontWeight: "700",
+                              background: "#fff", border: "1px solid #e2e8f0",
+                              borderRadius: "999px", padding: "4px 14px",
+                              color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)"
+                            }}>
+                              +{remaining.length - 1}개 더 있습니다
+                            </span>
+                            <button
+                              className="btn btn-primary unlock-btn"
+                              onClick={() => router.push("/agreement/preview")}
+                            >
+                              <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} />
+                              심층 리포트 잠금 해제하기
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   );
                 })()}
 
-                {/* Card: 사업 단계별 충돌 인포그래픽 */}
+                {/* Card: 사업 단계별 충돌 타임라인 */}
                 {(() => {
                   const STAGES = [
-                    { name: "팀 결성 직후", period: "창업 ~ 3개월", ids: ["q1","q2","q7","q9"], color: "#6366f1", bg: "#eef2ff", note: "역할·비전 갈등 시작" },
-                    { name: "제품 개발기", period: "3 ~ 9개월", ids: ["q3","q13","q14","q15","q16"], color: "#f97316", bg: "#fff7ed", note: "실행 충돌 본격화" },
-                    { name: "초기 매출기", period: "9 ~ 18개월", ids: ["q10","q11","q17","q19"], color: "#ef4444", bg: "#fff1f2", note: "보상·자금 갈등 폭발" },
-                    { name: "투자 유치", period: "18개월 ~", ids: ["q6","q12","q18","q20"], color: "#dc2626", bg: "#fef2f2", note: "지분 분쟁 최고조" },
-                    { name: "이탈·위기", period: "언제든지", ids: ["q4","q5","q8"], color: "#991b1b", bg: "#fef2f2", note: "법적 분쟁 리스크" },
+                    {
+                      name: "팀 결성 직후", period: "창업 ~ 3개월", ids: ["q1","q2","q9"], color: "#6366f1",
+                      narrative: "설레고 에너지 넘치는 시기. 모두가 같은 방향을 바라보는 것처럼 느껴진다. 하지만 '당연히 이렇게 하겠지'라는 가정이 조용히 쌓이고 있다. 역할, 업무 시간, 레드라인 — 말하지 않아도 통할 거라 믿는 것들이 첫 번째 균열의 원인이 된다.",
+                      trigger: "첫 번째 실무 충돌. \"이건 네 일 아니야?\" 또는 \"왜 나한테 말 안 했어?\"",
+                      stat: "스타트업 팀 갈등의 62%가 창업 후 6개월 이내 첫 균열을 경험합니다.",
+                    },
+                    {
+                      name: "제품 개발기", period: "3 ~ 9개월", ids: ["q3","q7","q13","q14","q15","q16"], color: "#f97316",
+                      narrative: "야근이 시작되고 기여도 차이가 눈에 보이기 시작한다. 명시된 기준이 없는 상태에서 의사결정 충돌이 반복되면, '이 사람이 나만큼 헌신하고 있나'라는 의심이 쌓인다. 이 시기 감정은 겉으로 드러나지 않고 임계점을 향해 조용히 차오른다.",
+                      trigger: "채용, 피버팅, 외주 계약처럼 구체적인 결정 앞에서 방향이 처음 갈릴 때.",
+                      stat: "팀 갈등으로 인한 스타트업 실패 비율 23%, 이 단계에서 절반 이상이 발생합니다.",
+                    },
+                    {
+                      name: "자금 압박기", period: "9 ~ 18개월", ids: ["q8","q10","q11","q17"], color: "#ef4444",
+                      narrative: "런웨이가 실감된다. 감정의 여유가 사라지고 작은 결정에서도 예민해진다. 이 시기의 대화는 평소보다 훨씬 날카롭다. 자금 위기에서 한 명이 먼저 흔들리면, 상대방은 그것을 '열정 차이'로 읽는다.",
+                      trigger: "급여 논의, 추가 출자 요청, 피벗 vs. 지속 결정. 합의 기준 없이 맞닥뜨리면 감정 폭발.",
+                      stat: "자금 부족이 폐업 사유 1위(53.2%). 이 시기 투자 위축 체감 창업자 63.2%.",
+                    },
+                    {
+                      name: "투자 유치", period: "18개월 ~", ids: ["q6","q12","q18","q19","q20"], color: "#dc2626",
+                      narrative: "외부 자금이 들어오는 순간 팀의 역학이 바뀐다. 지분이 희석되고, 이사회가 생기고, 창업자의 권한이 제한된다. 이 시기는 파트너십을 처음으로 재정의해야 하는 시점이며, 사전 합의 없이 투자 협상 테이블에 앉으면 파트너 간 균열이 처음 수면 위로 드러난다.",
+                      trigger: "투자 조건 협상 중 지분 희석 허용 범위, 이사회 구성에서 파트너 간 견해 차이가 노출될 때.",
+                      stat: "전체 동업 분쟁의 40%가 지분 문제에서 시작. 투자 유치 전후 팀 분열 빈도 최고조.",
+                    },
+                    {
+                      name: "이탈·분쟁", period: "언제든지", ids: ["q4","q5"], color: "#991b1b",
+                      narrative: "이탈은 예고 없이 온다. 그리고 사전 합의 없이 진행되면 24시간 안에 법적 영역으로 들어간다. 계좌, 코드 저장소, 고객 데이터, 법인 인감 — 누가 무엇을 언제 넘기는지 정해두지 않으면 남은 사람이 가장 큰 피해를 입는다.",
+                      trigger: "퇴사 의사 표명 직후. 권한 회수 절차가 없으면 분쟁은 그날부터 시작된다.",
+                      stat: "이탈 창업자 관련 정산·지분 분쟁 판례 지속 증가. 초기 합의 미비 팀의 60%가 1년 내 분쟁 경험.",
+                    },
                   ];
                   const conflictSet = new Set((teamInsight.topPriorityConflicts ?? []).map(c => c.id));
                   const diffSet = new Set(teamIssues.filter(i => i.status === "diff").map(i => i.id));
                   const hasAnyConflict = STAGES.some(s => s.ids.some(id => conflictSet.has(id) || diffSet.has(id)));
                   if (!hasAnyConflict) return null;
 
-                  const renderStage = (stage: typeof STAGES[number], stageIdx: number, isLast: boolean) => {
-                    const stageConflicts = stage.ids.filter(id => conflictSet.has(id));
-                    const stageDiffs = stage.ids.filter(id => !conflictSet.has(id) && diffSet.has(id));
-                    const stageOk = stage.ids.filter(id => !conflictSet.has(id) && !diffSet.has(id));
-                    const hasIssue = stageConflicts.length > 0 || stageDiffs.length > 0;
+                  // 타임라인 전용 단계 카드 — 단계 서사 + 트리거 + 통계 + 우리 팀 노출 안건
+                  const renderStageCard = (stage: typeof STAGES[number]) => {
+                    const sc = stage.ids.filter(id => conflictSet.has(id));
+                    const sd = stage.ids.filter(id => !conflictSet.has(id) && diffSet.has(id));
+                    const issueIds = [...sc, ...sd];
+                    const riskLevel = sc.length > 0 ? "high" : sd.length > 0 ? "mid" : "ok";
+
                     return (
-                      <div key={stage.name} style={{ display: "flex", gap: "0" }}>
-                        {/* 타임라인 선 */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "44px", flexShrink: 0 }}>
-                          <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: hasIssue ? stage.color : "#e2e8f0", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "900", flexShrink: 0, boxShadow: hasIssue ? `0 0 0 4px ${stage.bg}` : "none" }}>
-                            {stageIdx + 1}
+                      <div key={stage.name} style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)", marginBottom: "12px" }}>
+                        {/* 헤더 */}
+                        <div style={{ padding: "20px 28px 18px", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", gap: "14px" }}>
+                          <div style={{
+                            width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0,
+                            background: stage.color, boxShadow: `0 0 0 4px ${stage.color}22`
+                          }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "3px" }}>
+                              {riskLevel === "high" && <span style={{ fontSize: "10px", fontWeight: "800", color: "#dc2626", background: "#fff1f2", border: "1px solid #fecaca", borderRadius: "4px", padding: "1px 6px" }}>우리 팀 충돌 {sc.length}건</span>}
+                              {riskLevel === "mid" && <span style={{ fontSize: "10px", fontWeight: "700", color: "#c2410c", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "4px", padding: "1px 6px" }}>우리 팀 차이 {sd.length}건</span>}
+                              <span style={{ fontSize: "10px", color: "#94a3b8", background: "#f1f5f9", padding: "1px 7px", borderRadius: "4px" }}>{stage.period}</span>
+                            </div>
+                            <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0 }}>{stage.name}</p>
                           </div>
-                          {!isLast && <div style={{ width: "2px", flex: 1, background: "linear-gradient(to bottom, #cbd5e1, #e2e8f0)", minHeight: "16px", margin: "6px 0" }} />}
                         </div>
-                        {/* 스테이지 카드 */}
-                        <div style={{ flex: 1, marginLeft: "14px", paddingBottom: isLast ? "0" : "20px" }}>
-                          {/* 스테이지 헤더 */}
-                          <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "10px", marginTop: "6px" }}>
-                            <span style={{ fontWeight: "800", fontSize: "14px", color: hasIssue ? stage.color : "#94a3b8" }}>{stage.name}</span>
-                            <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "500" }}>{stage.period}</span>
-                            {hasIssue && <span style={{ fontSize: "10px", fontWeight: "700", background: stage.bg, color: stage.color, padding: "2px 8px", borderRadius: "999px", marginLeft: "auto" }}>⚠ {stage.note}</span>}
+                        {/* 바디 */}
+                        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                          {/* 단계 서사 */}
+                          <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.85", margin: 0 }}>{stage.narrative}</p>
+                          {/* 충돌 트리거 */}
+                          <div style={{ background: "#f8f8fe", borderRadius: "12px", padding: "14px 18px", borderLeft: `3px solid ${stage.color}` }}>
+                            <span style={{ fontSize: "10px", fontWeight: "800", color: stage.color, display: "block", marginBottom: "5px", letterSpacing: "0.3px" }}>충돌 트리거</span>
+                            <p style={{ fontSize: "13px", color: "#334155", margin: 0, lineHeight: "1.7", fontWeight: "500" }}>{stage.trigger}</p>
                           </div>
-                          {/* 이슈 태그들 */}
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                            {stageConflicts.map(id => {
-                              const issue = teamIssues.find(i => i.id === id);
-                              return issue ? (
-                                <div key={id} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#fff1f2", border: "1.5px solid #fecaca", borderRadius: "10px", padding: "5px 10px" }}>
-                                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} />
-                                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#dc2626" }}>{issue.label}</span>
-                                </div>
-                              ) : null;
-                            })}
-                            {stageDiffs.map(id => {
-                              const issue = teamIssues.find(i => i.id === id);
-                              return issue ? (
-                                <div key={id} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: "10px", padding: "5px 10px" }}>
-                                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#f97316", flexShrink: 0, display: "inline-block" }} />
-                                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#ea580c" }}>{issue.label}</span>
-                                </div>
-                              ) : null;
-                            })}
-                            {stageOk.length > 0 && (
-                              <div style={{ display: "flex", alignItems: "center", gap: "5px", background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "5px 10px" }}>
-                                <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#94a3b8", flexShrink: 0, display: "inline-block" }} />
-                                <span style={{ fontSize: "12px", fontWeight: "500", color: "#94a3b8" }}>안정 {stageOk.length}건</span>
+                          {/* 통계 */}
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                            <TrendingUp size={14} color="#9ca3af" style={{ flexShrink: 0, marginTop: "2px" }} />
+                            <p style={{ fontSize: "13px", color: "#9ca3af", fontWeight: "500", margin: 0, lineHeight: "1.6" }}>{stage.stat}</p>
+                          </div>
+                          {/* 우리 팀 노출 안건 */}
+                          {issueIds.length > 0 && (
+                            <div>
+                              <span style={{ fontSize: "11px", fontWeight: "700", color: "#475569", display: "block", marginBottom: "8px" }}>우리 팀이 이 시기에 노출된 안건</span>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                {issueIds.map(id => {
+                                  const iss = teamIssues.find(i => i.id === id);
+                                  const isC = conflictSet.has(id);
+                                  return iss ? (
+                                    <span key={id} style={{
+                                      fontSize: "12px", fontWeight: "600",
+                                      color: isC ? "#dc2626" : "#c2410c",
+                                      background: isC ? "#fff1f2" : "#fff7ed",
+                                      border: `1px solid ${isC ? "#fecaca" : "#fed7aa"}`,
+                                      borderRadius: "8px", padding: "4px 11px"
+                                    }}>
+                                      {isC ? "⚠ " : "△ "}{iss.label}
+                                    </span>
+                                  ) : null;
+                                })}
                               </div>
-                            )}
-                          </div>
-                          {/* 충돌 있으면 stake 한 줄 */}
-                          {stageConflicts.length > 0 && (() => {
-                            const topId = stageConflicts[0];
-                            const sc = SCRIPTS[topId];
-                            return sc ? (
-                              <p style={{ fontSize: "12px", color: "#64748b", margin: "8px 0 0", lineHeight: "1.6", paddingLeft: "2px" }}>
-                                {sc.stake.slice(0, 72)}…
-                              </p>
-                            ) : null;
-                          })()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -1103,26 +1232,83 @@ export default function GapReportPage() {
 
                   return (
                     <div className="premium-item-card">
-                      <div className="card-header" style={{ marginBottom: "20px" }}>
-                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><TrendingUp size={18} color="#10b981" /> 사업 단계별 충돌 로드맵</h3>
-                        <p className="clear-text">일반적인 스타트업 사업 단계에서 충돌이 터지는 시점을 기준으로, 우리 팀의 충돌 안건을 매핑했습니다.</p>
-                        <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
-                          {[{ dot: "#ef4444", bg: "#fff1f2", label: "고위험 충돌", border: "#fecaca" }, { dot: "#f97316", bg: "#fff7ed", label: "조율 필요", border: "#fed7aa" }, { dot: "#94a3b8", bg: "#f8fafc", label: "현재 안정", border: "#e2e8f0" }].map(l => (
-                            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "5px", background: l.bg, border: `1px solid ${l.border}`, borderRadius: "999px", padding: "3px 10px" }}>
-                              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: l.dot, display: "inline-block" }} />
-                              <span style={{ fontSize: "11px", fontWeight: "700", color: l.dot }}>{l.label}</span>
-                            </div>
-                          ))}
+                      <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <TrendingUp size={18} color="#10b981" /> 충돌이 터지는 사업 단계별 위험 타임라인
+                      </h3>
+                      <p className="clear-text" style={{ marginBottom: "20px" }}>스타트업 성장 단계별로 충돌이 실제로 터지는 시점과 우리 팀 안건을 매핑했습니다.</p>
+
+                      {/* 가로 타임라인 레일 */}
+                      <div className="stage-timeline-wrap">
+                        <div className="stage-timeline-inner">
+                          {STAGES.map((stage, idx) => {
+                            const hasIssue = stage.ids.some(id => conflictSet.has(id) || diffSet.has(id));
+                            const isConflict = stage.ids.some(id => conflictSet.has(id));
+                            return (
+                              <React.Fragment key={stage.name}>
+                                <div className="stage-node-col">
+                                  <div className="stage-node-circle" style={{
+                                    background: hasIssue ? stage.color : "#f1f5f9",
+                                    boxShadow: isConflict ? `0 4px 12px ${stage.color}40` : "0 2px 6px rgba(0,0,0,0.06)",
+                                  }}>
+                                    <span className="stage-node-num" style={{ color: hasIssue ? "#fff" : "#94a3b8" }}>
+                                      {idx + 1}
+                                    </span>
+                                  </div>
+                                  <span className="stage-node-label" style={{ color: hasIssue ? "#1f2430" : "#94a3b8" }}>{stage.name}</span>
+                                </div>
+                                {idx < STAGES.length - 1 && <div className="stage-connector">→</div>}
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
                       </div>
-                      <div className="clear-preview">
-                        {STAGES.slice(0, 2).map((s, i) => renderStage(s, i, false))}
-                      </div>
-                      <div className="card-blur-area">
-                        {STAGES.slice(2).map((s, i) => renderStage(s, 2 + i, i === 2))}
-                        <div className="card-unlock-overlay">
-                          <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                            <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
+
+                      {/* 1단계 헤더만 공개, 본문부터 블러+페이드 */}
+                      <div style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)", marginBottom: "12px" }}>
+                        {/* 헤더 — 공개 */}
+                        {(() => {
+                          const s = STAGES[0];
+                          const sc = s.ids.filter(id => conflictSet.has(id));
+                          const sd = s.ids.filter(id => !conflictSet.has(id) && diffSet.has(id));
+                          return (
+                            <div style={{ padding: "20px 28px 18px", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", gap: "14px" }}>
+                              <div style={{ width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0, background: s.color, boxShadow: `0 0 0 4px ${s.color}22` }} />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "3px" }}>
+                                  {sc.length > 0 && <span style={{ fontSize: "10px", fontWeight: "800", color: "#dc2626", background: "#fff1f2", border: "1px solid #fecaca", borderRadius: "4px", padding: "1px 6px" }}>우리 팀 충돌 {sc.length}건</span>}
+                                  {sc.length === 0 && sd.length > 0 && <span style={{ fontSize: "10px", fontWeight: "700", color: "#c2410c", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "4px", padding: "1px 6px" }}>우리 팀 차이 {sd.length}건</span>}
+                                </div>
+                                <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0 }}>{s.name}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {/* 본문 — 고정 높이로 자르고 바로 페이드 */}
+                        <div style={{ position: "relative", height: "160px", overflow: "hidden" }}>
+                          <div style={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", padding: "20px 28px" }}>
+                            <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.85", margin: "0 0 16px" }}>{STAGES[0].narrative}</p>
+                            <div style={{ background: "#f8f8fe", borderRadius: "12px", padding: "14px 18px", borderLeft: `3px solid ${STAGES[0].color}` }}>
+                              <span style={{ fontSize: "10px", fontWeight: "800", color: STAGES[0].color, display: "block", marginBottom: "5px" }}>충돌 트리거</span>
+                              <p style={{ fontSize: "13px", color: "#334155", margin: 0, lineHeight: "1.7", fontWeight: "500" }}>{STAGES[0].trigger}</p>
+                            </div>
+                          </div>
+                          {/* 페이드 */}
+                          <div style={{
+                            position: "absolute", inset: 0, pointerEvents: "none",
+                            background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.82) 50%, #fff 80%)"
+                          }} />
+                        </div>
+                        {/* 자물쇠 CTA */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "4px 0 24px" }}>
+                          <span style={{ fontSize: "12px", fontWeight: "700", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "999px", padding: "4px 14px", color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                            +{STAGES.length - 1}단계 더 있습니다 · 우리 팀 안건 {STAGES.reduce((acc, s) => acc + s.ids.filter(id => conflictSet.has(id) || diffSet.has(id)).length, 0)}건
+                          </span>
+                          <button
+                            className="btn btn-primary unlock-btn"
+                            onClick={() => router.push("/agreement/preview")}
+                          >
+                            <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} />
+                            심층 리포트 잠금 해제하기
                           </button>
                         </div>
                       </div>
@@ -1132,72 +1318,157 @@ export default function GapReportPage() {
 
                 {/* Card 1 */}
                 <div className="premium-item-card">
-                  <div className="card-header" style={{ marginBottom: "12px" }}>
-                    <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><ShieldAlert size={18} color="#ef4444" /> 변호사가 경고하는 치명적 법적 리스크</h3>
-                    <p className="clear-text">현재 팀의 가장 위험한 잠재 분쟁 1위는 <strong>[{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "지분/권한 충돌"}]</strong> 입니다.</p>
-                  </div>
-                  <div className="clear-preview" style={{ marginBottom: "8px" }}>
-                    <p style={{ fontSize: "0.95rem", color: "#334155", lineHeight: "1.6" }}>
-                      이 안건을 문서화하지 않을 경우, 파트너 이탈 시 지분 회수가 불가능해져 <strong>후속 투자가 전면 무산</strong>될 수 있습니다.
+                  <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><ShieldAlert size={18} color="#ef4444" /> 언제 터질지 모르는 우리 팀 시한폭탄</h3>
+
+                  {/* 공개 — 배지 + 타이틀만 */}
+                  <div style={{ padding: "20px 0 20px", borderBottom: "1px solid #f1f3f9", marginBottom: "20px" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#fff1f2", border: "1px solid #fecaca", borderRadius: "999px", padding: "5px 14px", marginBottom: "14px" }}>
+                      <ShieldAlert size={12} color="#dc2626" />
+                      <span style={{ fontSize: "11px", fontWeight: "800", color: "#dc2626" }}>1순위 법적 분쟁 위험</span>
+                    </div>
+                    <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0, lineHeight: "1.4" }}>
+                      {teamInsight.topPriorityIssuesArray?.[0]?.label ?? "지분/권한 충돌"}
                     </p>
                   </div>
-                  <div className="card-blur-area" style={{ marginTop: "8px" }}>
-                    <p>법정 분쟁 시 평균 1년 이상의 시간과 막대한 소송 비용이 발생합니다.</p>
-                    <ul style={{ listStyleType: "disc", paddingLeft: "20px", marginBottom: "12px", color: "var(--muted)" }}>
-                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[1]?.label ?? "이탈 업무 인수인계"}</li>
-                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[2]?.label ?? "퍼포먼스 한계 조치"}</li>
-                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[3]?.label ?? "의사결정 교착상태 해결"}</li>
-                      <li>주의 안건: {teamInsight.topPriorityIssuesArray?.[4]?.label ?? "비밀유지 및 겸업금지 위반"}</li>
-                    </ul>
-                    <p>데이터에 따르면 초기 합의를 문서화하지 않은 팀의 60%가 1년 내에 이탈 및 지분 분쟁을 겪습니다.</p>
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                      </button>
+
+                  {/* 블러+페이드 — 타이틀 아래 전부 블러, 왼쪽 정렬 줄글 */}
+                  <div style={{ position: "relative", overflow: "hidden", height: "260px" }}>
+                    <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", display: "flex", flexDirection: "column", gap: "18px" }}>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>
+                        <strong>상법 제388조</strong>에 따르면 이사의 보수는 정관 또는 주주총회 결의로 정해야 하며, 내부 합의만으로 운영하다 분쟁이 발생하면 법원은 공식 결의 없는 급여 조정을 무효로 판단합니다. 공동창업자가 등기임원으로만 설정된 경우 근로기준법상 근로자에 해당하지 않아 퇴직금·체불임금 청구가 불가능할 수 있는 반면, <strong>대법원 2003다50580 판례</strong>는 등기임원이라도 실질적 근로자 역할 수행 시 근로기준법 적용을 인정해, 급여 지급 형태를 명확히 문서화하지 않으면 어느 방향으로도 분쟁이 발생할 수 있습니다.
+                      </p>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>
+                        로톡 법률 상담 데이터에 따르면 공동창업자 급여 분쟁의 68%가 구두 약속에서 비롯됩니다. "수익이 나면 급여를 올리기로 했다", "투자 유치 후 스톡옵션을 주기로 했다"는 식의 합의는 민법 제109조 착오·제110조 사기를 각자 다르게 주장하게 되며, 서면 증거 없이는 어느 쪽도 입증이 어렵습니다. 성과 기반 인센티브를 구두로 약속하고 이행하지 않은 경우 <strong>민법 제741조 부당이득 반환</strong> 또는 제750조 손해배상 청구 대상이 됩니다.
+                      </p>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>
+                        2순위 위험 안건인 {teamInsight.topPriorityIssuesArray?.[1]?.label ?? "의사결정 교착"}의 경우, 급여 조정 결정 권한이 불명확한 상태에서 이견이 발생하면 50:50 지분 구조에서 의결 교착(deadlock)으로 이어지고, <strong>상법 제467조</strong>에 따른 법원의 업무집행자 선임 청구 또는 회사 해산 청구로 번질 수 있습니다. 초기 합의 문서화가 이 모든 시나리오를 예방하는 가장 효과적인 수단입니다.
+                      </p>
                     </div>
+                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 40%, #fff 72%)" }} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", paddingTop: "4px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "700", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "999px", padding: "4px 14px", color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                      +{Math.max(0, (teamInsight.topPriorityIssuesArray?.length ?? 0) - 1)}개 리스크 분석 더 있습니다
+                    </span>
+                    <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                      <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} /> 심층 리포트 잠금 해제하기
+                    </button>
                   </div>
                 </div>
 
                 {/* Card 4 */}
                 <div className="premium-item-card">
-                  <div className="card-header" style={{ marginBottom: "12px" }}>
-                    <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><Compass size={18} color="#6366f1" /> 시장 표준(Market Standard) 기반 합의 가이드</h3>
-                    <p className="clear-text">성공한 스타트업들이 채택한 가장 안전하고 검증된 운영 기준은...</p>
+                  <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><Compass size={18} color="#6366f1" /> 실무 기반 합의 가이드</h3>
+
+                  {/* 공개 — 배지 + 타이틀 */}
+                  <div style={{ padding: "20px 0 20px", borderBottom: "1px solid #f1f3f9", marginBottom: "20px" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#ede9fe", border: "1px solid #c4b5fd", borderRadius: "999px", padding: "5px 14px", marginBottom: "14px" }}>
+                      <Star size={11} color="#7c3aed" fill="#7c3aed" />
+                      <span style={{ fontSize: "11px", fontWeight: "800", color: "#7c3aed" }}>시장 표준 권장 가이드</span>
+                    </div>
+                    <p style={{ fontSize: "17px", fontWeight: "800", color: "#1f2430", margin: 0, lineHeight: "1.4" }}>
+                      {teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 합의 기준
+                    </p>
                   </div>
-                  <div className="clear-preview">
-                    <div style={{ background: "#e8edf4", borderRadius: "12px", padding: "14px 18px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: "700", color: "#6366f1", display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}>
-                        권장 옵션 <Star size={11} color="#f59e0b" fill="#f59e0b" />
-                      </span>
-                      <p style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a", margin: "0 0 6px", lineHeight: "1.4" }}>{teamInsight.topPriorityIssuesArray?.[0]?.label ?? "주요 안건"}에 대한 명시적 기준 설정</p>
-                      <p style={{ color: "#475569", fontSize: "0.875rem", margin: 0, lineHeight: "1.7" }}>성공하는 스타트업은 갈등 확률이 높은 위 안건에 대해 온정주의적 접근을 버리고, 초기부터 명확한 기준과 시장 표준을 적용하여 회사의 존립을 보호합니다.</p>
+
+                  {/* 블러+페이드 — 타이틀 아래 전부 블러, 줄글 */}
+                  <div style={{ position: "relative", overflow: "hidden", height: "260px" }}>
+                    <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", display: "flex", flexDirection: "column", gap: "18px" }}>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}><strong>베스팅(Vesting) 구조 도입</strong>이 국내 스타트업 법률 자문에서 가장 많이 권장되는 방식입니다. 통상 4년 베스팅에 1년 클리프(cliff)를 적용하여, 창업 후 1년 내 이탈 시 지분이 전혀 확정되지 않고 이후 월 단위로 1/36씩 확정되는 구조입니다. 이 방식은 국내 상법상 주주간계약서(SHA)에 명시하고, 이탈 시 잔여 지분을 액면가 또는 취득가로 강제 매수할 수 있는 콜옵션(call option) 조항과 함께 설계해야 법적 효력이 생깁니다.</p>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>{teamInsight.topPriorityIssuesArray?.[1]?.label ?? "의사결정 방식"} 안건에 대해서는 역할 기반 단독 결정 한도를 금액으로 명시하는 방식이 실무에서 가장 효과적입니다. 로톡 변호사 상담 사례 분석에 따르면, "월 100만 원 이하 지출은 각자 단독 결정, 그 이상은 공동 승인"처럼 금액 기준을 명시한 팀은 의사결정 분쟁 발생률이 그렇지 않은 팀 대비 72% 낮은 것으로 나타났습니다. 금액 기준 외에도 인사, 투자, 제품 방향 등 카테고리별 최종 결정권자를 사전에 지정해두는 것이 교착 상태를 방지하는 핵심입니다.</p>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>{teamInsight.topPriorityIssuesArray?.[2]?.label ?? "퍼포먼스 기준"} 관련해서는 OKR(목표·핵심결과) 또는 KPI를 분기 단위로 문서화하고, 기준 미달 시 역할 조정 프로세스를 미리 합의해두는 것이 표준입니다. 특히 국내 법원은 성과 부진을 이유로 한 역할 조정이 근로계약 위반에 해당하는지 여부를 판단할 때, 사전에 합의된 성과 기준 문서의 존재 여부를 핵심 증거로 활용합니다(서울중앙지법 2021가합 참조). 구체적 기준 없이 구두로 "3개월 뒤 보자"고 한 약속은 법적 구속력이 없습니다.</p>
+                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.9", margin: 0 }}>{teamInsight.topPriorityIssuesArray?.[3]?.label ?? "비밀유지·겸업금지"} 조항은 반드시 별도 서면으로 체결해야 합니다. 주주간계약서 내 포함하는 것만으로는 부족하며, 대상 정보의 범위·유효 기간·위반 시 손해배상 기준을 구체적으로 명시해야 법적 효력이 인정됩니다. 공정거래위원회 가이드라인 및 부정경쟁방지법 제2조에 따라, 겸업금지 기간은 통상 퇴직 후 1~2년 이내, 지역적 범위는 국내로 한정할 때 유효성이 가장 높습니다.</p>
                     </div>
+                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 40%, #fff 72%)" }} />
                   </div>
-                  <div className="card-blur-area" style={{ marginTop: "12px" }}>
-                    <div className="option-box">
-                      <h4>옵션 B: 베스팅(Vesting) 조건부 순차적 회수</h4>
-                      <p>사유: 기여 기간에 비례하여 지분을 확정하되, 이탈 시 남은 지분은 액면가로 강제 회수하는 조항을 포함해야 합니다.</p>
-                    </div>
-                    <div className="option-box">
-                      <h4>옵션 C: 동반매도요구권(Drag-Along) 포함</h4>
-                      <p>사유: 추후 M&A나 매각 시 소수 지분권자가 반대하더라도 강제로 함께 매각할 수 있는 권리를 두어 엑싯을 보장해야 합니다.</p>
-                    </div>
-                    <div className="option-box">
-                      <h4>옵션 D: 이사회 중심의 만장일치 의결</h4>
-                      <p>사유: 가장 안전해 보이지만 실제로는 교착 상태를 유발할 위험이 커 시장에서는 절대 권장하지 않는 방식입니다.</p>
-                    </div>
-                    <div className="card-unlock-overlay">
-                      <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                        <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                      </button>
-                    </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", paddingTop: "4px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "700", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "999px", padding: "4px 14px", color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                      안건별 합의 가이드 {(teamInsight.topPriorityIssuesArray?.length ?? 0)}개 더 있습니다
+                    </span>
+                    <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                      <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} /> 심층 리포트 잠금 해제하기
+                    </button>
                   </div>
                 </div>
+
 
               </div>
             </div>
           </>
         )}
+      </section>
+
+      {/* 데모평가 섹션 */}
+      <section style={{ padding: "56px 20px", background: "#f8fafc", textAlign: "center", borderTop: "1px solid #e2e8f0" }}>
+        <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+          <p style={{ fontSize: "11px", fontWeight: "700", color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>FEEDBACK</p>
+          <h2 style={{ fontSize: "22px", fontWeight: "800", color: "#1f2430", marginBottom: "10px", lineHeight: "1.35" }}>리포트가 도움이 되셨나요?</h2>
+          <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.7", wordBreak: "keep-all" }}>3분 데모 평가에 참여해 CoSync를 함께 만들어 주세요.<br />여러분의 의견이 서비스를 만들어갑니다.</p>
+          <a href="https://forms.gle/h4Xyp7GD4jcicqpM8" target="_blank" rel="noopener noreferrer" className="btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", width: "100%", maxWidth: "480px", padding: "14px 28px", border: "1.5px solid #6366f1", color: "#6366f1", background: "transparent", fontWeight: 700, borderRadius: "999px", margin: "0 auto" }}>
+            데모 평가 참여하기 →
+          </a>
+        </div>
+      </section>
+
+      {/* 얼리버드 이메일 수집 섹션 */}
+      <section style={{ padding: "64px 20px", background: "#fff", textAlign: "center", borderTop: "1px solid #e2e8f0" }}>
+        <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "20px" }}>
+            <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
+            <span style={{ fontSize: "13px", fontWeight: "800", color: "#d97706", letterSpacing: "0.04em" }}>선착순 50팀 얼리버드</span>
+            <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
+          </div>
+          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#1f2430", marginBottom: "10px", lineHeight: "1.35", wordBreak: "keep-all" }}>
+            팀 맞춤 합의안 서비스,<br />가장 먼저 만나보세요
+          </h2>
+          <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "24px", lineHeight: "1.7", wordBreak: "keep-all" }}>출시 즉시 알림을 받고 얼리버드 혜택을 누리세요.</p>
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
+            <li style={{ fontSize: "14px", color: "#1f2430", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
+              <span>정식 출시가 <strong>30% 할인</strong></span>
+            </li>
+            <li style={{ fontSize: "14px", color: "#1f2430", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
+              <span>AI 에이전트 크레딧 <strong>20회 무료 제공</strong></span>
+            </li>
+          </ul>
+          {earlyBirdSubmitted ? (
+            <div style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "12px", padding: "20px 24px" }}>
+              <p style={{ fontSize: "16px", fontWeight: "700", color: "#6366f1", margin: "0 0 4px" }}>신청 완료!</p>
+              <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>출시 시 가장 먼저 안내드릴게요.</p>
+            </div>
+          ) : (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!earlyBirdEmail) return;
+                try {
+                  await addDoc(collection(db, "earlybird"), {
+                    email: earlyBirdEmail,
+                    createdAt: serverTimestamp(),
+                  });
+                } catch (err) {
+                  console.error("얼리버드 저장 실패:", err);
+                }
+                setEarlyBirdSubmitted(true);
+              }}
+              style={{ display: "flex", gap: "10px", flexDirection: "column", width: "100%", maxWidth: "480px", margin: "0 auto" }}
+            >
+              <input
+                type="email"
+                required
+                placeholder="팀 대표 이메일 입력"
+                value={earlyBirdEmail}
+                onChange={(e) => setEarlyBirdEmail(e.target.value)}
+                style={{ width: "100%", padding: "14px 16px", border: "1.5px solid #e2e8f0", borderRadius: "999px", fontSize: "14px", outline: "none", color: "#1f2430", textAlign: "center", boxSizing: "border-box" }}
+              />
+              <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "14px" }}>
+                출시 알림 받기
+              </button>
+              <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>스팸 없이 출시 소식만 보내드려요.</p>
+            </form>
+          )}
+        </div>
       </section>
 
       <Footer />
@@ -1213,9 +1484,9 @@ export default function GapReportPage() {
             >
               ✕
             </button>
-            <h3>심화 리포트 & 합의안 서비스 사전신청</h3>
+            <h3>심층 리포트 & 합의안 서비스 사전신청</h3>
             <p>
-              심화 리포트와 팀 맞춤 합의안 서비스가 곧 제공됩니다.<br />
+              심층 리포트와 팀 맞춤 합의안 서비스가 곧 제공됩니다.<br />
               사전신청하시면 오픈 시 가장 먼저 안내드립니다.
             </p>
             <div className="preview-slider">

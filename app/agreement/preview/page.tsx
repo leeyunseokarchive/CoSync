@@ -83,7 +83,7 @@ export default function AgreementPreviewPage() {
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary"
-            style={{ marginTop: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+            style={{ marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", maxWidth: "480px", margin: "16px auto 0" }}
           >
             데모 평가 참여하기 →
           </a>
