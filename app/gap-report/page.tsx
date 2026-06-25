@@ -1023,78 +1023,109 @@ export default function GapReportPage() {
                   );
                 })()}
 
-                {/* Card: 합의 우선순위 로드맵 */}
+                {/* Card: 사업 단계별 충돌 인포그래픽 */}
                 {(() => {
-                  const allConflicts = teamInsight.topPriorityConflicts ?? [];
-                  if (allConflicts.length === 0) return null;
-                  const phaseOf = (i: number) => i < 2 ? { label: "지금 당장", color: "#ef4444", bg: "#fee2e2", dot: "#ef4444" } : i < 5 ? { label: "1개월 내", color: "#f97316", bg: "#fff7ed", dot: "#f97316" } : { label: "3개월 내", color: "#6366f1", bg: "#eef2ff", dot: "#6366f1" };
-                  const renderRoadmapItem = (issue: typeof allConflicts[number], idx: number) => {
-                    const script = SCRIPTS[issue.id];
-                    if (!script) return null;
-                    const phase = phaseOf(idx);
-                    const stakeSnippet = script.stake.length > 70 ? script.stake.slice(0, 70) + "…" : script.stake;
-                    const disputeSnippet = script.dispute.length > 60 ? script.dispute.slice(0, 60) + "…" : script.dispute;
+                  const STAGES = [
+                    { name: "팀 결성 직후", period: "창업 ~ 3개월", ids: ["q1","q2","q7","q9"], color: "#6366f1", bg: "#eef2ff", note: "역할·비전 갈등 시작" },
+                    { name: "제품 개발기", period: "3 ~ 9개월", ids: ["q3","q13","q14","q15","q16"], color: "#f97316", bg: "#fff7ed", note: "실행 충돌 본격화" },
+                    { name: "초기 매출기", period: "9 ~ 18개월", ids: ["q10","q11","q17","q19"], color: "#ef4444", bg: "#fff1f2", note: "보상·자금 갈등 폭발" },
+                    { name: "투자 유치", period: "18개월 ~", ids: ["q6","q12","q18","q20"], color: "#dc2626", bg: "#fef2f2", note: "지분 분쟁 최고조" },
+                    { name: "이탈·위기", period: "언제든지", ids: ["q4","q5","q8"], color: "#991b1b", bg: "#fef2f2", note: "법적 분쟁 리스크" },
+                  ];
+                  const conflictSet = new Set((teamInsight.topPriorityConflicts ?? []).map(c => c.id));
+                  const diffSet = new Set(teamIssues.filter(i => i.status === "diff").map(i => i.id));
+                  const hasAnyConflict = STAGES.some(s => s.ids.some(id => conflictSet.has(id) || diffSet.has(id)));
+                  if (!hasAnyConflict) return null;
+
+                  const renderStage = (stage: typeof STAGES[number], stageIdx: number, isLast: boolean) => {
+                    const stageConflicts = stage.ids.filter(id => conflictSet.has(id));
+                    const stageDiffs = stage.ids.filter(id => !conflictSet.has(id) && diffSet.has(id));
+                    const stageOk = stage.ids.filter(id => !conflictSet.has(id) && !diffSet.has(id));
+                    const hasIssue = stageConflicts.length > 0 || stageDiffs.length > 0;
                     return (
-                      <div key={issue.id} style={{ display: "flex", gap: "0", marginBottom: "0" }}>
-                        {/* 타임라인 컬럼 */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "40px", flexShrink: 0 }}>
-                          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: phase.dot, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "900", flexShrink: 0 }}>{idx + 1}</div>
-                          {idx < allConflicts.length - 1 && <div style={{ width: "2px", flex: 1, background: "#e2e8f0", minHeight: "20px", margin: "4px 0" }} />}
-                        </div>
-                        {/* 카드 컬럼 */}
-                        <div style={{ flex: 1, marginLeft: "12px", paddingBottom: "16px" }}>
-                          <div style={{ background: "#fff", border: "1.5px solid #e8edf4", borderRadius: "14px", overflow: "hidden" }}>
-                            <div style={{ padding: "12px 16px", background: idx === 0 ? "#fff8f8" : "#f8fafc", borderBottom: "1px solid #f1f3f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                              <span style={{ fontWeight: "800", fontSize: "14px", color: "#0f172a" }}>{script.topic}</span>
-                              <span style={{ fontSize: "11px", fontWeight: "700", background: phase.bg, color: phase.color, padding: "3px 10px", borderRadius: "999px", flexShrink: 0 }}>{phase.label}</span>
-                            </div>
-                            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                              <div>
-                                <p style={{ fontSize: "11px", fontWeight: "700", color: phase.color, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>왜 지금인가?</p>
-                                <p style={{ fontSize: "13px", color: "#374151", margin: 0, lineHeight: "1.65" }}>{stakeSnippet}</p>
-                              </div>
-                              <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "10px" }}>
-                                <p style={{ fontSize: "11px", fontWeight: "700", color: "#94a3b8", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>방치하면?</p>
-                                <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.65" }}>{disputeSnippet}</p>
-                              </div>
-                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                {script.keywords.map(kw => (
-                                  <span key={kw} style={{ fontSize: "11px", fontWeight: "600", background: "#f1f5f9", color: "#475569", padding: "3px 10px", borderRadius: "999px" }}>{kw}</span>
-                                ))}
-                              </div>
-                            </div>
+                      <div key={stage.name} style={{ display: "flex", gap: "0" }}>
+                        {/* 타임라인 선 */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "44px", flexShrink: 0 }}>
+                          <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: hasIssue ? stage.color : "#e2e8f0", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "900", flexShrink: 0, boxShadow: hasIssue ? `0 0 0 4px ${stage.bg}` : "none" }}>
+                            {stageIdx + 1}
                           </div>
+                          {!isLast && <div style={{ width: "2px", flex: 1, background: "linear-gradient(to bottom, #cbd5e1, #e2e8f0)", minHeight: "16px", margin: "6px 0" }} />}
+                        </div>
+                        {/* 스테이지 카드 */}
+                        <div style={{ flex: 1, marginLeft: "14px", paddingBottom: isLast ? "0" : "20px" }}>
+                          {/* 스테이지 헤더 */}
+                          <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "10px", marginTop: "6px" }}>
+                            <span style={{ fontWeight: "800", fontSize: "14px", color: hasIssue ? stage.color : "#94a3b8" }}>{stage.name}</span>
+                            <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "500" }}>{stage.period}</span>
+                            {hasIssue && <span style={{ fontSize: "10px", fontWeight: "700", background: stage.bg, color: stage.color, padding: "2px 8px", borderRadius: "999px", marginLeft: "auto" }}>⚠ {stage.note}</span>}
+                          </div>
+                          {/* 이슈 태그들 */}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {stageConflicts.map(id => {
+                              const issue = teamIssues.find(i => i.id === id);
+                              return issue ? (
+                                <div key={id} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#fff1f2", border: "1.5px solid #fecaca", borderRadius: "10px", padding: "5px 10px" }}>
+                                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} />
+                                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#dc2626" }}>{issue.label}</span>
+                                </div>
+                              ) : null;
+                            })}
+                            {stageDiffs.map(id => {
+                              const issue = teamIssues.find(i => i.id === id);
+                              return issue ? (
+                                <div key={id} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: "10px", padding: "5px 10px" }}>
+                                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#f97316", flexShrink: 0, display: "inline-block" }} />
+                                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#ea580c" }}>{issue.label}</span>
+                                </div>
+                              ) : null;
+                            })}
+                            {stageOk.length > 0 && (
+                              <div style={{ display: "flex", alignItems: "center", gap: "5px", background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "5px 10px" }}>
+                                <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#94a3b8", flexShrink: 0, display: "inline-block" }} />
+                                <span style={{ fontSize: "12px", fontWeight: "500", color: "#94a3b8" }}>안정 {stageOk.length}건</span>
+                              </div>
+                            )}
+                          </div>
+                          {/* 충돌 있으면 stake 한 줄 */}
+                          {stageConflicts.length > 0 && (() => {
+                            const topId = stageConflicts[0];
+                            const sc = SCRIPTS[topId];
+                            return sc ? (
+                              <p style={{ fontSize: "12px", color: "#64748b", margin: "8px 0 0", lineHeight: "1.6", paddingLeft: "2px" }}>
+                                {sc.stake.slice(0, 72)}…
+                              </p>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     );
                   };
-                  const shownItems = allConflicts.slice(0, 2);
-                  const blurredItems = allConflicts.slice(2);
+
                   return (
                     <div className="premium-item-card">
-                      <div className="card-header" style={{ marginBottom: "16px" }}>
-                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><TrendingUp size={18} color="#10b981" /> 합의 우선순위 로드맵</h3>
-                        <p className="clear-text">팀 진단 결과 기반으로 {allConflicts.length}개 충돌 안건의 합의 순서와 이유를 제시합니다.</p>
-                        {/* 범례 */}
-                        <div style={{ display: "flex", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
-                          {[{ label: "지금 당장", color: "#ef4444", bg: "#fee2e2" }, { label: "1개월 내", color: "#f97316", bg: "#fff7ed" }, { label: "3개월 내", color: "#6366f1", bg: "#eef2ff" }].map(p => (
-                            <span key={p.label} style={{ fontSize: "11px", fontWeight: "700", background: p.bg, color: p.color, padding: "3px 10px", borderRadius: "999px" }}>{p.label}</span>
+                      <div className="card-header" style={{ marginBottom: "20px" }}>
+                        <h3 className="card-emoji-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}><TrendingUp size={18} color="#10b981" /> 사업 단계별 충돌 로드맵</h3>
+                        <p className="clear-text">일반적인 스타트업 사업 단계에서 충돌이 터지는 시점을 기준으로, 우리 팀의 충돌 안건을 매핑했습니다.</p>
+                        <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+                          {[{ dot: "#ef4444", bg: "#fff1f2", label: "고위험 충돌", border: "#fecaca" }, { dot: "#f97316", bg: "#fff7ed", label: "조율 필요", border: "#fed7aa" }, { dot: "#94a3b8", bg: "#f8fafc", label: "현재 안정", border: "#e2e8f0" }].map(l => (
+                            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "5px", background: l.bg, border: `1px solid ${l.border}`, borderRadius: "999px", padding: "3px 10px" }}>
+                              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: l.dot, display: "inline-block" }} />
+                              <span style={{ fontSize: "11px", fontWeight: "700", color: l.dot }}>{l.label}</span>
+                            </div>
                           ))}
                         </div>
                       </div>
                       <div className="clear-preview">
-                        {shownItems.map((issue, i) => renderRoadmapItem(issue, i))}
+                        {STAGES.slice(0, 2).map((s, i) => renderStage(s, i, false))}
                       </div>
-                      {blurredItems.length > 0 && (
-                        <div className="card-blur-area">
-                          {blurredItems.map((issue, i) => renderRoadmapItem(issue, 2 + i))}
-                          <div className="card-unlock-overlay">
-                            <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
-                              <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
-                            </button>
-                          </div>
+                      <div className="card-blur-area">
+                        {STAGES.slice(2).map((s, i) => renderStage(s, 2 + i, i === 2))}
+                        <div className="card-unlock-overlay">
+                          <button className="btn btn-primary unlock-btn" onClick={() => setShowSubscribe(true)}>
+                            <Lock size={14} style={{ marginRight: "6px", display: "inline", verticalAlign: "middle" }} /> 심화 리포트 사전신청하기
+                          </button>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })()}
