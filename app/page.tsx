@@ -557,19 +557,19 @@ export default function LandingPage() {
           <div className="faq-list">
             <div className="faq-item">
               <div className="faq-q">Q. CoSync는 지분만 다루는 서비스인가요?</div>
-              <div className="faq-a">A. 아닙니다. CoSync는 역할 & 책임, 지분 & 보상, 이탈 & 회수 등<br className="mob-br" /> 총 6가지 핵심 기준으로 공동창업팀의 운영 전반을 다룹니다.</div>
+              <div className="faq-a">A. 아닙니다. CoSync는 역할 & 책임, 지분 & 보상, 이탈 & 회수 등 총 6가지 핵심 기준으로 공동창업팀의 운영 전반을 다룹니다.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 법적인 효력이 있는 계약서인가요?</div>
-              <div className="faq-a">A. 아닙니다. CoSync의 결과물은 팀 내부 기준을 정리한 합의안 문서이며,<br className="mob-br" /> 필요 시 후속 법률 문서 작성의 기초 자료로 활용할 수 있습니다.</div>
+              <div className="faq-a">A. 아닙니다. CoSync의 결과물은 팀 내부 기준을 정리한 합의안 문서이며, 필요 시 후속 법률 문서 작성의 기초 자료로 활용할 수 있습니다.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 아직 지분을 정할 단계가 아닌데도 사용할 수 있나요?</div>
-              <div className="faq-a">A. 네. 오히려 지분 논의 이전에 역할과 책임,<br className="mob-br" /> 기여 기준부터 먼저 정리하는 것이 더 효과적입니다.</div>
+              <div className="faq-a">A. 네. 오히려 지분 논의 이전에 역할과 책임, 기여 기준부터 먼저 정리하는 것이 더 효과적입니다.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 팀원 한 명만 먼저 시작할 수 있나요?</div>
-              <div className="faq-a">A. 가능합니다. 먼저 본인의 기준을 정리한 뒤,<br className="mob-br" /> 초대 링크를 통해 다른 공동창업자를 합류시킬 수 있습니다.<br className="mob-br" /> 팀원 모두가 입력을 완료하면 비교와 조율이 시작됩니다.</div>
+              <div className="faq-a">A. 가능합니다. 먼저 본인의 기준을 정리한 뒤, 초대 링크를 통해 다른 공동창업자를 합류시킬 수 있습니다. 팀원 모두가 입력을 완료하면 비교와 조율이 시작됩니다.</div>
             </div>
           </div>
         </div>
