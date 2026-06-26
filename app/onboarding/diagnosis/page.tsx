@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useAppState } from "../../../components/AppState";
-import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../components/AuthContext";
 import { useUserProfile } from "../../../components/useUserProfile";
 import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
@@ -872,9 +871,6 @@ function OnboardingDiagnosisPageInner() {
           )}
         </div>
       </section>
-      <div className="diagnosis-footer-shell">
-        <Footer />
-      </div>
 
       {showAdvancedPrompt && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">

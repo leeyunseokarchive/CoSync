@@ -24,5 +24,10 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
     }
+
+    match /earlybird/{docId} {
+      allow create, update: if true;
+      allow read: if isSignedIn();
+    }
   }
 }

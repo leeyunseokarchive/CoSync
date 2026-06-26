@@ -18,9 +18,11 @@ export default function OnboardingIntroPage() {
             <span className="accent">실행 가능한 규칙</span>으로
           </h1>
           <p>
-            팀의 민감한 협업 과정을
-            <br />
-            CoSync와 함께 해결하고 성장에 집중하세요.
+            팀의 민감한 협업 과정을{" "}
+            <br className="mob-br" />
+            CoSync와 함께 해결하고{" "}
+            <br className="mob-br" />
+            성장에 집중하세요.
           </p>
           <div className="hero-note">
             ✓ 팀의 모든 규칙이 실현 가능한 구조로 수렴합니다.
@@ -64,12 +66,12 @@ export default function OnboardingIntroPage() {
             <div className="card step-card">
               <div className="step-label">STEP 02</div>
               <h3>인식 격차 분석</h3>
-              <p>팀원별 차이 확인</p>
+              <p>인식 차 확인</p>
             </div>
             <div className="card step-card">
               <div className="step-label">STEP 03</div>
               <h3>합의 규칙 확정</h3>
-              <p>합의안 구조화</p>
+              <p>합의 구조화</p>
             </div>
           </div>
 
