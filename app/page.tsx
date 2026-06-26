@@ -194,7 +194,7 @@ export default function LandingPage() {
             <div className="hero-actions">
               <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta" style={{ display: "flex", flexDirection: "column", gap: "3px", width: "100%", maxWidth: "400px" }}>
                 <span>숨겨진 동업 리스크 진단하기</span>
-                <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}>⏱ 약 3분 소요 · 무료</span>
+                <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}><Clock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
               </Link>
             </div>
           </div>
