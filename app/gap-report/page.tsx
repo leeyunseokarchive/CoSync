@@ -15,7 +15,7 @@ import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
 import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
-import { doc, getDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
 type QuestionDef = {
@@ -156,6 +156,7 @@ export default function GapReportPage() {
   const [openGuides, setOpenGuides] = useState<Set<string>>(new Set());
   const [earlyBirdEmail, setEarlyBirdEmail] = useState("");
   const [earlyBirdSubmitted, setEarlyBirdSubmitted] = useState(false);
+  const [earlyBirdError, setEarlyBirdError] = useState("");
   const toggleGuide = (id: string) => setOpenGuides(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
@@ -355,7 +356,7 @@ export default function GapReportPage() {
     { title: "합의 세션", src: "/preview/agreement-confirm.png" },
     { title: "계약서 생성", src: "/preview/document-view.png" },
     { title: "구체적인 질문 리스트", src: "/preview/questions.png" },
-    { title: "AI 추천 문구", src: "/preview/version-diff.png" },
+    { title: "추천 문구", src: "/preview/version-diff.png" },
     { title: "히스토리 관리", src: "/preview/version-history.png" }
   ];
 
@@ -386,7 +387,8 @@ export default function GapReportPage() {
               {members.filter(m => !hasBasicComplete(m)).map(m => (
                 <span key={m.id}><strong>{m.name}</strong>의 진단 진행률: {m.progress ?? 0}%<br /></span>
               ))}
-              <br />전원이 기본 진단(12문항)을 마치면 통합 리포트가 열립니다.
+              <br />
+              전원이 기본 진단(12문항)을 마치면 통합 리포트가 열립니다.
             </p>
             <Link href="/onboarding/diagnosis" className="btn btn-primary" style={{ display: "inline-flex" }}>
               진단 계속하기 →
@@ -523,10 +525,23 @@ export default function GapReportPage() {
                   <h2 className="heatmap-title">
                     영역별 상세 데이터 시각화 <span className="heatmap-subtitle">(Heatmap)</span>
                   </h2>
-                  <div className="heatmap-legend">
-                    <div className="legend-item"><span className="legend-dot alignment"></span> 일치</div>
-                    <div className="legend-item"><span className="legend-dot" style={{background:"#fdba74"}}></span> 차이</div>
-                    <div className="legend-item"><span className="legend-dot conflict"></span> 충돌</div>
+                </div>
+                <div className="heatmap-help-box" style={{ marginTop: "16px" }}>
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "10px" }}>
+                    {[
+                      { color: "#20c997", label: "일치" },
+                      { color: "#fdba74", label: "차이" },
+                      { color: "#f97316", label: "충돌" },
+                      { color: "#e2e8f0", label: "미응답" },
+                    ].map(({ color, label }) => (
+                      <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#374151" }}>
+                        <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: color, display: "inline-block", flexShrink: 0 }} />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#6366f1", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                    <MessageCircle size={13} /> 충돌·차이 셀을 클릭하면 실제 응답 비교와 갈등 분석을 바로 볼 수 있어요
                   </div>
                 </div>
               </div>
@@ -580,26 +595,6 @@ export default function GapReportPage() {
               </div>
               </div>
 
-              {/* Help Box */}
-              <div className="heatmap-help-box" style={{ marginTop: "32px" }}>
-                {/* 범례 */}
-                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "14px" }}>
-                  {[
-                    { color: "#20c997", label: "일치" },
-                    { color: "#fdba74", label: "차이" },
-                    { color: "#f97316", label: "충돌" },
-                    { color: "#e2e8f0", textColor: "#94a3b8", label: "미응답" },
-                  ].map(({ color, textColor, label }) => (
-                    <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#374151" }}>
-                      <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: color, display: "inline-block", flexShrink: 0 }} />
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                <div style={{ fontSize: "13px", color: "#6366f1", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
-                  <MessageCircle size={13} /> 충돌·차이 셀을 클릭하면 실제 응답 비교와 AI 갈등 분석을 바로 볼 수 있어요
-                </div>
-              </div>
 
             </div>
 
@@ -829,15 +824,15 @@ export default function GapReportPage() {
               <div className="reviews-scroll-col">
                 <div className="teaser-header">
                   <h2 style={{ color: "#000" }}>REVIEWS</h2>
-                  <p>이미 수많은 초기 창업팀이 CoSync로 빈틈없는 합의를 마쳤습니다.</p>
+                  <p>이미 수많은 초기 창업팀이 CoSync로 합의 준비를 시작했습니다.</p>
                 </div>
                 <div className="reviews-scroll-window">
                   <div className="reviews-scroll-track">
                     {[...Array(2)].map((_, pass) =>
                       [
                         { stars: "★★★★★", bold: "결정 기준과 최종 책임자를 정한 뒤에는 비슷한 안건도 1시간 이내에 결론", pre: "전에는 기능 우선순위 하나에도 2~3시간씩 끝장토론을 했지만, ", post: "을 낼 수 있었습니다. 실행 속도가 확연히 달라졌어요.", author: "초기 스타트업 CEO · 31세", initial: "C" },
-                        { stars: "★★★★★", bold: "객관적인 데이터로 대화의 물꼬를 트니 감정 상할 일 없이", pre: "친한 선배라 돈이나 지분 문제를 먼저 꺼내기 어려웠는데, ", post: " 운영 기준을 문서화할 수 있었습니다. 진짜 꼭 필요했던 서비스예요.", author: "기창업(2y) 공동창업 준비 중 · 23세", initial: "기" },
-                        { stars: "★★★★★", bold: "우리가 어떤 부분에서 동상이몽을 하고 있었는지", pre: "대화는 많이 했지만 늘 겉도는 느낌이었어요. CoSync로 진단해보니 ", post: " 한눈에 보였습니다. 덕분에 갈등 없이 안전한 지분 구조를 합의했어요.", author: "초기 스타트업 공동창업자 · 29세", initial: "공" },
+                        { stars: "★★★★★", bold: "객관적인 데이터로 대화의 물꼬를 트니 감정 상할 일 없이", pre: "친한 선배라 돈이나 지분 문제를 먼저 꺼내기 어려웠는데, ", post: " 운영 기준을 정리할 수 있었습니다. 진짜 꼭 필요했던 서비스예요.", author: "기창업(2y) 공동창업 준비 중 · 23세", initial: "기" },
+                        { stars: "★★★★★", bold: "우리가 어떤 부분에서 동상이몽을 하고 있었는지", pre: "대화는 많이 했지만 늘 겉도는 느낌이었어요. CoSync로 진단해보니 ", post: " 한눈에 보였습니다. 덕분에 갈등 없이 지분 구조의 합의 기준을 잡았어요.", author: "초기 스타트업 공동창업자 · 29세", initial: "공" },
                       ].map((r, i) => (
                         <div key={`${pass}-${i}`} className="review-card">
                           <div className="review-stars">{r.stars}</div>
@@ -854,6 +849,70 @@ export default function GapReportPage() {
               </div>
             </div>
 
+            <section id="earlybird-section" style={{ margin: "64px 0 0", padding: "48px 24px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "20px", textAlign: "center" }}>
+              <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+                <div style={{ marginBottom: "24px" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "16px" }}>
+                    <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
+                    <span style={{ fontSize: "14px", fontWeight: "800", color: "#d97706", letterSpacing: "0.04em" }}>선착순 50팀 얼리버드</span>
+                    <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
+                  </div>
+                  <h2 className="section-title" style={{ fontSize: "clamp(18px, 3.5vw, 22px)", wordBreak: "keep-all", marginBottom: "12px" }}>팀 맞춤 합의안 서비스, 가장 먼저 만나보세요</h2>
+                  <p className="section-sub">출시 즉시 알림을 받고 얼리버드 혜택을 누리세요.</p>
+                </div>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
+                  <li className="section-sub" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
+                    <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
+                    <span>정식 출시가 <strong>30% 할인</strong></span>
+                  </li>
+                  <li className="section-sub" style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
+                    <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
+                    <span>AI 에이전트 크레딧 <strong>20회 무료 제공</strong></span>
+                  </li>
+                </ul>
+                {earlyBirdSubmitted ? (
+                  <div style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "12px", padding: "20px 24px" }}>
+                    <p style={{ fontSize: "16px", fontWeight: "700", color: "#6366f1", margin: "0 0 4px" }}>신청 완료!</p>
+                    <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>출시 시 가장 먼저 안내드릴게요.</p>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!earlyBirdEmail) return;
+                      setEarlyBirdError("");
+                      try {
+                        await setDoc(doc(db, "earlybird", earlyBirdEmail), {
+                          email: earlyBirdEmail,
+                          createdAt: serverTimestamp(),
+                          source: "gap-report",
+                        });
+                        setEarlyBirdSubmitted(true);
+                      } catch (err) {
+                        console.error("얼리버드 저장 실패:", err);
+                        setEarlyBirdError("신청에 실패했습니다. 잠시 후 다시 시도해주세요.");
+                      }
+                    }}
+                    style={{ display: "flex", gap: "10px", flexDirection: "column", width: "100%", maxWidth: "480px", margin: "0 auto" }}
+                  >
+                    <input
+                      type="email"
+                      required
+                      placeholder="신청할 이메일 입력"
+                      value={earlyBirdEmail}
+                      onChange={(e) => setEarlyBirdEmail(e.target.value)}
+                      style={{ width: "100%", padding: "16px", border: "1.5px solid #e2e8f0", borderRadius: "999px", fontSize: "15px", outline: "none", color: "#1f2430", textAlign: "center", boxSizing: "border-box" }}
+                    />
+                    <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "18px", fontSize: "16px" }}>
+                      출시 알림 받기
+                    </button>
+                    {earlyBirdError && <p style={{ fontSize: "12px", color: "#ef4444", margin: 0 }}>{earlyBirdError}</p>}
+                    <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>스팸 없이 출시 소식만 보내드려요.</p>
+                  </form>
+                )}
+              </div>
+            </section>
+
             <div className="premium-cards-section" style={{ marginTop: "80px" }}>
               {/* 합의안 완성 일러스트 — 갭 공백이 곧 합의안 조항이 된다 */}
               <div className="teaser-header">
@@ -862,7 +921,7 @@ export default function GapReportPage() {
                   동업계약서 전문 변호사 감수 완료
                 </div>
                 <h2>합의 공백을 지금 채우세요</h2>
-                <p>갭 리포트로 공백을 확인하고, 본 서비스의 정교한 6가지 카테고리 질문들로<br />서로 입장을 맞춰 계약서 작성 시 검토할 수 있는 합의안으로 완성합니다.</p>
+                <p style={{ wordBreak: "keep-all" }}>갭 리포트로 공백을 확인하고, 본 서비스의 정교한 6가지 카테고리 질문들로 서로 입장을 맞춰 계약서 작성 시 검토할 수 있는 합의안으로 완성합니다.</p>
               </div>
               <div className="agreement-flow-stage">
                 {/* 배경: 흐릿한 합의안 문서 */}
@@ -1237,31 +1296,67 @@ export default function GapReportPage() {
                       </h3>
                       <p className="clear-text" style={{ marginBottom: "20px" }}>스타트업 성장 단계별로 충돌이 실제로 터지는 시점과 우리 팀 안건을 매핑했습니다.</p>
 
-                      {/* 가로 타임라인 레일 */}
-                      <div className="stage-timeline-wrap">
-                        <div className="stage-timeline-inner">
-                          {STAGES.map((stage, idx) => {
-                            const hasIssue = stage.ids.some(id => conflictSet.has(id) || diffSet.has(id));
-                            const isConflict = stage.ids.some(id => conflictSet.has(id));
-                            return (
-                              <React.Fragment key={stage.name}>
-                                <div className="stage-node-col">
-                                  <div className="stage-node-circle" style={{
-                                    background: hasIssue ? stage.color : "#f1f5f9",
-                                    boxShadow: isConflict ? `0 4px 12px ${stage.color}40` : "0 2px 6px rgba(0,0,0,0.06)",
-                                  }}>
-                                    <span className="stage-node-num" style={{ color: hasIssue ? "#fff" : "#94a3b8" }}>
-                                      {idx + 1}
-                                    </span>
-                                  </div>
-                                  <span className="stage-node-label" style={{ color: hasIssue ? "#1f2430" : "#94a3b8" }}>{stage.name}</span>
-                                </div>
-                                {idx < STAGES.length - 1 && <div className="stage-connector">→</div>}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      {/* 리스크 커브 그래프 */}
+                      {(() => {
+                        // 일반적 창업팀 리스크 곡선 Y값 (0=낮음, 100=높음, 위에서 아래로)
+                        const riskY = [62, 45, 18, 28, 50]; // 자금압박기 최고위험
+                        const W = 480, H = 140, PAD = { top: 18, bottom: 34, left: 8, right: 8 };
+                        const chartW = W - PAD.left - PAD.right;
+                        const chartH = H - PAD.top - PAD.bottom;
+                        const xs = STAGES.map((_, i) => PAD.left + (i / (STAGES.length - 1)) * chartW);
+                        const ys = riskY.map(v => PAD.top + (v / 100) * chartH);
+                        // 베지어 곡선 path
+                        let d = `M ${xs[0]} ${ys[0]}`;
+                        for (let i = 1; i < xs.length; i++) {
+                          const cpx = (xs[i - 1] + xs[i]) / 2;
+                          d += ` C ${cpx} ${ys[i-1]}, ${cpx} ${ys[i]}, ${xs[i]} ${ys[i]}`;
+                        }
+                        const fillD = `${d} L ${xs[xs.length-1]} ${H} L ${xs[0]} ${H} Z`;
+                        return (
+                          <div style={{ marginBottom: "20px" }}>
+                            <p style={{ fontSize: "10px", fontWeight: "700", color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "6px" }}>창업팀 갈등 리스크 구간</p>
+                            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", maxWidth: "500px", height: "auto", overflow: "visible", display: "block", margin: "0 auto" }}>
+                              <defs>
+                                <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.15" />
+                                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              {/* 채움 영역 */}
+                              <path d={fillD} fill="url(#riskGrad)" />
+                              {/* 곡선 */}
+                              <path d={d} fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
+                              {/* 각 스테이지 마커 */}
+                              {STAGES.map((stage, idx) => {
+                                const hasIssue = stage.ids.some(id => conflictSet.has(id) || diffSet.has(id));
+                                const isConflict = stage.ids.some(id => conflictSet.has(id));
+                                const conflictCount = stage.ids.filter(id => conflictSet.has(id)).length;
+                                const diffCount = stage.ids.filter(id => !conflictSet.has(id) && diffSet.has(id)).length;
+                                const x = xs[idx], y = ys[idx];
+                                return (
+                                  <g key={stage.name}>
+                                    {/* 드롭라인 */}
+                                    <line x1={x} y1={y} x2={x} y2={H - PAD.bottom + 4} stroke={hasIssue ? "#6366f1" : "#e2e8f0"} strokeWidth="1" strokeDasharray="3 2" />
+                                    {/* 마커 원 */}
+                                    {isConflict && <circle cx={x} cy={y} r="10" fill="rgba(99,102,241,0.12)" />}
+                                    <circle cx={x} cy={y} r="5" fill={hasIssue ? "#6366f1" : "#e2e8f0"} stroke="#fff" strokeWidth="2" />
+                                    {/* 뱃지 */}
+                                    {(conflictCount > 0 || diffCount > 0) && (
+                                      <text x={x} y={y - 14} textAnchor="middle" fontSize="11" fontWeight="800" fill={isConflict ? "#dc2626" : "#c2410c"}>
+                                        {isConflict ? `충돌 ${conflictCount}` : `차이 ${diffCount}`}
+                                      </text>
+                                    )}
+                                    {/* 스테이지 라벨 */}
+                                    <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fontSize="11" fontWeight="700" fill={hasIssue ? "#1f2430" : "#94a3b8"}>
+                                      {stage.name}
+                                    </text>
+                                  </g>
+                                );
+                              })}
+                            </svg>
+                          </div>
+                        );
+                      })()}
 
                       {/* 1단계 헤더만 공개, 본문부터 블러+페이드 */}
                       <div style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)", marginBottom: "12px" }}>
@@ -1398,78 +1493,18 @@ export default function GapReportPage() {
         )}
       </section>
 
-      {/* 데모평가 섹션 */}
-      <section style={{ padding: "56px 20px", background: "#f8fafc", textAlign: "center", borderTop: "1px solid #e2e8f0" }}>
+      {/* 데모평가 섹션 — 리포트가 열린 팀에게만 표시 */}
+      {showReport && <section style={{ padding: "56px 20px", background: "#f8fafc", textAlign: "center", borderTop: "1px solid #e2e8f0" }}>
         <div style={{ maxWidth: "480px", margin: "0 auto" }}>
           <p style={{ fontSize: "11px", fontWeight: "700", color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>FEEDBACK</p>
           <h2 style={{ fontSize: "22px", fontWeight: "800", color: "#1f2430", marginBottom: "10px", lineHeight: "1.35" }}>리포트가 도움이 되셨나요?</h2>
-          <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.7", wordBreak: "keep-all" }}>3분 데모 평가에 참여해 CoSync를 함께 만들어 주세요.<br />여러분의 의견이 서비스를 만들어갑니다.</p>
-          <a href="https://forms.gle/h4Xyp7GD4jcicqpM8" target="_blank" rel="noopener noreferrer" className="btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", width: "100%", maxWidth: "480px", padding: "14px 28px", border: "1.5px solid #6366f1", color: "#6366f1", background: "transparent", fontWeight: 700, borderRadius: "999px", margin: "0 auto" }}>
+          <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.7", wordBreak: "keep-all" }}>3분 데모 평가에 참여해 CoSync를 함께 만들어 주세요. <br />여러분의 의견이 서비스를 만들어갑니다.</p>
+          <a href="https://forms.gle/h4Xyp7GD4jcicqpM8" target="_blank" rel="noopener noreferrer" className="btn" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", width: "100%", maxWidth: "480px", padding: "18px 28px", fontSize: "16px", border: "1.5px solid #6366f1", color: "#6366f1", background: "transparent", fontWeight: 700, borderRadius: "999px", margin: "0 auto" }}>
             데모 평가 참여하기 →
           </a>
         </div>
-      </section>
+      </section>}
 
-      {/* 얼리버드 이메일 수집 섹션 */}
-      <section style={{ padding: "64px 20px", background: "#fff", textAlign: "center", borderTop: "1px solid #e2e8f0" }}>
-        <div style={{ maxWidth: "480px", margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "20px" }}>
-            <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
-            <span style={{ fontSize: "13px", fontWeight: "800", color: "#d97706", letterSpacing: "0.04em" }}>선착순 50팀 얼리버드</span>
-            <span style={{ color: "#d97706", fontSize: "16px" }}>★</span>
-          </div>
-          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#1f2430", marginBottom: "10px", lineHeight: "1.35", wordBreak: "keep-all" }}>
-            팀 맞춤 합의안 서비스,<br />가장 먼저 만나보세요
-          </h2>
-          <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "24px", lineHeight: "1.7", wordBreak: "keep-all" }}>출시 즉시 알림을 받고 얼리버드 혜택을 누리세요.</p>
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
-            <li style={{ fontSize: "14px", color: "#1f2430", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
-              <span>정식 출시가 <strong>30% 할인</strong></span>
-            </li>
-            <li style={{ fontSize: "14px", color: "#1f2430", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ color: "#6366f1", fontWeight: "800", flexShrink: 0 }}>✓</span>
-              <span>AI 에이전트 크레딧 <strong>20회 무료 제공</strong></span>
-            </li>
-          </ul>
-          {earlyBirdSubmitted ? (
-            <div style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "12px", padding: "20px 24px" }}>
-              <p style={{ fontSize: "16px", fontWeight: "700", color: "#6366f1", margin: "0 0 4px" }}>신청 완료!</p>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>출시 시 가장 먼저 안내드릴게요.</p>
-            </div>
-          ) : (
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!earlyBirdEmail) return;
-                try {
-                  await addDoc(collection(db, "earlybird"), {
-                    email: earlyBirdEmail,
-                    createdAt: serverTimestamp(),
-                  });
-                } catch (err) {
-                  console.error("얼리버드 저장 실패:", err);
-                }
-                setEarlyBirdSubmitted(true);
-              }}
-              style={{ display: "flex", gap: "10px", flexDirection: "column", width: "100%", maxWidth: "480px", margin: "0 auto" }}
-            >
-              <input
-                type="email"
-                required
-                placeholder="팀 대표 이메일 입력"
-                value={earlyBirdEmail}
-                onChange={(e) => setEarlyBirdEmail(e.target.value)}
-                style={{ width: "100%", padding: "14px 16px", border: "1.5px solid #e2e8f0", borderRadius: "999px", fontSize: "14px", outline: "none", color: "#1f2430", textAlign: "center", boxSizing: "border-box" }}
-              />
-              <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "14px" }}>
-                출시 알림 받기
-              </button>
-              <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>스팸 없이 출시 소식만 보내드려요.</p>
-            </form>
-          )}
-        </div>
-      </section>
 
       <Footer />
 
@@ -1484,10 +1519,10 @@ export default function GapReportPage() {
             >
               ✕
             </button>
-            <h3>심층 리포트 & 합의안 서비스 사전신청</h3>
+            <h3>팀이 작을 때 하는 합의가 가장 쉽습니다</h3>
             <p>
-              심층 리포트와 팀 맞춤 합의안 서비스가 곧 제공됩니다.<br />
-              사전신청하시면 오픈 시 가장 먼저 안내드립니다.
+              기업이 성장할수록, 같은 문제의 갈등 비용도 커집니다. <br />
+              사전신청 팀에게 먼저 열립니다.
             </p>
             <div className="preview-slider">
               <Swiper
@@ -1516,8 +1551,15 @@ export default function GapReportPage() {
               >
                 나중에
               </button>
-              <button className="btn btn-primary" type="button">
-                구독 시작하기 →
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  setShowSubscribe(false);
+                  document.getElementById("earlybird-section")?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                사전신청하기 →
               </button>
             </div>
           </div>

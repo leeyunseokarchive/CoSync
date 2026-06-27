@@ -75,13 +75,30 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
     case "deadlockTolerance":
       return (
         <svg {...svgProps}>
-          <path d="M 200 240 v -80 l -80 -60 m 80 60 l 80 -60" fill="none" stroke="#E5E7EB" strokeWidth="30" strokeLinecap="round" />
-          <circle cx="120" cy="80" r="25" fill="#FEF3C7" />
-          <path d="M 120 65 v 15 l 10 10" fill="none" stroke={highlight} strokeWidth="4" strokeLinecap="round" />
-          <circle cx="280" cy="80" r="25" fill="#D1FAE5" />
-          <path d="M 270 80 l 5 5 l 15 -15" fill="none" stroke={success} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          <Person cx="200" cy="180" color={primary} />
-          <text x="200" y="120" fontSize="24" fill={textDark} fontWeight="bold" textAnchor="middle">?</text>
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={neutral} flip={true} />
+          
+          {/* Blue Person's Idea (List View) */}
+          <g transform="translate(140, 90)">
+            <path d="M -25 -25 h 50 a 10 10 0 0 1 10 10 v 30 a 10 10 0 0 1 -10 10 h -30 l -15 15 l 5 -15 h -10 a 10 10 0 0 1 -10 -10 v -30 a 10 10 0 0 1 10 -10 z" fill="white" stroke={primary} strokeWidth="3" strokeLinejoin="round" />
+            <rect x="-15" y="-12" width="30" height="6" rx="2" fill={primary} opacity="0.6" />
+            <rect x="-15" y="-2" width="30" height="6" rx="2" fill={primary} opacity="0.6" />
+            <rect x="-15" y="8" width="30" height="6" rx="2" fill={primary} opacity="0.6" />
+          </g>
+          
+          {/* Grey Person's Idea (Grid View) */}
+          <g transform="translate(260, 90)">
+            <path d="M -25 -25 h 50 a 10 10 0 0 1 10 10 v 30 a 10 10 0 0 1 -10 10 h -10 l 5 15 l -15 -15 h -30 a 10 10 0 0 1 -10 -10 v -30 a 10 10 0 0 1 10 -10 z" fill="white" stroke={neutral} strokeWidth="3" strokeLinejoin="round" />
+            <rect x="-15" y="-12" width="12" height="12" rx="2" fill={neutral} opacity="0.6" />
+            <rect x="3" y="-12" width="12" height="12" rx="2" fill={neutral} opacity="0.6" />
+            <rect x="-15" y="4" width="12" height="12" rx="2" fill={neutral} opacity="0.6" />
+            <rect x="3" y="4" width="12" height="12" rx="2" fill={neutral} opacity="0.6" />
+          </g>
+          
+          {/* Lightning Conflict Symbol */}
+          <g transform="translate(200, 100)">
+            <path d="M 2 -15 L -8 2 L 0 2 L -2 15 L 8 -2 L 0 -2 Z" fill={danger} stroke="white" strokeWidth="2" strokeLinejoin="round" />
+          </g>
         </svg>
       );
 
@@ -185,23 +202,26 @@ export function ScenarioIllustration({ questionId, className = "" }: ScenarioIll
         </svg>
       );
     case "exitDisputeResolution":
-      // 20% slice = 72 degrees. cx=200, cy=120, r=50.
       return (
         <svg {...svgProps}>
-          <Person cx="100" cy="180" color={primary} />
-          <Person cx="300" cy="180" color={highlight} flip={true} />
-          <g clipPath="url(#pieClipDispute)">
-            <circle cx="200" cy="120" r="50" fill={primary} />
-            <path d="M 200 120 L 200 70 A 50 50 0 0 1 247.55 104.55 Z" fill={highlight} />
-            <path d="M 200 70 L 200 120 L 247.55 104.55" fill="none" stroke={bg} strokeWidth="6" strokeLinejoin="round" />
+          <Person cx="120" cy="180" color={primary} />
+          <Person cx="280" cy="180" color={highlight} flip={true} />
+          
+          {/* Departure Arrow for the leaving partner */}
+          <g transform="translate(320, 160)">
+            <path d="M 0 0 h 20 m -8 -8 l 8 8 l -8 8" fill="none" stroke={highlight} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </g>
-          <defs>
-            <clipPath id="pieClipDispute">
-              <circle cx="200" cy="120" r="50" />
-            </clipPath>
-          </defs>
-          <path d="M 120 80 l 10 10 m 0 -10 l -10 10" stroke={danger} strokeWidth="3" strokeLinecap="round" />
-          <path d="M 280 80 l -10 10 m 0 -10 l 10 10" stroke={danger} strokeWidth="3" strokeLinecap="round" />
+          
+          {/* Pie Chart (80:20 Split) */}
+          <g transform="translate(190, 110)">
+            {/* 80% Blue Slice */}
+            <path d="M 0 0 L 0 -45 A 45 45 0 1 0 42.79 -13.9 Z" fill={primary} />
+            {/* 20% Orange Slice (Pulled out) with Question Mark */}
+            <g transform="translate(8, -8)">
+              <path d="M 0 0 L 0 -45 A 45 45 0 0 1 42.79 -13.9 Z" fill={highlight} />
+              <text x="16" y="-16" fontSize="18" fill="white" fontWeight="bold" textAnchor="middle">?</text>
+            </g>
+          </g>
         </svg>
       );
 

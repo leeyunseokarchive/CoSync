@@ -1,0 +1,102 @@
+import Link from "next/link";
+import { TopNav } from "../../components/TopNav";
+import { Footer } from "../../components/Footer";
+
+export default function PrivacyPage() {
+  return (
+    <main className="page">
+      <TopNav links={[]} active="" />
+
+      <section className="container" style={{ paddingTop: "80px", paddingBottom: "100px", maxWidth: "720px" }}>
+        <h1 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "#0f172a", marginBottom: "8px", letterSpacing: "-0.5px" }}>
+          개인정보처리방침
+        </h1>
+        <p style={{ fontSize: "14px", color: "#94a3b8", marginBottom: "48px" }}>시행일: 2026년 1월 1일</p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px", fontSize: "15px", lineHeight: 1.85, color: "#475569" }}>
+
+          <p>CoSync(이하 "회사")은 「개인정보 보호법」 등 관련 법령을 준수하며, 이용자의 개인정보를 다음과 같이 처리합니다.</p>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>1. 수집하는 개인정보 항목</h2>
+            <p>
+              · 필수: 이름, 이메일 주소, 비밀번호<br />
+              · 서비스 이용 중 생성: 진단 응답 데이터, 팀 정보, 역할/소속 정보<br />
+              · 자동 수집: 접속 IP, 쿠키, 접속 로그, 기기·브라우저 정보, 서비스 이용 기록
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>2. 수집 및 이용 목적</h2>
+            <p>
+              · 회원 식별 및 가입 의사 확인, 서비스 제공<br />
+              · 공동창업자 정렬 진단 결과 분석 및 갭 리포트 생성<br />
+              · 서비스 개선 및 알고리즘 고도화 (익명·가명 처리 후 활용)<br />
+              · 고객 문의 대응 및 공지사항 전달<br />
+              · 부정 이용 방지 및 서비스 안정성 확보
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>3. 보유 및 이용 기간</h2>
+            <p>
+              원칙적으로 회원 탈퇴 시 지체 없이 파기합니다. 단, 관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관합니다.<br />
+              · 계약 또는 청약철회 등에 관한 기록: 5년 (전자상거래법)<br />
+              · 대금결제 및 재화 공급에 관한 기록: 5년 (전자상거래법)<br />
+              · 소비자 불만 또는 분쟁 처리에 관한 기록: 3년 (전자상거래법)<br />
+              · 접속 로그 등 통신사실확인자료: 3개월 (통신비밀보호법)
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>4. 개인정보의 제3자 제공</h2>
+            <p>회사는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 다만, 이용자가 사전에 동의한 경우 또는 법령에 의거한 경우에는 예외로 합니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>5. 개인정보 처리의 위탁</h2>
+            <p>회사는 안정적인 서비스 제공을 위해 클라우드 인프라 및 데이터 보관 업무를 외부 전문업체에 위탁할 수 있으며, 위탁 시 관련 법령에 따라 개인정보가 안전하게 관리되도록 필요한 사항을 규정합니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>6. 정보주체의 권리 및 행사 방법</h2>
+            <p>이용자는 언제든지 자신의 개인정보에 대한 열람·정정·삭제·처리정지를 요구할 수 있으며, 서비스 내 설정 또는 아래 문의처를 통해 권리를 행사할 수 있습니다. 회사는 지체 없이 필요한 조치를 취합니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>7. 개인정보의 파기 절차 및 방법</h2>
+            <p>보유 기간이 경과하거나 처리 목적이 달성된 개인정보는 지체 없이 파기합니다. 전자적 파일은 복구가 불가능한 방법으로 영구 삭제하며, 출력물은 분쇄 또는 소각합니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>8. 개인정보의 안전성 확보 조치</h2>
+            <p>회사는 비밀번호 암호화, 접근 권한 관리, 접근 통제 시스템 운영, 전송 구간 암호화(SSL) 등 관련 법령이 요구하는 기술적·관리적 보호조치를 시행합니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>9. 동의 거부 권리 및 불이익</h2>
+            <p>이용자는 개인정보 수집·이용에 동의하지 않을 권리가 있습니다. 단, 필수 항목에 대한 동의를 거부할 경우 회원가입 및 서비스 이용이 제한될 수 있습니다.</p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "10px" }}>10. 개인정보 보호책임자 및 문의처</h2>
+            <p>
+              개인정보 처리에 관한 문의·불만·피해구제는 아래로 연락해 주세요.<br />
+              · 개인정보 보호책임자: CoSync 운영팀<br />
+              · 이메일: cosync.support@gmail.com
+            </p>
+          </div>
+
+        </div>
+
+        <div style={{ marginTop: "48px", paddingTop: "32px", borderTop: "1px solid #e2e8f0" }}>
+          <Link href="/" style={{ fontSize: "14px", color: "#5858e2", fontWeight: 600, textDecoration: "none" }}>
+            ← 홈으로 돌아가기
+          </Link>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
+  );
+}

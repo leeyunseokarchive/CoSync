@@ -26,6 +26,30 @@ export default function DiagnosisCompletePage() {
 
   const hasTeam = Boolean(profile?.teamIds?.length);
 
+  const handleContinueAdvanced = async () => {
+    if (user) {
+      const teamId = profile?.teamIds?.[0];
+      if (teamId) {
+        const answers = {
+          extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+          exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+          exitVision, pivotCriteria, dealbreaker,
+          fundingRunway, spendingApproval, investmentCriteria,
+          decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+          salaryStructure, equityStructure, profitDistribution, growthStrategy
+        };
+        const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+        const answerUpdates = Object.fromEntries(
+          Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
+        );
+        if (Object.keys(answerUpdates).length > 0) {
+          await updateDoc(memberDocRef, answerUpdates).catch(() => {});
+        }
+      }
+    }
+    router.push("/onboarding/diagnosis?goTo=q13");
+  };
+
   const handleSaveAndProceed = async (destination: string) => {
     if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
     const teamId = profile?.teamIds?.[0];
@@ -107,7 +131,7 @@ export default function DiagnosisCompletePage() {
             <button
               className="btn btn-primary diag-complete-btn"
               type="button"
-              onClick={() => handleSaveAndProceed("/onboarding/diagnosis?goTo=q13")}
+              onClick={handleContinueAdvanced}
             >
               심화 진단 계속하기 (Q13~Q20)
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

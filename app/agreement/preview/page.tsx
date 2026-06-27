@@ -2,7 +2,7 @@
 
 import { TopNav } from "../../../components/TopNav";
 import { Footer } from "../../../components/Footer";
-import { Scale, ClipboardList, Handshake, MessageCircle } from "lucide-react";
+import { ClipboardList, Handshake, MessageCircle } from "lucide-react";
 
 const STEPS = [
   { num: "01", title: "각자 독립 응답", desc: "상대방 답을 보지 않은 상태에서 각자 솔직하게 작성합니다." },
@@ -31,9 +31,6 @@ export default function AgreementPreviewPage() {
 
         {/* Trust */}
         <div className="agreement-trust-block">
-          <div className="trust-legal-badge">
-            <Scale size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }} /> 변호사 감수 · 실제 분쟁 판례 반영
-          </div>
           <div className="trust-cards">
             <div className="trust-card">
               <div className="trust-card-icon"><ClipboardList size={22} /></div>
@@ -42,7 +39,7 @@ export default function AgreementPreviewPage() {
             </div>
             <div className="trust-card">
               <div className="trust-card-icon"><Handshake size={22} /></div>
-              <div className="trust-card-title">변호사 협력 검증 템플릿</div>
+              <div className="trust-card-title">변호사 협력 검토 템플릿</div>
               <div className="trust-card-desc">스타트업 전문 변호사와 협력하여 합의 항목의 법적 유효성과 실효성을 검토했습니다.</div>
             </div>
             <div className="trust-card">
@@ -83,7 +80,7 @@ export default function AgreementPreviewPage() {
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary"
-            style={{ marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", maxWidth: "480px", margin: "16px auto 0" }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", maxWidth: "480px", padding: "18px 28px", fontSize: "16px", margin: "16px auto 0" }}
           >
             데모 평가 참여하기 →
           </a>
@@ -152,20 +149,6 @@ export default function AgreementPreviewPage() {
           display: flex;
           flex-direction: column;
           gap: 20px;
-        }
-        .trust-legal-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(99, 102, 241, 0.1);
-          border: 1.5px solid rgba(99, 102, 241, 0.45);
-          color: #4338ca;
-          padding: 8px 18px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          width: fit-content;
         }
         .trust-cards {
           display: grid;

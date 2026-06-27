@@ -199,16 +199,18 @@ export default function WorkspaceHubPage() {
           <div className="card workspace-card compact">
             <h3>팀 코드로 참가하기</h3>
             <p>팀원에게 전달받은 초대코드를 입력하세요</p>
-            <input
-              className="code-input"
-              value={teamCode}
-              onChange={(event) => setTeamCode(event.target.value)}
-              placeholder="예: HJM-LYS-JJH"
-            />
-            {joinHint && <div className="hint">{joinHint}</div>}
-            <button className="btn btn-primary" type="button" onClick={handleJoinSearch}>
-              참가하기
-            </button>
+            <div style={{ maxWidth: "280px", width: "100%", alignSelf: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
+              <input
+                className="code-input"
+                value={teamCode}
+                onChange={(event) => setTeamCode(event.target.value)}
+                placeholder="예: HJM-LYS-JJH"
+              />
+              {joinHint && <div className="hint">{joinHint}</div>}
+              <button className="btn btn-primary" type="button" onClick={handleJoinSearch} style={{ width: "100%" }}>
+                참가하기
+              </button>
+            </div>
           </div>
         </div>
 
