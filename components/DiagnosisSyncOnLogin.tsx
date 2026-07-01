@@ -34,8 +34,8 @@ export function DiagnosisSyncOnLogin() {
     const pending = localStorage.getItem("cosync-pending-save");
     if (!pending) return;
 
-    const teamId = profile.teamIds?.[0];
-    if (!teamId) return;
+    const teamIds = profile.teamIds || [];
+    if (teamIds.length === 0) return;
 
     localStorage.removeItem("cosync-pending-save");
 
@@ -49,21 +49,23 @@ export function DiagnosisSyncOnLogin() {
       );
       if (!Object.keys(answerUpdates).length) return;
 
-      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+      for (const teamId of teamIds) {
+        const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
 
-      await setDoc(memberDocRef, {
-        name: profile.name || user.displayName || "팀원",
-        role: state.role || "MEMBER",
-        status: "active",
-      }, { merge: true });
-      await updateDoc(memberDocRef, answerUpdates);
+        await setDoc(memberDocRef, {
+          name: profile.name || user.displayName || "팀원",
+          role: state.role || "MEMBER",
+          status: "active",
+        }, { merge: true });
+        await updateDoc(memberDocRef, answerUpdates);
 
-      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
-      const memberDocs = membersSnapshot.docs.map(d => d.data());
-      const memberAnswers = memberDocs.map(data => (data.answers ?? {}) as OnboardingAnswers);
-      const { gapCount, gapScore } = computeGapSummary(memberAnswers);
-      const teamProgress = computeTeamProgress(memberDocs);
-      await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore });
+        const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+        const memberDocs = membersSnapshot.docs.map(d => d.data());
+        const memberAnswers = memberDocs.map(data => (data.answers ?? {}) as OnboardingAnswers);
+        const { gapCount, gapScore } = computeGapSummary(memberAnswers);
+        const teamProgress = computeTeamProgress(memberDocs);
+        await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore });
+      }
 
       setToast("이전 진단 결과가 저장되었습니다");
     };

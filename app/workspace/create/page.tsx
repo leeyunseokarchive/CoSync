@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../components/AuthContext";
 import { useAppState } from "../../../components/AppState";
-import { addDoc, arrayUnion, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { generateInviteCode } from "../../../lib/team";
 import { useEffect, useState } from "react";
@@ -43,13 +43,18 @@ export default function WorkspaceCreatePage() {
     salaryStructure,
     equityStructure,
     profitDistribution,
-    growthStrategy
+    growthStrategy,
+    resetAnswers
   } = useAppState();
   const { profile } = useUserProfile();
   const [teamName, setTeamName] = useState("");
   const [industry, setIndustry] = useState("선택해주세요");
   const [members, setMembers] = useState("선택해주세요");
   const [stage, setStage] = useState("선택해주세요");
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [prevAnswers, setPrevAnswers] = useState<any>(null);
+  const [prevProgress, setPrevProgress] = useState(0);
+  const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -76,31 +81,76 @@ export default function WorkspaceCreatePage() {
       setError("팀 단계를 선택해주세요.");
       return;
     }
-    const answers = {
-      extraWorkPriority,
-      extraWorkPrinciple,
-      underperformanceAction,
-      exitRecoveryPriority,
-      exitCleanupTiming,
-      exitDisputeResolution,
-      exitVision,
-      pivotCriteria,
-      dealbreaker,
-      fundingRunway,
-      spendingApproval,
-      investmentCriteria,
-      decisionStructure,
-      decisionFailure,
-      actionVsConsensus,
-      deadlockTolerance,
-      salaryStructure,
-      equityStructure,
-      profitDistribution,
-      growthStrategy
-    };
-    const { gapCount, gapScore } = computeGapSummary([answers]);
-    const teamProgress = computeTeamProgress([{ progress }]);
+
+    setCreateLoading(true);
+
+    try {
+      const teamIds = profile?.teamIds || [];
+      if (teamIds.length > 0) {
+        const prevDoc = await getDoc(doc(db, "teams", teamIds[0], "members", user.uid));
+        if (prevDoc.exists()) {
+          const prevData = prevDoc.data();
+          if (prevData.answers && Object.keys(prevData.answers).length > 0) {
+            setPrevAnswers(prevData.answers);
+            setPrevProgress(prevData.progress || 0);
+            setShowCopyModal(true);
+            setCreateLoading(false);
+            return;
+          }
+        }
+      }
+
+      await executeCreate(false);
+    } catch (e) {
+      console.error(e);
+      setCreateLoading(false);
+    }
+  };
+
+  const executeCreate = async (copyAnswers: boolean) => {
+    if (!user) return;
+    setCreateLoading(true);
+
+    let finalAnswers: any = {};
+    let finalProgress = 0;
+
+    if (copyAnswers && prevAnswers) {
+      finalAnswers = prevAnswers;
+      finalProgress = prevProgress;
+    } else if (!profile?.teamIds || profile.teamIds.length === 0) {
+      finalAnswers = {
+        extraWorkPriority,
+        extraWorkPrinciple,
+        underperformanceAction,
+        exitRecoveryPriority,
+        exitCleanupTiming,
+        exitDisputeResolution,
+        exitVision,
+        pivotCriteria,
+        dealbreaker,
+        fundingRunway,
+        spendingApproval,
+        investmentCriteria,
+        decisionStructure,
+        decisionFailure,
+        actionVsConsensus,
+        deadlockTolerance,
+        salaryStructure,
+        equityStructure,
+        profitDistribution,
+        growthStrategy
+      };
+      finalProgress = progress;
+    } else {
+      finalAnswers = {};
+      finalProgress = 0;
+      resetAnswers();
+    }
+
+    const { gapCount, gapScore } = computeGapSummary([finalAnswers]);
+    const teamProgress = computeTeamProgress([{ progress: finalProgress }]);
     const inviteCode = generateInviteCode();
+    
     const teamRef = await addDoc(collection(db, "teams"), {
       name: teamName,
       industry,
@@ -114,10 +164,12 @@ export default function WorkspaceCreatePage() {
       gapCount,
       gapScore
     });
+
     await setDoc(doc(db, "inviteCodes", inviteCode), {
       teamId: teamRef.id,
       createdAt: serverTimestamp()
     });
+
     await setDoc(
       doc(db, "teams", teamRef.id, "members", user.uid),
       {
@@ -125,17 +177,27 @@ export default function WorkspaceCreatePage() {
         role: role || profile?.role || "OWNER",
         department: department || "",
         status: "active",
-        progress,
-        answers
+        progress: finalProgress,
+        answers: finalAnswers
       },
       { merge: true }
     );
+
     await updateDoc(doc(db, "users", user.uid), {
-      teamIds: arrayUnion(teamRef.id)
+      teamIds: arrayUnion(teamRef.id),
+      lastActiveTeamId: teamRef.id
     });
+
     setActiveTeams(activeTeams + 1);
     setActiveSessions(activeSessions + 1);
-    router.push("/session");
+    setCreateLoading(false);
+    setShowCopyModal(false);
+
+    if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
+      router.push(`/onboarding/diagnosis?teamId=${teamRef.id}`);
+    } else {
+      router.push(`/session?teamId=${teamRef.id}`);
+    }
   };
 
   return (
@@ -214,6 +276,31 @@ export default function WorkspaceCreatePage() {
         </button>
       </section>
       <Footer />
+      {showCopyModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-top">
+              <div />
+              <button className="close" type="button" onClick={() => setShowCopyModal(false)}>
+                ✕
+              </button>
+            </div>
+            <h2>이전 진단 결과 불러오기</h2>
+            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all" }}>
+              이미 이전 팀에서 완료하신 온보딩 진단 답변이 존재합니다. <br />
+              이 답변들을 새로운 팀(<strong>{teamName}</strong>)으로 불러오시겠습니까?
+            </p>
+            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "24px" }}>
+              <button className="btn btn-primary" type="button" onClick={() => executeCreate(true)} disabled={createLoading} style={{ width: "100%" }}>
+                기존 결과 불러와서 생성하기
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => executeCreate(false)} disabled={createLoading} style={{ width: "100%" }}>
+                새롭게 진단 시작하기 (답변 초기화)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

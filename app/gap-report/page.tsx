@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState, Suspense, type CSSProperties } from "react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -144,7 +144,7 @@ const statusRank = (s: IssueStatus): number => {
   return 0;
 };
 
-export default function GapReportPage() {
+function GapReportPageInner() {
   const [showSubscribe, setShowSubscribe] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
@@ -158,7 +158,9 @@ export default function GapReportPage() {
   const [earlyBirdSubmitted, setEarlyBirdSubmitted] = useState(false);
   const [earlyBirdError, setEarlyBirdError] = useState("");
   const toggleGuide = (id: string) => setOpenGuides(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  const activeTeamId = profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
+  const searchParams = useSearchParams();
+  const queryTeamId = searchParams ? searchParams.get("teamId") : null;
+  const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
 
   useEffect(() => {
@@ -1625,3 +1627,12 @@ export default function GapReportPage() {
     </main>
   );
 }
+
+export default function GapReportPage() {
+  return (
+    <Suspense>
+      <GapReportPageInner />
+    </Suspense>
+  );
+}
+

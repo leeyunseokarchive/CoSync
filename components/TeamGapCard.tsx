@@ -23,7 +23,7 @@ export function TeamGapCard({ team }: { team: Team }) {
       </div>
       <h4>온보딩 진단 결과</h4>
       <p>온보딩 답변에서 갈등 가능성이 높은 항목을 {gapCount}개 발견했습니다.</p>
-      <Link href="/gap-report" className="link">
+      <Link href={`/gap-report?teamId=${team.id}`} className="link">
         Gap 리포트 보기 →
       </Link>
     </div>

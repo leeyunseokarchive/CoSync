@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { TeamSessionCard } from "../../components/TeamSessionCard";
 import { TeamGapSlot } from "../../components/TeamGapSlot";
 import { computeGapSummary } from "../../lib/gap";
+import { useUserProfile } from "../../components/useUserProfile";
 import { computeTeamProgress } from "../../lib/teamProgress";
 
 export default function WorkspaceHubPage() {
@@ -24,15 +25,27 @@ export default function WorkspaceHubPage() {
     department,
     role,
     progress,
-    decisionStructure,
-    decisionFailure,
-    actionVsConsensus,
-    extraWorkPrinciple,
     extraWorkPriority,
+    extraWorkPrinciple,
     underperformanceAction,
     exitRecoveryPriority,
     exitCleanupTiming,
-    exitDisputeResolution
+    exitDisputeResolution,
+    exitVision,
+    pivotCriteria,
+    dealbreaker,
+    fundingRunway,
+    spendingApproval,
+    investmentCriteria,
+    decisionStructure,
+    decisionFailure,
+    actionVsConsensus,
+    deadlockTolerance,
+    salaryStructure,
+    equityStructure,
+    profitDistribution,
+    growthStrategy,
+    resetAnswers
   } = useAppState();
   const { user, loading } = useAuth();
   const { teams, loading: teamsLoading, error: teamsError } = useTeams();
@@ -52,6 +65,11 @@ export default function WorkspaceHubPage() {
   } | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [isExistingMember, setIsExistingMember] = useState(false);
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [pendingTeam, setPendingTeam] = useState<any>(null);
+  const [prevAnswers, setPrevAnswers] = useState<any>(null);
+  const [prevProgress, setPrevProgress] = useState(0);
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -130,45 +148,97 @@ export default function WorkspaceHubPage() {
       return;
     }
     setJoinLoading(true);
-    const teamRef = doc(db, "teams", foundTeam.id);
-    const teamSnap = await getDoc(teamRef);
-    const existingProgress = teamSnap.exists()
-      ? Number(teamSnap.data()?.progress ?? 0)
-      : 0;
-    const nextProgress = Math.max(existingProgress, progress);
+    try {
+      const teamIds = profile?.teamIds || [];
+      if (teamIds.length > 0) {
+        const prevDoc = await getDoc(doc(db, "teams", teamIds[0], "members", user.uid));
+        if (prevDoc.exists()) {
+          const prevData = prevDoc.data();
+          if (prevData.answers && Object.keys(prevData.answers).length > 0) {
+            setPrevAnswers(prevData.answers);
+            setPrevProgress(prevData.progress || 0);
+            setPendingTeam(foundTeam);
+            setShowJoinModal(false);
+            setShowCopyModal(true);
+            setJoinLoading(false);
+            return;
+          }
+        }
+      }
+      await executeJoin(false);
+    } catch (e) {
+      console.error(e);
+      setJoinLoading(false);
+    }
+  };
+
+  const executeJoin = async (copyAnswers: boolean) => {
+    if (!user) return;
+    const targetTeam = pendingTeam || foundTeam;
+    if (!targetTeam) return;
+
+    setJoinLoading(true);
+    const teamRef = doc(db, "teams", targetTeam.id);
     await updateDoc(teamRef, {
       members: arrayUnion(user.uid)
     });
     await updateDoc(doc(db, "users", user.uid), {
-      teamIds: arrayUnion(foundTeam.id),
-      lastActiveTeamId: foundTeam.id
+      teamIds: arrayUnion(targetTeam.id),
+      lastActiveTeamId: targetTeam.id
     });
-    const answers = {
-      decisionStructure,
-      decisionFailure,
-      actionVsConsensus,
-      extraWorkPrinciple,
-      extraWorkPriority,
-      underperformanceAction,
-      exitRecoveryPriority,
-      exitCleanupTiming,
-      exitDisputeResolution
-    };
+
+    let finalAnswers: any = {};
+    let finalProgress = 0;
+
+    if (copyAnswers && prevAnswers) {
+      finalAnswers = prevAnswers;
+      finalProgress = prevProgress;
+    } else if (!profile?.teamIds || profile.teamIds.length === 0) {
+      finalAnswers = {
+        extraWorkPriority,
+        extraWorkPrinciple,
+        underperformanceAction,
+        exitRecoveryPriority,
+        exitCleanupTiming,
+        exitDisputeResolution,
+        exitVision,
+        pivotCriteria,
+        dealbreaker,
+        fundingRunway,
+        spendingApproval,
+        investmentCriteria,
+        decisionStructure,
+        decisionFailure,
+        actionVsConsensus,
+        deadlockTolerance,
+        salaryStructure,
+        equityStructure,
+        profitDistribution,
+        growthStrategy
+      };
+      finalProgress = progress;
+    } else {
+      finalAnswers = {};
+      finalProgress = 0;
+      resetAnswers();
+    }
+
     await setDoc(
-      doc(db, "teams", foundTeam.id, "members", user.uid),
+      doc(db, "teams", targetTeam.id, "members", user.uid),
       {
         name: user.displayName || "팀원",
         role: role || "MEMBER",
         department: department || "",
         status: "active",
-        progress,
-        answers
+        progress: finalProgress,
+        answers: finalAnswers
       },
       { merge: true }
     );
-    const membersSnapshot = await getDocs(collection(db, "teams", foundTeam.id, "members"));
+
+    const membersSnapshot = await getDocs(collection(db, "teams", targetTeam.id, "members"));
     const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
-    const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
+    const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as any);
     const { gapCount, gapScore } = computeGapSummary(memberAnswers);
     const teamProgress = computeTeamProgress(memberDocs);
     await updateDoc(teamRef, {
@@ -176,11 +246,18 @@ export default function WorkspaceHubPage() {
       gapCount,
       gapScore
     });
-    setActiveTeams(Math.max(1, activeTeams));
-    setActiveSessions(Math.max(1, activeSessions));
+
+    setActiveTeams(Math.max(1, activeTeams + 1));
+    setActiveSessions(Math.max(1, activeSessions + 1));
     setJoinLoading(false);
+    setShowCopyModal(false);
     setShowJoinModal(false);
-    router.push("/onboarding/diagnosis");
+
+    if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
+      router.push(`/onboarding/diagnosis?teamId=${targetTeam.id}`);
+    } else {
+      router.push(`/workspace?teamId=${targetTeam.id}`);
+    }
   };
 
   return (
@@ -265,6 +342,31 @@ export default function WorkspaceHubPage() {
               </button>
               <button className="btn btn-primary" type="button" onClick={handleJoinConfirm} disabled={joinLoading}>
                 {isExistingMember ? "이미 참여 중 · 세션으로 이동" : "온보딩 진단 진행하기 →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showCopyModal && pendingTeam && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-top">
+              <div />
+              <button className="close" type="button" onClick={() => setShowCopyModal(false)}>
+                ✕
+              </button>
+            </div>
+            <h2>이전 진단 결과 불러오기</h2>
+            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all" }}>
+              이미 이전 팀에서 완료하신 온보딩 진단 답변이 존재합니다. <br />
+              이 답변들을 새로운 팀(<strong>{pendingTeam.name}</strong>)으로 불러오시겠습니까?
+            </p>
+            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "24px" }}>
+              <button className="btn btn-primary" type="button" onClick={() => executeJoin(true)} disabled={joinLoading} style={{ width: "100%" }}>
+                기존 결과 불러와서 참가하기
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => executeJoin(false)} disabled={joinLoading} style={{ width: "100%" }}>
+                새롭게 진단 시작하기 (답변 초기화)
               </button>
             </div>
           </div>

@@ -75,7 +75,7 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
           ))}
       </div>
       <div className="button-row">
-        <Link className="btn btn-ghost full" href="/onboarding/diagnosis" onClick={(event) => event.stopPropagation()}>
+        <Link className="btn btn-ghost full" href={`/onboarding/diagnosis?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
           온보딩 질문으로 돌아가기
         </Link>
         {isSolo ? (
@@ -89,7 +89,7 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
         ) : (
           <Link
             className={`btn btn-primary full ${canViewReport ? "" : "disabled"}`}
-            href={canViewReport ? "/gap-report" : "#"}
+            href={canViewReport ? `/gap-report?teamId=${team.id}` : "#"}
             aria-disabled={!canViewReport}
             onClick={(event) => event.stopPropagation()}
           >

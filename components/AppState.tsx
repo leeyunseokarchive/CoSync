@@ -1,6 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { useAuth } from "./AuthContext";
 
 type AgendaOwner = {
   lead: string;
@@ -61,6 +64,8 @@ type AppStateContextValue = AppState & {
   setRole: (value: string) => void;
   resetState: () => void;
   progress: number;
+  resetAnswers: () => void;
+  loadAnswersForTeam: (teamId: string) => Promise<void>;
 };
 
 const defaultAgendaOwners: Record<string, AgendaOwner> = {
@@ -103,6 +108,48 @@ const AppStateContext = createContext<AppStateContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(defaultState);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchExistingAnswers = async () => {
+      if (!user) return;
+      
+      const saved = localStorage.getItem("cosync-state");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as AppState;
+          const hasAnswers = Object.keys(parsed).some(
+            (key) => key !== "activeTeams" && key !== "activeSessions" && key !== "department" && key !== "role" && parsed[key as keyof AppState] !== ""
+          );
+          if (hasAnswers) return;
+        } catch {
+          // ignore
+        }
+      }
+
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      if (!userSnap.exists()) return;
+      const userData = userSnap.data() as { teamIds?: string[]; lastActiveTeamId?: string; department?: string; role?: string };
+      const teamId = userData.lastActiveTeamId || userData.teamIds?.[0];
+      if (!teamId) return;
+
+      const memberSnap = await getDoc(doc(db, "teams", teamId, "members", user.uid));
+      if (!memberSnap.exists()) return;
+      const memberData = memberSnap.data() as { answers?: Record<string, string>; department?: string; role?: string };
+      
+      if (memberData.answers) {
+        setState((prev) => ({
+          ...prev,
+          ...memberData.answers,
+          department: userData.department || memberData.department || prev.department,
+          role: userData.role || memberData.role || prev.role,
+        }));
+      }
+    };
+
+    fetchExistingAnswers().catch(console.error);
+  }, [user]);
+
 
   useEffect(() => {
     const saved = localStorage.getItem("cosync-state");
@@ -173,6 +220,60 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const setGrowthStrategy = useCallback((value: string) => setState((prev) => ({ ...prev, growthStrategy: value })), []);
   const setDepartment = useCallback((value: string) => setState((prev) => ({ ...prev, department: value })), []);
   const setRole = useCallback((value: string) => setState((prev) => ({ ...prev, role: value })), []);
+  const resetAnswers = useCallback(() => {
+    setState((prev) => {
+      const next = { ...prev };
+      const fields = [
+        "extraWorkPriority", "extraWorkPrinciple", "underperformanceAction",
+        "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution",
+        "exitVision", "pivotCriteria", "dealbreaker",
+        "fundingRunway", "spendingApproval", "investmentCriteria",
+        "decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance",
+        "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"
+      ];
+      for (const field of fields) {
+        (next as any)[field] = "";
+      }
+      return next;
+    });
+  }, []);
+
+  const loadAnswersForTeam = useCallback(async (teamId: string) => {
+    if (!user || !teamId) return;
+    try {
+      const memberSnap = await getDoc(doc(db, "teams", teamId, "members", user.uid));
+      if (memberSnap.exists()) {
+        const memberData = memberSnap.data() as { answers?: Record<string, string>; department?: string; role?: string };
+        if (memberData.answers) {
+          setState((prev) => {
+            const next = { ...prev };
+            const fields = [
+              "extraWorkPriority", "extraWorkPrinciple", "underperformanceAction",
+              "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution",
+              "exitVision", "pivotCriteria", "dealbreaker",
+              "fundingRunway", "spendingApproval", "investmentCriteria",
+              "decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance",
+              "salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"
+            ];
+            for (const field of fields) {
+              (next as any)[field] = "";
+            }
+            return {
+              ...next,
+              ...memberData.answers,
+              department: memberData.department || prev.department,
+              role: memberData.role || prev.role,
+            };
+          });
+          return;
+        }
+      }
+      resetAnswers();
+    } catch (e) {
+      console.error(e);
+    }
+  }, [user, resetAnswers]);
+
   const resetState = useCallback(() => {
     setState(defaultState);
     if (typeof window !== "undefined") {
@@ -209,6 +310,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setDepartment,
       setRole,
       resetState,
+      resetAnswers,
+      loadAnswersForTeam,
       progress
     }),
     [
@@ -238,6 +341,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setDepartment,
       setRole,
       resetState,
+      resetAnswers,
+      loadAnswersForTeam,
       progress
     ]
   );

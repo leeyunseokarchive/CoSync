@@ -81,11 +81,21 @@ function OnboardingDiagnosisPageInner() {
     setDepartment,
     role,
     setRole,
-    progress
+    progress,
+    loadAnswersForTeam
   } = useAppState();
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryTeamId = searchParams ? searchParams.get("teamId") : null;
+  const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0];
+
+  useEffect(() => {
+    if (activeTeamId) {
+      loadAnswersForTeam(activeTeamId);
+    }
+  }, [activeTeamId, loadAnswersForTeam]);
 
   const roleOptions: Record<string, string[]> = {
     "경영/대표": ["CEO", "공동대표", "COO"],
@@ -475,7 +485,6 @@ function OnboardingDiagnosisPageInner() {
   } | null>(null);
   const autoNextTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverUnlockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchParams = useSearchParams();
   useEffect(() => {
     if (!milestone) return;
     const t = setTimeout(() => setMilestone(null), 1000);
@@ -577,10 +586,8 @@ function OnboardingDiagnosisPageInner() {
   const hasTeam = Boolean(profile?.teamIds?.length);
 
   const saveAnswer = useCallback(async (fieldId: string, value: string) => {
-    if (!user || !value) return;
-    const teamId = profile?.teamIds?.[0];
-    if (!teamId) return;
-    const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+    if (!user || !value || !activeTeamId) return;
+    const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
     try {
       await updateDoc(memberDocRef, { [`answers.${fieldId}`]: value });
     } catch {
@@ -591,11 +598,10 @@ function OnboardingDiagnosisPageInner() {
         answers: { [fieldId]: value }
       }, { merge: true });
     }
-  }, [user, profile, role]);
+  }, [user, profile, role, activeTeamId]);
 
   const handleSaveAndProceed = async (destination: string) => {
     if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
-    const teamId = profile?.teamIds?.[0];
     const answers = {
       extraWorkPriority, extraWorkPrinciple, underperformanceAction,
       exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
@@ -604,8 +610,8 @@ function OnboardingDiagnosisPageInner() {
       decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
-    if (teamId) {
-      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+    if (activeTeamId) {
+      const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
       await setDoc(memberDocRef, {
         name: profile?.name || user.displayName || "팀원",
         role: role || "MEMBER",
@@ -618,14 +624,18 @@ function OnboardingDiagnosisPageInner() {
       if (Object.keys(answerUpdates).length > 0) {
         await updateDoc(memberDocRef, answerUpdates);
       }
-      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      const membersSnapshot = await getDocs(collection(db, "teams", activeTeamId, "members"));
       const memberDocs = membersSnapshot.docs.map((d) => d.data());
       const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
       const { gapCount, gapScore } = computeGapSummary(memberAnswers);
       const teamProgress = computeTeamProgress(memberDocs);
-      await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore });
+      await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore });
     }
-    router.push(destination);
+    let dest = destination;
+    if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
+      dest = `${destination}?teamId=${activeTeamId}`;
+    }
+    router.push(dest);
   };
 
   const handleContinueAdvanced = () => {
@@ -641,7 +651,6 @@ function OnboardingDiagnosisPageInner() {
       router.push("/register");
       return;
     }
-    const teamId = profile?.teamIds?.[0];
     const answers = {
       extraWorkPriority,
       extraWorkPrinciple,
@@ -664,8 +673,8 @@ function OnboardingDiagnosisPageInner() {
       profitDistribution,
       growthStrategy
     };
-    if (teamId) {
-      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+    if (activeTeamId) {
+      const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
       await setDoc(
         memberDocRef,
         {
@@ -682,12 +691,12 @@ function OnboardingDiagnosisPageInner() {
       if (Object.keys(answerUpdates).length > 0) {
         await updateDoc(memberDocRef, answerUpdates);
       }
-      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      const membersSnapshot = await getDocs(collection(db, "teams", activeTeamId, "members"));
       const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
       const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
       const { gapCount, gapScore } = computeGapSummary(memberAnswers);
       const teamProgress = computeTeamProgress(memberDocs);
-      await updateDoc(doc(db, "teams", teamId), {
+      await updateDoc(doc(db, "teams", activeTeamId), {
         progress: teamProgress,
         gapCount,
         gapScore
@@ -698,7 +707,7 @@ function OnboardingDiagnosisPageInner() {
       role,
       updatedAt: serverTimestamp()
     });
-    router.push("/workspace");
+    router.push(activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace");
   };
 
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useUserProfile } from "../../../../components/useUserProfile";
 import { useAuth } from "../../../../components/AuthContext";
 import { useAppState } from "../../../../components/AppState";
@@ -10,7 +11,7 @@ import { computeGapSummary } from "../../../../lib/gap";
 import { computeTeamProgress } from "../../../../lib/teamProgress";
 import { appendDiagnosisHistory } from "../../../../lib/history";
 
-export default function DiagnosisCompletePage() {
+function DiagnosisCompletePageInner() {
   const router = useRouter();
   const { user } = useAuth();
   const { profile } = useUserProfile();
@@ -24,12 +25,15 @@ export default function DiagnosisCompletePage() {
     role, progress
   } = useAppState();
 
+  const searchParams = useSearchParams();
+  const queryTeamId = searchParams ? searchParams.get("teamId") : null;
+  const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0];
+
   const hasTeam = Boolean(profile?.teamIds?.length);
 
   const handleContinueAdvanced = async () => {
     if (user) {
-      const teamId = profile?.teamIds?.[0];
-      if (teamId) {
+      if (activeTeamId) {
         const answers = {
           extraWorkPriority, extraWorkPrinciple, underperformanceAction,
           exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
@@ -38,7 +42,7 @@ export default function DiagnosisCompletePage() {
           decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
           salaryStructure, equityStructure, profitDistribution, growthStrategy
         };
-        const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+        const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
         const answerUpdates = Object.fromEntries(
           Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
         );
@@ -47,12 +51,14 @@ export default function DiagnosisCompletePage() {
         }
       }
     }
-    router.push("/onboarding/diagnosis?goTo=q13");
+    const url = activeTeamId 
+      ? `/onboarding/diagnosis?teamId=${activeTeamId}&goTo=q13`
+      : "/onboarding/diagnosis?goTo=q13";
+    router.push(url);
   };
 
   const handleSaveAndProceed = async (destination: string) => {
     if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
-    const teamId = profile?.teamIds?.[0];
     const answers = {
       extraWorkPriority, extraWorkPrinciple, underperformanceAction,
       exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
@@ -61,8 +67,8 @@ export default function DiagnosisCompletePage() {
       decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
-    if (teamId) {
-      const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+    if (activeTeamId) {
+      const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
       await setDoc(memberDocRef, {
         name: profile?.name || user.displayName || "팀원",
         role: role || "MEMBER",
@@ -75,15 +81,19 @@ export default function DiagnosisCompletePage() {
       if (Object.keys(answerUpdates).length > 0) {
         await updateDoc(memberDocRef, answerUpdates);
       }
-      await appendDiagnosisHistory(teamId, user.uid, answers, progress);
-      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      await appendDiagnosisHistory(activeTeamId, user.uid, answers, progress);
+      const membersSnapshot = await getDocs(collection(db, "teams", activeTeamId, "members"));
       const memberDocs = membersSnapshot.docs.map((d) => d.data());
       const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
       const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
       const teamProgress = computeTeamProgress(memberDocs);
-      await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore, rawScore });
+      await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore, rawScore });
     }
-    router.push(destination);
+    let dest = destination;
+    if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
+      dest = `${destination}?teamId=${activeTeamId}`;
+    }
+    router.push(dest);
   };
 
   return (
@@ -164,3 +174,12 @@ export default function DiagnosisCompletePage() {
     </main>
   );
 }
+
+export default function DiagnosisCompletePage() {
+  return (
+    <Suspense>
+      <DiagnosisCompletePageInner />
+    </Suspense>
+  );
+}
+
