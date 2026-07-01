@@ -10,6 +10,7 @@ import { db } from "../../../lib/firebase";
 import { generateInviteCode } from "../../../lib/team";
 import { useEffect, useState } from "react";
 import { useUserProfile } from "../../../components/useUserProfile";
+import { useTeams } from "../../../components/useTeams";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 
@@ -54,8 +55,16 @@ export default function WorkspaceCreatePage() {
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [prevAnswers, setPrevAnswers] = useState<any>(null);
   const [prevProgress, setPrevProgress] = useState(0);
+  const [selectedSourceTeamId, setSelectedSourceTeamId] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState("");
+  const { teams } = useTeams();
+
+  useEffect(() => {
+    if (teams && teams.length > 0 && !selectedSourceTeamId) {
+      setSelectedSourceTeamId(teams[0].id);
+    }
+  }, [teams, selectedSourceTeamId]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -87,17 +96,9 @@ export default function WorkspaceCreatePage() {
     try {
       const teamIds = profile?.teamIds || [];
       if (teamIds.length > 0) {
-        const prevDoc = await getDoc(doc(db, "teams", teamIds[0], "members", user.uid));
-        if (prevDoc.exists()) {
-          const prevData = prevDoc.data();
-          if (prevData.answers && Object.keys(prevData.answers).length > 0) {
-            setPrevAnswers(prevData.answers);
-            setPrevProgress(prevData.progress || 0);
-            setShowCopyModal(true);
-            setCreateLoading(false);
-            return;
-          }
-        }
+        setShowCopyModal(true);
+        setCreateLoading(false);
+        return;
       }
 
       await executeCreate(false);
@@ -107,16 +108,35 @@ export default function WorkspaceCreatePage() {
     }
   };
 
-  const executeCreate = async (copyAnswers: boolean) => {
+  const handleCopyAndCreate = async () => {
+    if (!user || !selectedSourceTeamId) return;
+    setCreateLoading(true);
+    try {
+      const prevDoc = await getDoc(doc(db, "teams", selectedSourceTeamId, "members", user.uid));
+      let prevAnswers = {};
+      let prevProgress = 0;
+      if (prevDoc.exists()) {
+        const prevData = prevDoc.data();
+        prevAnswers = prevData.answers || {};
+        prevProgress = prevData.progress || 0;
+      }
+      await executeCreate(true, prevAnswers, prevProgress);
+    } catch (e) {
+      console.error(e);
+      setCreateLoading(false);
+    }
+  };
+
+  const executeCreate = async (copyAnswers: boolean, customAnswers?: any, customProgress?: number) => {
     if (!user) return;
     setCreateLoading(true);
 
     let finalAnswers: any = {};
     let finalProgress = 0;
 
-    if (copyAnswers && prevAnswers) {
-      finalAnswers = prevAnswers;
-      finalProgress = prevProgress;
+    if (copyAnswers && customAnswers) {
+      finalAnswers = customAnswers;
+      finalProgress = customProgress || 0;
     } else if (!profile?.teamIds || profile.teamIds.length === 0) {
       finalAnswers = {
         extraWorkPriority,
@@ -286,12 +306,36 @@ export default function WorkspaceCreatePage() {
               </button>
             </div>
             <h2>이전 진단 결과 불러오기</h2>
-            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all" }}>
-              이미 이전 팀에서 완료하신 온보딩 진단 답변이 존재합니다. <br />
-              이 답변들을 새로운 팀(<strong>{teamName}</strong>)으로 불러오시겠습니까?
+            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all", marginBottom: "16px" }}>
+              이미 참여 중인 이전 팀들의 온보딩 진단 답변이 존재합니다. <br />
+              어느 팀의 답변을 새로운 팀(<strong>{teamName}</strong>)으로 불러오시겠습니까?
             </p>
-            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "24px" }}>
-              <button className="btn btn-primary" type="button" onClick={() => executeCreate(true)} disabled={createLoading} style={{ width: "100%" }}>
+            {teams && teams.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", marginBottom: "20px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "bold", color: "#64748b" }}>답변을 가져올 팀 선택</label>
+                <select
+                  value={selectedSourceTeamId}
+                  onChange={(e) => setSelectedSourceTeamId(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                >
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "12px" }}>
+              <button className="btn btn-primary" type="button" onClick={handleCopyAndCreate} disabled={createLoading} style={{ width: "100%" }}>
                 기존 결과 불러와서 생성하기
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => executeCreate(false)} disabled={createLoading} style={{ width: "100%" }}>

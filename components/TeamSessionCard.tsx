@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CircleAvatar } from "./Brand";
@@ -24,6 +25,15 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
   const statusLabel = progressValue >= 100 ? "완료" : "진행중";
   const router = useRouter();
   const isSolo = !loading && members.length <= 1;
+
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  const incompleteMembers = !loading ? members.filter(m => !hasBasicComplete(m)) : [];
+  const incompleteNames = incompleteMembers.map(m => m.name).join(", ");
   const formatStatus = (status: string) => {
     if (!status || status === "active") return "재직";
     if (status === "pending") return "휴직";
@@ -55,7 +65,7 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
         <div className="progress-big">{progressLabel}</div>
       </div>
       <div className="progress-bar large">
-        <span style={{ width: progressLabel }} />
+        <span style={{ width: animated ? progressLabel : "0%" }} />
       </div>
       <div className="member-list">
         {loading && <div className="member-row">멤버 불러오는 중...</div>}
@@ -68,7 +78,7 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
                 <div className="member-role">{member.role} · {formatStatus(member.status)}</div>
               </div>
               <div className="member-progress">
-                <span style={{ width: `${member.progress ?? 0}%` }} />
+                <span style={{ width: animated ? `${member.progress ?? 0}%` : "0%" }} />
               </div>
               <span className="member-status">{member.progress ?? 0}%</span>
             </div>
@@ -97,6 +107,15 @@ export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { t
           </Link>
         )}
       </div>
+      {!canViewReport && !loading && (
+        <div className="incomplete-warning" style={{ fontSize: "12px", color: "#ef4444", marginTop: "10px", width: "100%", textAlign: "center", fontWeight: "500", wordBreak: "keep-all" }}>
+          {members.length <= 1 ? (
+            "⚠️ 다른 팀원이 가입할 때까지 진단 결과를 보실 수 없습니다."
+          ) : (
+            `⚠️ 진단 미완료 인원: ${incompleteNames}`
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -82,7 +82,8 @@ function OnboardingDiagnosisPageInner() {
     role,
     setRole,
     progress,
-    loadAnswersForTeam
+    loadAnswersForTeam,
+    resetAnswers
   } = useAppState();
   const { user } = useAuth();
   const { profile } = useUserProfile();
@@ -90,6 +91,27 @@ function OnboardingDiagnosisPageInner() {
   const searchParams = useSearchParams();
   const queryTeamId = searchParams ? searchParams.get("teamId") : null;
   const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0];
+
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+
+  useEffect(() => {
+    if (!queryTeamId) {
+      const saved = localStorage.getItem("cosync-state");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const hasAnswers = Object.keys(parsed).some(
+            (key) => key !== "activeTeams" && key !== "activeSessions" && key !== "department" && key !== "role" && parsed[key as keyof typeof parsed] !== ""
+          );
+          if (hasAnswers) {
+            setShowRestoreModal(true);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [queryTeamId]);
 
   useEffect(() => {
     if (activeTeamId) {
@@ -476,6 +498,17 @@ function OnboardingDiagnosisPageInner() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [showAdvancedPrompt, setShowAdvancedPrompt] = useState(false);
+
+  // P2-#9: 진단 모달 Esc 닫기
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (showAdvancedPrompt) setShowAdvancedPrompt(false);
+      if (showRestoreModal) setShowRestoreModal(false);
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [showAdvancedPrompt, showRestoreModal]);
   const [milestone, setMilestone] = useState<string | null>(null);
   const [goToHandled, setGoToHandled] = useState(false);
 
@@ -928,6 +961,26 @@ function OnboardingDiagnosisPageInner() {
             <p style={{ marginTop: "20px", fontSize: "0.8rem", color: "#94a3b8" }}>
               심화 진단은 나중에 언제든 이어서 완료할 수 있습니다.
             </p>
+          </div>
+        </div>
+      )}
+
+      {showRestoreModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h2>이전 진단 기록 발견</h2>
+            <p className="section-sub" style={{ wordBreak: "keep-all", margin: "12px 0 24px" }}>
+              이전에 진행하던 임시 저장된 진단 결과가 존재합니다. <br />
+              이어서 진행하시겠습니까?
+            </p>
+            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px" }}>
+              <button className="btn btn-primary" type="button" onClick={() => setShowRestoreModal(false)} style={{ width: "100%" }}>
+                이어서 진행하기
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => { resetAnswers(); setShowRestoreModal(false); }} style={{ width: "100%" }}>
+                새로 시작하기 (답변 초기화)
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -170,10 +170,10 @@ export default function LandingPage() {
     <main className="page landing-page">
       <TopNav 
         links={[
-          { label: "Why CoSync", href: "#whycosync" },
-          { label: "Key Areas", href: "#categories" },
-          { label: "Preview", href: "#output" },
-          { label: "FAQ", href: "#faq" }
+          { label: "Why CoSync", href: "#why-cosync" },
+          { label: "Key Areas",  href: "#categories" },
+          { label: "Preview",    href: "#output" },
+          { label: "FAQ",        href: "#faq" }
         ]} 
       />
 
@@ -192,9 +192,9 @@ export default function LandingPage() {
               지분, 역할, 보상, 이탈 기준은 서로 연결되어 있습니다.<br className="hero-sub-br" />같다고 믿었던 기준이, 갈등으로 드러날 수 있습니다.
             </p>
             <div className="hero-actions">
-              <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta" style={{ display: "flex", flexDirection: "column", gap: "3px", width: "100%", maxWidth: "400px" }}>
+              <Link href={teamGapHref} className="btn btn-primary btn-lg motion-cta btn-split">
                 <span>숨겨진 동업 리스크 진단하기</span>
-                <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}><Clock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
+                <span className="btn-split-sub"><Clock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
               </Link>
             </div>
           </div>
@@ -583,9 +583,9 @@ export default function LandingPage() {
             역할, 지분, 이탈 기준을 구두로 넘기지 말고 <br />
             우리 팀이 실제로 채택할 합의안 문서로 정리해 보세요.
           </p>
-          <Link href={teamGapHref} className="btn btn-primary btn-lg" style={{ display: "inline-flex", flexDirection: "column", gap: "3px", width: "100%", maxWidth: "400px" }}>
+          <Link href={teamGapHref} className="btn btn-primary btn-lg btn-split" style={{ display: "inline-flex", width: "100%", maxWidth: "400px" }}>
             <span>숨겨진 동업 리스크 진단하기</span>
-            <span style={{ fontSize: "11px", fontWeight: 400, opacity: 0.75 }}><Lock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
+            <span className="btn-split-sub"><Lock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />약 3분 소요 · 무료</span>
           </Link>
         </div>
       </section>
@@ -638,10 +638,12 @@ export default function LandingPage() {
               <input
                 type="email"
                 required
+                id="earlybird-email"
+                aria-label="얼리버드 사전신청 이메일 주소"
                 placeholder="신청할 이메일 입력"
                 value={earlyBirdEmail}
                 onChange={(e) => setEarlyBirdEmail(e.target.value)}
-                style={{ width: "100%", padding: "16px", border: "1.5px solid #e2e8f0", borderRadius: "999px", fontSize: "15px", outline: "none", color: "#1f2430", textAlign: "center", boxSizing: "border-box" }}
+                style={{ width: "100%", padding: "16px", border: "1.5px solid #e2e8f0", borderRadius: "999px", fontSize: "16px", outline: "none", color: "#1f2430", textAlign: "center", boxSizing: "border-box" }}
               />
               <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "18px", fontSize: "16px" }}>
                 출시 알림 받기

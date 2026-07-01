@@ -69,7 +69,25 @@ export default function WorkspaceHubPage() {
   const [pendingTeam, setPendingTeam] = useState<any>(null);
   const [prevAnswers, setPrevAnswers] = useState<any>(null);
   const [prevProgress, setPrevProgress] = useState(0);
+  const [selectedSourceTeamId, setSelectedSourceTeamId] = useState("");
   const { profile } = useUserProfile();
+
+  // P2-#9: 모달 Esc 닫기
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (showJoinModal) setShowJoinModal(false);
+      if (showCopyModal) setShowCopyModal(false);
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [showJoinModal, showCopyModal]);
+
+  useEffect(() => {
+    if (teams && teams.length > 0 && !selectedSourceTeamId) {
+      setSelectedSourceTeamId(teams[0].id);
+    }
+  }, [teams, selectedSourceTeamId]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -151,19 +169,11 @@ export default function WorkspaceHubPage() {
     try {
       const teamIds = profile?.teamIds || [];
       if (teamIds.length > 0) {
-        const prevDoc = await getDoc(doc(db, "teams", teamIds[0], "members", user.uid));
-        if (prevDoc.exists()) {
-          const prevData = prevDoc.data();
-          if (prevData.answers && Object.keys(prevData.answers).length > 0) {
-            setPrevAnswers(prevData.answers);
-            setPrevProgress(prevData.progress || 0);
-            setPendingTeam(foundTeam);
-            setShowJoinModal(false);
-            setShowCopyModal(true);
-            setJoinLoading(false);
-            return;
-          }
-        }
+        setPendingTeam(foundTeam);
+        setShowJoinModal(false);
+        setShowCopyModal(true);
+        setJoinLoading(false);
+        return;
       }
       await executeJoin(false);
     } catch (e) {
@@ -172,7 +182,26 @@ export default function WorkspaceHubPage() {
     }
   };
 
-  const executeJoin = async (copyAnswers: boolean) => {
+  const handleCopyAndJoin = async () => {
+    if (!user || !selectedSourceTeamId) return;
+    setJoinLoading(true);
+    try {
+      const prevDoc = await getDoc(doc(db, "teams", selectedSourceTeamId, "members", user.uid));
+      let prevAnswers = {};
+      let prevProgress = 0;
+      if (prevDoc.exists()) {
+        const prevData = prevDoc.data();
+        prevAnswers = prevData.answers || {};
+        prevProgress = prevData.progress || 0;
+      }
+      await executeJoin(true, prevAnswers, prevProgress);
+    } catch (e) {
+      console.error(e);
+      setJoinLoading(false);
+    }
+  };
+
+  const executeJoin = async (copyAnswers: boolean, customAnswers?: any, customProgress?: number) => {
     if (!user) return;
     const targetTeam = pendingTeam || foundTeam;
     if (!targetTeam) return;
@@ -190,9 +219,9 @@ export default function WorkspaceHubPage() {
     let finalAnswers: any = {};
     let finalProgress = 0;
 
-    if (copyAnswers && prevAnswers) {
-      finalAnswers = prevAnswers;
-      finalProgress = prevProgress;
+    if (copyAnswers && customAnswers) {
+      finalAnswers = customAnswers;
+      finalProgress = customProgress || 0;
     } else if (!profile?.teamIds || profile.teamIds.length === 0) {
       finalAnswers = {
         extraWorkPriority,
@@ -298,7 +327,21 @@ export default function WorkspaceHubPage() {
           </Link>
         </div>
         <div className="team-list">
-          {teamsLoading && <div className="card session-card compact">로딩 중...</div>}
+          {/* P2-#13: Skeleton 로딩 상태 */}
+          {teamsLoading && (
+            <>
+              {[0, 1].map((i) => (
+                <div key={i} className="card session-card compact skeleton-card" style={{ minHeight: "80px", display: "flex", alignItems: "center", gap: "16px", padding: "20px 24px" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: "#eef0f7", flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ height: 14, borderRadius: 6, background: "#eef0f7", width: "55%" }} />
+                    <div style={{ height: 11, borderRadius: 6, background: "#f4f5fb", width: "35%" }} />
+                  </div>
+                  <div style={{ width: 100, height: 8, borderRadius: 999, background: "#eef0f7" }} />
+                </div>
+              ))}
+            </>
+          )}
           {!teamsLoading && teams.length === 0 && (
             <div className="card session-card compact">아직 속한 팀이 없습니다.</div>
           )}
@@ -357,12 +400,36 @@ export default function WorkspaceHubPage() {
               </button>
             </div>
             <h2>이전 진단 결과 불러오기</h2>
-            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all" }}>
-              이미 이전 팀에서 완료하신 온보딩 진단 답변이 존재합니다. <br />
-              이 답변들을 새로운 팀(<strong>{pendingTeam.name}</strong>)으로 불러오시겠습니까?
+            <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all", marginBottom: "16px" }}>
+              이미 참여 중인 이전 팀들의 온보딩 진단 답변이 존재합니다. <br />
+              어느 팀의 답변을 새로운 팀(<strong>{pendingTeam.name}</strong>)으로 불러오시겠습니까?
             </p>
-            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "24px" }}>
-              <button className="btn btn-primary" type="button" onClick={() => executeJoin(true)} disabled={joinLoading} style={{ width: "100%" }}>
+            {teams && teams.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", marginBottom: "20px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "bold", color: "#64748b" }}>답변을 가져올 팀 선택</label>
+                <select
+                  value={selectedSourceTeamId}
+                  onChange={(e) => setSelectedSourceTeamId(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                >
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="modal-footer" style={{ flexDirection: "column", gap: "10px", marginTop: "12px" }}>
+              <button className="btn btn-primary" type="button" onClick={handleCopyAndJoin} disabled={joinLoading} style={{ width: "100%" }}>
                 기존 결과 불러와서 참가하기
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => executeJoin(false)} disabled={joinLoading} style={{ width: "100%" }}>

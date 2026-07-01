@@ -15,6 +15,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+      {/* P3-#18: 다크모드 미지원 — 브라우저에 light-only 명시 */}
+        <meta name="color-scheme" content="light" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
       </head>
       <body suppressHydrationWarning>

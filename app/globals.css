@@ -13,6 +13,12 @@
   --radius-lg: 30px;
   --radius-md: 20px;
   --radius-sm: 14px;
+  /* ── z-index scale (P3-#15) ── */
+  --z-nav: 20;
+  --z-dropdown: 30;
+  --z-modal: 40;
+  --z-sticky: 100;
+  --z-toast: 9000;
 }
 
 * {
@@ -141,12 +147,28 @@ button {
   box-shadow: none;
 }
 
+/* P1-#1: Hero CTA column 레이아웃 — 인라인 스타일 대신 CSS 클래스로 관리 */
+.btn-split {
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.btn-split-sub {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+
 .input {
   width: 100%;
   border: 0;
   border-bottom: 1px solid var(--line);
   padding: 12px 4px 10px;
-  font-size: 15px;
+  /* P2-#11: iOS auto-zoom 방지 — 16px 미만은 zoom 트리거됨 */
+  font-size: 16px;
   background: transparent;
   color: var(--ink);
 }
@@ -166,8 +188,10 @@ button {
   max-width: 420px;
 }
 
+/* P1-#3: focus-ring 복원 — WCAG 2.4.7 준수 */
 .input:focus {
-  outline: none;
+  outline: 2px solid rgba(91, 91, 231, 0.35);
+  outline-offset: 2px;
   border-bottom-color: var(--brand);
 }
 
@@ -266,7 +290,7 @@ button {
   border-bottom: 1px solid #eef1f6;
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--z-nav);
 }
 
 .topbar-inner {
@@ -317,9 +341,10 @@ button {
 }
 
 .auth-links .auth-primary {
-  color: #6366f1;
+  /* P3-#14: 색상 토큰 통일 — #6366f1 → var(--brand) */
+  color: var(--brand);
   background: transparent;
-  border: 1.5px solid #6366f1;
+  border: 1.5px solid var(--brand);
   padding: 7px 16px;
   border-radius: 999px;
   font-weight: 600;
@@ -360,9 +385,117 @@ button {
   outline: none;
 }
 
+/* ── P1-#5: 햄버거 버튼 ─────────────────────────────────── */
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--ink);
+  transition: background 0.15s ease;
+}
+
+.hamburger-btn:hover {
+  background: rgba(91, 91, 231, 0.06);
+}
+
+.hamburger-btn:focus-visible {
+  outline: 2px solid rgba(91, 91, 231, 0.35);
+  outline-offset: 2px;
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 22px;
+}
+
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+.hamburger-icon.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-icon.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-icon.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── P1-#5: 모바일 드로어 ──────────────────────────────── */
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.25);
+  z-index: calc(var(--z-nav) - 1);
+}
+
+.mobile-nav {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-bottom: 1px solid #eef1f6;
+  padding: 8px 0 16px;
+  z-index: var(--z-nav);
+  box-shadow: 0 8px 24px rgba(29, 35, 63, 0.08);
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  border-left: 3px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.mobile-nav-link:hover {
+  color: var(--brand);
+  background: rgba(91, 91, 231, 0.04);
+}
+
+.mobile-nav-link.active {
+  color: var(--brand);
+  font-weight: 700;
+  border-left-color: var(--brand);
+  background: rgba(91, 91, 231, 0.04);
+}
+
 @media (max-width: 900px) {
   .nav-links {
     display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-nav-backdrop {
+    display: block;
+  }
+
+  .mobile-nav {
+    display: block;
   }
 
   .center-card {
@@ -951,6 +1084,7 @@ button {
   height: 100%;
   background: linear-gradient(90deg, #5c5ce7, #8b5cf6);
   border-radius: 999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progress-label {
@@ -1234,6 +1368,7 @@ button {
   height: 100%;
   background: linear-gradient(90deg, #20c997, #34d399);
   border-radius: 999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .session-hint {
@@ -1293,10 +1428,11 @@ button {
   }
 }
 
+/* P1-#2: 모바일 키보드 대응 — 100vh + overflow:hidden 제거 */
 .diagnosis-page {
   background: #f6f7fb;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow: auto;
 }
 
 .diagnosis-wrap {
@@ -1315,7 +1451,8 @@ button {
   padding: 32px 36px 28px;
   box-shadow: var(--shadow-soft);
   position: relative;
-  overflow: hidden;
+  /* P3-#19: overflow:clip — focus-ring 잘림 방지하면서 스크롤 억제 */
+  overflow: clip;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -1562,6 +1699,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 8px;
   text-align: left;
   min-width: 60px;
   cursor: pointer;
@@ -1630,11 +1768,20 @@ button {
   outline-offset: 2px;
 }
 
+/* P2-#7: 색상만으로 선택 표현하지 않음 — ::before 체크마크 추가 (WCAG 1.4.1) */
 .chip.active {
   background: var(--brand);
   color: #ffffff;
   border-color: var(--brand);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.chip.active::before {
+  content: "✓";
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
 .chip-grid {
@@ -2520,6 +2667,7 @@ button {
   justify-content: center;
 }
 
+/* P2-#12: matrix cell 상태별 cursor 및 hover 신호 개선 */
 .matrix-cell {
   width: 80px;
   height: 80px;
@@ -2538,15 +2686,32 @@ button {
   cursor: pointer;
 }
 
+.matrix-cell.diff:hover {
+  background: #fde047;
+  box-shadow: 0 4px 12px rgba(234,179,8,0.25);
+  transform: scale(1.04);
+}
+
 .matrix-cell.conflict {
   background: #fca5a5;
   cursor: pointer;
+}
+
+.matrix-cell.conflict:hover {
+  background: #f87171;
+  box-shadow: 0 4px 12px rgba(239,68,68,0.25);
+  transform: scale(1.04);
 }
 
 .matrix-cell.unanswered {
   background: transparent;
   border: 2px dashed #cbd5e1;
   cursor: pointer;
+}
+
+.matrix-cell.unanswered:hover {
+  border-color: var(--brand);
+  background: rgba(91,91,231,0.04);
 }
 
 .matrix-grid.matrix-issue {
@@ -3410,8 +3575,9 @@ button {
   .section {
     padding: 60px 0;
   }
+  /* P2-#10: 220px → 80px — Hero 컨텐츠가 fold 위로 올라오도록 */
   .hero-section {
-    padding-top: 220px;
+    padding-top: 80px;
   }
   .hero-title {
     font-size: clamp(26px, 8vw, 36px) !important;
@@ -3542,8 +3708,14 @@ button {
   font-weight: 600;
 }
 
+/* P2-#8: 무한 bounce 제거 — hover에만 lift 효과 적용 */
 .motion-cta {
-  animation: ctaPulse 3.4s ease-in-out infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.motion-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px rgba(92, 92, 231, 0.32);
 }
 
 /* Grid Layouts */
@@ -4129,10 +4301,13 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .motion-headline,
-  .motion-cta,
   .thought-card {
     animation: none !important;
     transform: none !important;
+    opacity: 1 !important;
+  }
+  .motion-cta {
+    transition: none !important;
   }
 }
 
@@ -5454,4 +5629,31 @@ button {
 .output-text { text-align: left; }
 @media (max-width: 768px) {
   .output-text { text-align: center !important; }
+}
+
+/* ── P2-#13: Skeleton shimmer 애니메이션 ─────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-card > div {
+  background: linear-gradient(
+    90deg,
+    #eef0f7 25%,
+    #f8f9fd 50%,
+    #eef0f7 75%
+  ) !important;
+  background-size: 800px 100% !important;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── P3-#16: disabled 버튼 포커스 — Tab 키 skip 방지 ─────── */
+button[disabled] {
+  cursor: not-allowed;
+}
+
+button[disabled]:focus-visible {
+  outline: 2px solid rgba(91, 91, 231, 0.2);
+  outline-offset: 2px;
 }

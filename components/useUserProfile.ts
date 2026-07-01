@@ -1,6 +1,6 @@
 "use client";
 
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { useAuth } from "./AuthContext";
@@ -20,18 +20,21 @@ export function useUserProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) {
-        setProfile(null);
-        setLoading(false);
-        return;
-      }
-      const snap = await getDoc(doc(db, "users", user.uid));
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+    const docRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(docRef, (snap) => {
       setProfile((snap.data() as UserProfile) ?? null);
       setLoading(false);
-    };
+    }, (err) => {
+      console.error("Profile listen error:", err);
+      setLoading(false);
+    });
 
-    fetchProfile();
+    return () => unsubscribe();
   }, [user]);
 
   return { profile, loading };

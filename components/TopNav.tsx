@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { BrandMark, CircleAvatar } from "./Brand";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
@@ -28,19 +29,39 @@ export function TopNav({
   void showBell;
   void rightName;
   void rightLabel;
+
+  // P1-#5: 모바일 햄버거 메뉴 상태
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // 라우트 변경 시 메뉴 닫기
+  useEffect(() => {
+    setMenuOpen(false);
+  }, []);
+
+  // Esc 키로 메뉴 닫기
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
+
   const handleLogout = async () => {
     await signOut(auth);
-    // 로그아웃 시 익명 진단 상태(localStorage)를 정리해 다음 사용자/세션으로 유입되지 않도록 한다
     resetState();
   };
+
   return (
     <header className="topbar">
       <div className="topbar-inner container">
         <div className="topbar-left">
-          <Link href="/" aria-label="CoSync Dashboard">
+          <Link href="/" aria-label="CoSync 홈으로 이동">
             <BrandMark />
           </Link>
-          <div className="nav-links">
+          {/* 데스크탑 nav */}
+          <nav className="nav-links" aria-label="주 메뉴">
             {links.map((link) => (
               <Link
                 key={link.label}
@@ -50,8 +71,9 @@ export function TopNav({
                 {link.label}
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
+
         <div className="topbar-right">
           {isAuthed ? (
             <>
@@ -71,8 +93,54 @@ export function TopNav({
               </Link>
             </div>
           ) : null}
+
+          {/* P1-#5: 햄버거 버튼 (모바일) */}
+          {links.length > 0 && (
+            <button
+              className="hamburger-btn"
+              type="button"
+              aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
+              <span className={`hamburger-icon ${menuOpen ? "open" : ""}`}>
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* P1-#5: 모바일 드로어 메뉴 */}
+      {menuOpen && links.length > 0 && (
+        <>
+          {/* 백드롭 */}
+          <div
+            className="mobile-nav-backdrop"
+            aria-hidden="true"
+            onClick={() => setMenuOpen(false)}
+          />
+          <nav
+            id="mobile-nav"
+            className="mobile-nav"
+            aria-label="모바일 메뉴"
+          >
+            {links.map((link) => (
+              <Link
+                key={link.label}
+                className={`mobile-nav-link ${link.label === active ? "active" : ""}`}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </>
+      )}
     </header>
   );
 }
