@@ -26,6 +26,7 @@ export function useTeamMembers(teamId: string | undefined) {
         setLoading(false);
         return;
       }
+      setLoading(true);
       try {
         const membersRef = collection(db, "teams", teamId, "members");
         const q = query(membersRef, orderBy("name"));

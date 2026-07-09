@@ -53,10 +53,11 @@ export default function LoginPage() {
           아직 계정이 없으신가요? <Link href="/register">회원가입</Link>
         </p>
 
-        <div className="form-grid">
-          <label className="label">이메일 주소</label>
+        <form className="form-grid" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+          <label className="label" htmlFor="email-input">이메일 주소</label>
           <div className="password-row">
             <input
+              id="email-input"
               className="input"
               placeholder="example@cosync.com"
               value={email}
@@ -64,9 +65,10 @@ export default function LoginPage() {
             />
           </div>
 
-          <label className="label">비밀번호</label>
+          <label className="label" htmlFor="password-input">비밀번호</label>
           <div className="password-row">
             <input
+              id="password-input"
               className="input"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
@@ -106,11 +108,11 @@ export default function LoginPage() {
           </div>
 
           {error && <div className="error-text">{error}</div>}
-        </div>
 
-        <button className="btn btn-primary full" type="button" onClick={handleLogin} disabled={loading}>
+        <button className="btn btn-primary full" type="submit" disabled={loading}>
           {loading ? "로그인 중..." : "로그인하기 →"}
         </button>
+        </form>
       </section>
       <Footer />
     </main>

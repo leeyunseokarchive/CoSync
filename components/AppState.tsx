@@ -5,10 +5,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "./AuthContext";
 
-type AgendaOwner = {
-  lead: string;
-  approver: string;
-};
 
 type AppState = {
   activeTeams: number;
@@ -68,14 +64,6 @@ type AppStateContextValue = AppState & {
   loadAnswersForTeam: (teamId: string) => Promise<void>;
 };
 
-const defaultAgendaOwners: Record<string, AgendaOwner> = {
-  제품: { lead: "대표", approver: "대표" },
-  개발: { lead: "공동창업자 A(개발)", approver: "대표" },
-  디자인: { lead: "공동창업자 B(디자인)", approver: "대표" },
-  일정: { lead: "대표", approver: "대표" },
-  "외부 커밋": { lead: "대표", approver: "대표" },
-  예산: { lead: "대표", approver: "대표" }
-};
 
 const defaultState: AppState = {
   activeTeams: 0,

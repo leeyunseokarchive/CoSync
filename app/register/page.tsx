@@ -50,6 +50,8 @@ export default function RegisterPage() {
         role,
         onboardingProgress: progress,
         teamIds: [],
+        plan: "free",
+        subscriptionStatus: "expired",
         createdAt: serverTimestamp()
       });
       router.push("/workspace");
@@ -82,26 +84,29 @@ export default function RegisterPage() {
           이미 계정이 있으신가요? <Link href="/login">로그인</Link>
         </p>
 
-        <div className="form-grid">
-          <label className="label">이름</label>
+        <form className="form-grid" onSubmit={(e) => { e.preventDefault(); handleRegister(); }}>
+          <label className="label" htmlFor="name-input">이름</label>
           <input
+            id="name-input"
             className="input"
             placeholder="성함을 입력하세요"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
 
-          <label className="label">이메일 주소</label>
+          <label className="label" htmlFor="email-input">이메일 주소</label>
           <input
+            id="email-input"
             className="input"
             placeholder="example@cosync.com"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
 
-          <label className="label">비밀번호</label>
+          <label className="label" htmlFor="password-input">비밀번호</label>
           <div className="password-row">
             <input
+              id="password-input"
               className="input"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
@@ -206,20 +211,19 @@ export default function RegisterPage() {
               <button type="button" className="terms-link" onClick={() => setShowPrivacyModal(true)}>개인정보 수집 및 이용</button>에 동의합니다.
             </span>
           </label>
-        </div>
-
-        <button className="btn btn-primary full" type="button" onClick={handleRegister} disabled={loading}>
+        <button className="btn btn-primary full" type="submit" disabled={loading}>
           {loading ? "계정 생성 중..." : "계정 만들기 →"}
         </button>
+        </form>
       </section>
       <Footer />
 
       {showTermsModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="terms-title">
           <div className="modal-card" style={{ maxWidth: 560 }}>
             <div className="modal-top">
-              <h2 style={{ fontSize: 17, fontWeight: 700 }}>서비스 이용약관</h2>
-              <button className="close" type="button" onClick={() => setShowTermsModal(false)}>✕</button>
+              <h2 id="terms-title" style={{ fontSize: 17, fontWeight: 700 }}>서비스 이용약관</h2>
+              <button className="close" type="button" autoFocus onClick={() => setShowTermsModal(false)}>✕</button>
             </div>
             <div style={{ overflowY: "auto", maxHeight: "60vh", fontSize: 13, lineHeight: 1.8, color: "var(--text-2)", paddingRight: 4 }}>
               <p style={{ marginBottom: 12 }}>본 약관은 CoSync(이하 "회사")이 제공하는 공동창업자 정렬 진단 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
@@ -277,11 +281,11 @@ export default function RegisterPage() {
       )}
 
       {showPrivacyModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
           <div className="modal-card" style={{ maxWidth: 560 }}>
             <div className="modal-top">
-              <h2 style={{ fontSize: 17, fontWeight: 700 }}>개인정보 수집 및 이용 동의</h2>
-              <button className="close" type="button" onClick={() => setShowPrivacyModal(false)}>✕</button>
+              <h2 id="privacy-title" style={{ fontSize: 17, fontWeight: 700 }}>개인정보 수집 및 이용 동의</h2>
+              <button className="close" type="button" autoFocus onClick={() => setShowPrivacyModal(false)}>✕</button>
             </div>
             <div style={{ overflowY: "auto", maxHeight: "60vh", fontSize: 13, lineHeight: 1.8, color: "var(--text-2)", paddingRight: 4 }}>
               <p style={{ marginBottom: 12 }}>CoSync(이하 "회사")은 「개인정보 보호법」 등 관련 법령을 준수하며, 이용자의 개인정보를 다음과 같이 처리합니다.</p>

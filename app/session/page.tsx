@@ -30,7 +30,7 @@ export default function SessionHomePage() {
             {!loading &&
               teams.map((team) => (
                 <div className="team-row" key={team.id}>
-                  <TeamSessionCard team={team} canViewReport={(team.progress ?? 0) >= 100} />
+                  <TeamSessionCard team={team} />
                   {(team.progress ?? 0) >= 100 && <TeamGapSlot team={team} />}
                 </div>
               ))}

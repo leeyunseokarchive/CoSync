@@ -55,13 +55,13 @@ const toGapScore = (alignment: number): GapScore => {
   return "CRITICAL";
 };
 
-type QuestionConfig = {
+export type QuestionConfig = {
   field: keyof OnboardingAnswers;
   toxicPairs: [string, string][];
   cat: number;
 };
 
-const QUESTION_CONFIGS: QuestionConfig[] = [
+export const QUESTION_CONFIGS: QuestionConfig[] = [
   // 역할 & 책임 (cat 0) — 기본 진단 3q
   { field: "extraWorkPriority", toxicPairs: [["3","4"]], cat: 0 },
   { field: "extraWorkPrinciple", toxicPairs: [["1","3"],["1","4"]], cat: 0 },
@@ -90,7 +90,22 @@ const QUESTION_CONFIGS: QuestionConfig[] = [
   { field: "growthStrategy", toxicPairs: [["1","2"]], cat: 5 },
 ];
 
-const CAT_LABELS = ["역할 & 책임", "이탈 & 회수", "비전 & 가치관", "조달 & 운용", "의사결정 & 실행", "지분 & 보상"];
+export const CAT_LABELS = ["역할 & 책임", "이탈 & 회수", "비전 & 가치관", "조달 & 운용", "의사결정 & 실행", "지분 & 보상"];
+
+// 전체 멤버 쌍 중 최악 상태 (conflict > diff > unanswered > match)
+export function getTeamIssueStatus(values: (string | undefined)[], toxicPairs: [string, string][]): IssueStatus {
+  if (values.length <= 1) return "unanswered";
+  if (values.some(v => !v)) return "unanswered";
+  const rank: Record<IssueStatus, number> = { match: 0, unanswered: 1, diff: 2, conflict: 3 };
+  let worst: IssueStatus = "match";
+  for (let i = 0; i < values.length; i++) {
+    for (let j = i + 1; j < values.length; j++) {
+      const s = getIssueStatus(values[i], values[j], toxicPairs);
+      if (rank[s] > rank[worst]) worst = s;
+    }
+  }
+  return worst;
+}
 
 // 정규화 가중치 (출처: 국내 스타트업 팀 와해 및 분쟁 원인 실증 분석 MVP V3)
 const CAT_WEIGHTS = [0.11, 0.11, 0.11, 0.17, 0.22, 0.28];

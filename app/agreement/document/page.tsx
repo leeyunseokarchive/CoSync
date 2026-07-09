@@ -1,0 +1,165 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect } from "react";
+import { TopNav } from "../../../components/TopNav";
+import { Footer } from "../../../components/Footer";
+import { useUserProfile } from "../../../components/useUserProfile";
+import { useTeams } from "../../../components/useTeams";
+import { useTeamMembers } from "../../../components/useTeamMembers";
+import { useAgreements } from "../../../components/useAgreements";
+import { groupByChapter } from "../../../lib/agreementClauses";
+import { Printer, History } from "lucide-react";
+import type { Timestamp } from "firebase/firestore";
+
+const fmtDate = (ts: Timestamp | null | undefined) =>
+  ts?.toDate ? ts.toDate().toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) : "";
+
+function AgreementDocumentInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { profile, loading: profileLoading } = useUserProfile();
+  const { teams } = useTeams();
+  const queryTeamId = searchParams ? searchParams.get("teamId") : null;
+  const teamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
+  const versionParam = searchParams ? searchParams.get("version") : null;
+
+  useEffect(() => {
+    if (!profileLoading && profile && profile.plan !== "premium") {
+      router.replace("/agreement/preview");
+    }
+  }, [profile, profileLoading, router]);
+
+  const { members } = useTeamMembers(teamId);
+  const { agreements, loading } = useAgreements(teamId);
+  const team = teams.find((t) => t.id === teamId);
+
+  const doc = versionParam
+    ? agreements.find((a) => a.version === Number(versionParam))
+    : agreements.find((a) => a.status === "confirmed") || agreements[0];
+
+  return (
+    <main className="page agreement-document-page">
+      <div className="no-print">
+        <TopNav links={[{ label: "합의 세션", href: `/consensus${teamId ? `?teamId=${teamId}` : ""}` }, { label: "히스토리", href: `/agreement/history${teamId ? `?teamId=${teamId}` : ""}` }]} active="합의서" />
+      </div>
+
+      <section className="container document-body">
+        {loading && <div className="card document-card no-print">로딩 중...</div>}
+        {!loading && !doc && (
+          <div className="card document-card no-print">
+            합의서가 아직 없습니다.{" "}
+            <Link href={`/consensus${teamId ? `?teamId=${teamId}` : ""}`} className="document-link">합의 세션 시작하기</Link>
+          </div>
+        )}
+
+        {doc && (
+          <>
+            <div className="document-toolbar no-print">
+              <div className={`document-status ${doc.status}`}>
+                {doc.status === "confirmed" ? "최종 확정됨" : "확정 대기 중"} · v{doc.version}
+              </div>
+              <div className="document-actions">
+                <Link href={`/agreement/history?teamId=${teamId}`} className="btn btn-ghost document-btn">
+                  <History size={15} /> 버전 히스토리
+                </Link>
+                <button className="btn btn-primary document-btn" onClick={() => window.print()}>
+                  <Printer size={15} /> PDF 내보내기
+                </button>
+              </div>
+            </div>
+
+            <article className="agreement-doc card">
+              <header className="doc-header">
+                <h1>창업 팀 간 구조적 합의안</h1>
+                <div className="doc-subtitle">STRUCTURAL FOUNDING TEAM AGREEMENT</div>
+                <div className="doc-meta">
+                  {team?.name && <span>{team.name}</span>}
+                  <span>v{doc.version}{doc.status === "confirmed" ? " Final" : " (Draft)"}</span>
+                  {doc.createdAt && <span>{fmtDate(doc.createdAt)}</span>}
+                </div>
+              </header>
+
+              {groupByChapter(doc.clauses).map((ch) => (
+                <section key={ch.cat} className="doc-chapter">
+                  <h2>제{ch.cat + 1}장. {ch.label}</h2>
+                  <ol>
+                    {ch.clauses.map((c, i) => (
+                      <li key={c.field}>
+                        <span className="doc-clause-num">{`①②③④⑤⑥⑦⑧⑨⑩`[i] ?? `${i + 1}.`}</span> {c.text}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ))}
+
+              <footer className="doc-footer">
+                <div className="doc-parties">
+                  <div className="doc-parties-label">합의 참여자</div>
+                  {members.map((m) => (
+                    <div key={m.id} className="doc-party">
+                      {m.name} ({m.role}){" "}
+                      {doc.confirmations[m.id] ? `— ${fmtDate(doc.confirmations[m.id])} 확정` : "— 미확정"}
+                    </div>
+                  ))}
+                </div>
+                {doc.status === "confirmed" && (
+                  <div className="doc-confirmed-note">본 합의안은 팀원 전원의 합의를 통해 확정되었습니다.</div>
+                )}
+                <div className="doc-generated">GENERATED BY COSYNC</div>
+              </footer>
+            </article>
+          </>
+        )}
+      </section>
+
+      <div className="no-print">
+        <Footer />
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .document-body { padding: 40px 0 80px; display: flex; flex-direction: column; gap: 20px; }
+        .document-card { padding: 32px; text-align: center; color: #64748b; }
+        .document-link { color: #5858e2; font-weight: 700; }
+        .document-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .document-status { font-size: 0.82rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; background: #fef3c7; color: #b45309; }
+        .document-status.confirmed { background: #ecfdf5; color: #059669; }
+        .document-actions { display: flex; gap: 8px; }
+        .document-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-size: 0.87rem; }
+        .btn-ghost { background: #f1f5f9; color: #334155; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; text-decoration: none; }
+        .agreement-doc { padding: clamp(28px, 6vw, 64px); max-width: 820px; margin: 0 auto; width: 100%; }
+        .doc-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 24px; margin-bottom: 32px; }
+        .doc-header h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+        .doc-subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #94a3b8; font-weight: 600; }
+        .doc-meta { margin-top: 14px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: #64748b; }
+        .doc-chapter { margin-bottom: 28px; }
+        .doc-chapter h2 { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; padding-left: 12px; border-left: 3px solid #5858e2; }
+        .doc-chapter ol { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .doc-chapter li { font-size: 0.92rem; color: #334155; line-height: 1.8; }
+        .doc-clause-num { color: #5858e2; font-weight: 700; margin-right: 2px; }
+        .doc-footer { border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 12px; display: flex; flex-direction: column; gap: 16px; }
+        .doc-parties-label { font-size: 0.78rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; letter-spacing: 1px; }
+        .doc-party { font-size: 0.9rem; color: #334155; line-height: 1.8; }
+        .doc-confirmed-note { text-align: center; font-size: 0.88rem; font-weight: 700; color: #059669; background: #ecfdf5; border-radius: 10px; padding: 12px; }
+        .doc-generated { text-align: center; font-size: 0.68rem; letter-spacing: 3px; color: #cbd5e1; font-weight: 600; }
+        @media print {
+          .no-print { display: none !important; }
+          .document-toolbar { display: none !important; }
+          .page { background: #fff !important; }
+          .document-body { padding: 0; }
+          .agreement-doc { box-shadow: none !important; border: none !important; max-width: none; padding: 0; }
+          @page { margin: 20mm; }
+        }
+      `}} />
+    </main>
+  );
+}
+
+export default function AgreementDocumentPage() {
+  return (
+    <Suspense>
+      <AgreementDocumentInner />
+    </Suspense>
+  );
+}

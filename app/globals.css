@@ -1,6 +1,6 @@
 :root {
   --ink: #1f2430;
-  --muted: #7c8494;
+  --muted: #475569;
   --line: #e7eaf3;
   --surface: #ffffff;
   --surface-soft: #f5f7ff;
@@ -41,7 +41,7 @@ body {
     radial-gradient(circle at 8% 90%, rgba(83, 220, 198, 0.12), transparent 40%),
     #f7f8fc;
   min-height: 100vh;
-  font-size: clamp(13px, 3.5vw, 14.5px);
+  font-size: clamp(15px, 3.5vw, 16px);
   letter-spacing: -0.25px;
   line-height: 1.55;
   word-break: keep-all;
@@ -56,6 +56,12 @@ a {
 
 button {
   font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: attr(width) / attr(height);
 }
 
 .page {

@@ -18,6 +18,16 @@ import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, F
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
+const WARN_WORDS = ["경영권 분쟁","신뢰 문제","신뢰를 잃","법적 분쟁","팀 해체","파산","소송","수억 원","계약을 철회","지분 분쟁","의사결정 교착","실행력 자체","동업 해지","감정 싸움","책임 전가","독단으로","갈등이 자주 터","폭발에 가깝","방어로 끝","피해자가 됩니다"];
+const hlBody = (stake: string, dispute: string) => {
+  let t = stake + " " + dispute;
+  t = t.replace(/'([^']+)'/g, '<mark style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:600">$1</mark>');
+  for (const w of WARN_WORDS) {
+    t = t.replace(new RegExp(`(${w}[가-힣]*)`, "g"), `<strong style="color:#b45309;font-weight:700">$1</strong>`);
+  }
+  return t;
+};
+
 type QuestionDef = {
   id: string;
   label: string;
@@ -354,6 +364,12 @@ function GapReportPageInner() {
   const showAdvancedHeatmap = allHaveAdvancedData;
   const showReport = isTeamComplete;
 
+  useEffect(() => {
+    if (showReport && window.location.hash === "#earlybird-section") {
+      document.getElementById("earlybird-section")?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [showReport]);
+
   const slides = [
     { title: "합의 세션", src: "/preview/agreement-confirm.png" },
     { title: "계약서 생성", src: "/preview/document-view.png" },
@@ -630,15 +646,7 @@ function GapReportPageInner() {
                     const statParts = script.stat.split("—");
                     const statSentence = statParts[0].trim();
                     const statSource = statParts[1] ? statParts[1].trim() : "";
-                    const WARN_WORDS = ["경영권 분쟁","신뢰 문제","신뢰를 잃","법적 분쟁","팀 해체","파산","소송","수억 원","계약을 철회","지분 분쟁","의사결정 교착","실행력 자체","동업 해지","감정 싸움","책임 전가","독단으로","갈등이 자주 터","폭발에 가깝","방어로 끝","피해자가 됩니다"];
-                    const hlBody = (stake: string, dispute: string) => {
-                      let t = stake + " " + dispute;
-                      t = t.replace(/'([^']+)'/g, '<mark style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:600">$1</mark>');
-                      for (const w of WARN_WORDS) {
-                        t = t.replace(new RegExp(`(${w}[가-힣]*)`, "g"), `<strong style="color:#b45309;font-weight:700">$1</strong>`);
-                      }
-                      return t;
-                    };
+
                     const rankIdx = scriptIssues.indexOf(issue);
                     return (
                       <div key={issue.id} style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)" }}>
@@ -979,7 +987,7 @@ function GapReportPageInner() {
                             {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
                           </ul>
                         </div>
-                        <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                        <button className="btn btn-primary unlock-btn" onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}>
                           {clause.btnLabel}
                         </button>
                       </div>
@@ -1016,7 +1024,7 @@ function GapReportPageInner() {
                             {clause.blurItems.map((item, i) => <li key={i}>{item}</li>)}
                           </ul>
                         </div>
-                        <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                        <button className="btn btn-primary unlock-btn" onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}>
                           팀 맞춤 합의안 생성하기
                         </button>
                       </div>
@@ -1060,15 +1068,7 @@ function GapReportPageInner() {
                   const renderItemFull = (issue: typeof remaining[number], rankIdx: number) => {
                     const script = SCRIPTS[issue.id];
                     if (!script) return null;
-                    const WARN_WORDS = ["경영권 분쟁","신뢰 문제","신뢰를 잃","법적 분쟁","팀 해체","파산","소송","수억 원","계약을 철회","지분 분쟁","의사결정 교착","실행력 자체","동업 해지","감정 싸움","책임 전가","독단으로","갈등이 자주 터","폭발에 가깝","방어로 끝","피해자가 됩니다"];
-                    const hlBody = (stake: string, dispute: string) => {
-                      let t = stake + " " + dispute;
-                      t = t.replace(/'([^']+)'/g, '<mark style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:1px 4px;font-weight:600">$1</mark>');
-                      for (const w of WARN_WORDS) {
-                        t = t.replace(new RegExp(`(${w}[가-힣]*)`, "g"), `<strong style="color:#b45309;font-weight:700">$1</strong>`);
-                      }
-                      return t;
-                    };
+
                     const statSentence = script.stat.split("—")[0].trim();
                     return (
                       <div key={issue.id} style={{ background: "#fff", borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 28px rgba(29,35,63,0.08)", marginBottom: "10px" }}>
@@ -1174,7 +1174,7 @@ function GapReportPageInner() {
                             </span>
                             <button
                               className="btn btn-primary unlock-btn"
-                              onClick={() => router.push("/agreement/preview")}
+                              onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}
                             >
                               <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} />
                               심층 리포트 잠금 해제하기
@@ -1402,7 +1402,7 @@ function GapReportPageInner() {
                           </span>
                           <button
                             className="btn btn-primary unlock-btn"
-                            onClick={() => router.push("/agreement/preview")}
+                            onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}
                           >
                             <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} />
                             심층 리포트 잠금 해제하기
@@ -1447,7 +1447,7 @@ function GapReportPageInner() {
                     <span style={{ fontSize: "12px", fontWeight: "700", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "999px", padding: "4px 14px", color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                       +{Math.max(0, (teamInsight.topPriorityIssuesArray?.length ?? 0) - 1)}개 리스크 분석 더 있습니다
                     </span>
-                    <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                    <button className="btn btn-primary unlock-btn" onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}>
                       <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} /> 심층 리포트 잠금 해제하기
                     </button>
                   </div>
@@ -1482,7 +1482,7 @@ function GapReportPageInner() {
                     <span style={{ fontSize: "12px", fontWeight: "700", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "999px", padding: "4px 14px", color: "#64748b", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                       안건별 합의 가이드 {(teamInsight.topPriorityIssuesArray?.length ?? 0)}개 더 있습니다
                     </span>
-                    <button className="btn btn-primary unlock-btn" onClick={() => router.push("/agreement/preview")}>
+                    <button className="btn btn-primary unlock-btn" onClick={() => router.push(`/agreement/preview?teamId=${activeTeamId}`)}>
                       <Lock size={13} style={{ marginRight: "5px", display: "inline", verticalAlign: "middle" }} /> 심층 리포트 잠금 해제하기
                     </button>
                   </div>
@@ -1511,17 +1511,18 @@ function GapReportPageInner() {
       <Footer />
 
       {showSubscribe && (
-        <div className="subscribe-backdrop" role="dialog" aria-modal="true">
+        <div className="subscribe-backdrop" role="dialog" aria-modal="true" aria-labelledby="subscribe-title">
           <div className="subscribe-card">
             <button
               className="close"
               type="button"
+              autoFocus
               onClick={() => setShowSubscribe(false)}
               aria-label="닫기"
             >
               ✕
             </button>
-            <h3>팀이 작을 때 하는 합의가 가장 쉽습니다</h3>
+            <h3 id="subscribe-title">팀이 작을 때 하는 합의가 가장 쉽습니다</h3>
             <p>
               기업이 성장할수록, 같은 문제의 갈등 비용도 커집니다. <br />
               사전신청 팀에게 먼저 열립니다.
@@ -1529,7 +1530,11 @@ function GapReportPageInner() {
             <div className="preview-slider">
               <Swiper
                 modules={[Autoplay, Pagination, Keyboard]}
-                autoplay={{ delay: 2400, disableOnInteraction: false }}
+                autoplay={
+                  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+                    ? false 
+                    : { delay: 2400, disableOnInteraction: false }
+                }
                 pagination={{ clickable: true }}
                 keyboard={{ enabled: true }}
                 loop
@@ -1614,7 +1619,11 @@ function GapReportPageInner() {
                   type="button"
                   onClick={() => {
                     setSelectedIssue(null);
-                    setShowSubscribe(true);
+                    if (profile?.plan === 'premium' && profile?.subscriptionStatus === 'active') {
+                      router.push(`/consensus${activeTeamId ? `?teamId=${activeTeamId}` : ""}`);
+                    } else {
+                      setShowSubscribe(true);
+                    }
                   }}
                 >
                   상세 리스크 및 합의 세션 시작하기 →
@@ -1635,4 +1644,3 @@ export default function GapReportPage() {
     </Suspense>
   );
 }
-

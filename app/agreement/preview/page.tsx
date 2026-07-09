@@ -1,8 +1,24 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, Keyboard } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import { TopNav } from "../../../components/TopNav";
 import { Footer } from "../../../components/Footer";
+import { useUserProfile } from "../../../components/useUserProfile";
 import { ClipboardList, Handshake, MessageCircle } from "lucide-react";
+
+const slides = [
+  { title: "합의 세션", src: "/preview/agreement-confirm.png" },
+  { title: "계약서 생성", src: "/preview/document-view.png" },
+  { title: "구체적인 질문 리스트", src: "/preview/questions.png" },
+  { title: "추천 문구", src: "/preview/version-diff.png" },
+  { title: "히스토리 관리", src: "/preview/version-history.png" }
+];
 
 const STEPS = [
   { num: "01", title: "각자 독립 응답", desc: "상대방 답을 보지 않은 상태에서 각자 솔직하게 작성합니다." },
@@ -10,7 +26,21 @@ const STEPS = [
   { num: "03", title: "합의 문서 완성", desc: "응답을 바탕으로 팀 운영 규칙을 문서로 확정합니다." },
 ];
 
-export default function AgreementPreviewPage() {
+function AgreementPreviewInner() {
+  const searchParams = useSearchParams();
+  const teamId = searchParams ? searchParams.get("teamId") : null;
+  const router = useRouter();
+  const { profile } = useUserProfile();
+  const [showSubscribe, setShowSubscribe] = useState(false);
+
+  const handleStartConsensus = () => {
+    if (profile?.plan === "premium") {
+      router.push(`/consensus${teamId ? `?teamId=${teamId}` : ""}`);
+    } else {
+      setShowSubscribe(true);
+    }
+  };
+
   return (
     <main className="page">
       <TopNav links={[{ label: "갭 리포트", href: "/gap-report" }]} active="합의안" />
@@ -24,6 +54,13 @@ export default function AgreementPreviewPage() {
             <br />
             각자 독립적으로 작성한 뒤, 함께 확인하고 합의합니다.
           </p>
+          <button
+            onClick={handleStartConsensus}
+            className="btn btn-primary"
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "16px 40px", fontSize: "16px", marginTop: "28px" }}
+          >
+            합의 세션 시작하기 →
+          </button>
         </div>
       </section>
 
@@ -87,6 +124,64 @@ export default function AgreementPreviewPage() {
         </div>
 
       </section>
+
+      {showSubscribe && (
+        <div className="subscribe-backdrop" role="dialog" aria-modal="true">
+          <div className="subscribe-card">
+            <button
+              className="close"
+              type="button"
+              onClick={() => setShowSubscribe(false)}
+              aria-label="닫기"
+            >
+              ✕
+            </button>
+            <h3>팀이 작을 때 하는 합의가 가장 쉽습니다</h3>
+            <p>
+              기업이 성장할수록, 같은 문제의 갈등 비용도 커집니다. <br />
+              사전신청 팀에게 먼저 열립니다.
+            </p>
+            <div className="preview-slider">
+              <Swiper
+                modules={[Autoplay, Pagination, Keyboard]}
+                autoplay={{ delay: 2400, disableOnInteraction: false }}
+                pagination={{ clickable: true }}
+                keyboard={{ enabled: true }}
+                loop
+                spaceBetween={16}
+              >
+                {slides.map((slide) => (
+                  <SwiperSlide key={slide.title}>
+                    <div className="slide-frame">
+                      <img src={slide.src} alt={slide.title} />
+                    </div>
+                    <div className="slider-caption">{slide.title}</div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            <div className="subscribe-actions">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => setShowSubscribe(false)}
+              >
+                나중에
+              </button>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  setShowSubscribe(false);
+                  window.location.href = `/gap-report${teamId ? `?teamId=${teamId}` : ""}#earlybird-section`;
+                }}
+              >
+                사전신청하기 →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
 
@@ -197,5 +292,13 @@ export default function AgreementPreviewPage() {
         .step-desc { font-size: 0.9rem; color: #64748b; line-height: 1.6; }
       `}} />
     </main>
+  );
+}
+
+export default function AgreementPreviewPage() {
+  return (
+    <Suspense>
+      <AgreementPreviewInner />
+    </Suspense>
   );
 }

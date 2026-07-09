@@ -9,6 +9,7 @@ import { useAuth } from "../../components/AuthContext";
 import { useTeams } from "../../components/useTeams";
 import { arrayUnion, collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { joinTeam } from "../../app/actions/team";
 import { useRouter } from "next/navigation";
 import { TeamSessionCard } from "../../components/TeamSessionCard";
 import { TeamGapSlot } from "../../components/TeamGapSlot";
@@ -207,14 +208,17 @@ export default function WorkspaceHubPage() {
     if (!targetTeam) return;
 
     setJoinLoading(true);
-    const teamRef = doc(db, "teams", targetTeam.id);
-    await updateDoc(teamRef, {
-      members: arrayUnion(user.uid)
-    });
-    await updateDoc(doc(db, "users", user.uid), {
-      teamIds: arrayUnion(targetTeam.id),
-      lastActiveTeamId: targetTeam.id
-    });
+    try {
+      if (!targetTeam.inviteCode) {
+        throw new Error("팀 가입 코드가 없습니다.");
+      }
+      await joinTeam(user.uid, targetTeam.id, targetTeam.inviteCode);
+    } catch (e) {
+      console.error(e);
+      alert("팀 가입 중 오류가 발생했습니다.");
+      setJoinLoading(false);
+      return;
+    }
 
     let finalAnswers: any = {};
     let finalProgress = 0;
@@ -270,7 +274,7 @@ export default function WorkspaceHubPage() {
     const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as any);
     const { gapCount, gapScore } = computeGapSummary(memberAnswers);
     const teamProgress = computeTeamProgress(memberDocs);
-    await updateDoc(teamRef, {
+    await updateDoc(doc(db, "teams", targetTeam.id), {
       progress: teamProgress,
       gapCount,
       gapScore
@@ -348,7 +352,7 @@ export default function WorkspaceHubPage() {
           {!teamsLoading &&
             teams.map((team) => (
               <div className="team-row" key={team.id}>
-                <TeamSessionCard team={team} canViewReport={false} />
+                <TeamSessionCard team={team} />
                 <TeamGapSlot team={team} />
               </div>
             ))}

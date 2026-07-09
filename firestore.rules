@@ -5,28 +5,51 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isTeamMember(teamId) {
+      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.members;
+    }
+
     match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      // Allow user to write to their profile, but prevent modifying subscription fields directly.
+      // If resource == null (create), they shouldn't set plan to premium.
+      allow create: if isSignedIn() && request.auth.uid == userId
+                    && request.resource.data.get('plan', 'free') == 'free'
+                    && request.resource.data.get('subscriptionStatus', 'none') == 'none';
+      allow update: if isSignedIn() && request.auth.uid == userId
+                    && request.resource.data.get('plan', 'free') == resource.data.plan
+                    && request.resource.data.get('subscriptionStatus', 'none') == resource.data.subscriptionStatus;
     }
 
     match /teams/{teamId} {
-      allow read: if isSignedIn();
-      allow update: if isSignedIn();
+      allow read, update: if isSignedIn() && request.auth.uid in resource.data.members;
+      // Teams are now created via Server Action, but just in case we allow client creation if member includes self:
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.members;
 
       match /members/{memberId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn() && request.auth.uid == memberId;
+        allow read: if isTeamMember(teamId);
+        allow write: if isTeamMember(teamId) && request.auth.uid == memberId;
+      }
+
+      match /consensus/{itemId} {
+        allow read, write: if isTeamMember(teamId);
+      }
+
+      match /agreements/{agreementId} {
+        allow read, create, update: if isTeamMember(teamId);
       }
     }
 
     match /inviteCodes/{code} {
       allow read: if isSignedIn();
+      // Invite codes are created via Server Action or Admin SDK, but let's allow it for now if needed.
       allow create: if isSignedIn();
     }
 
     match /earlybird/{docId} {
-      allow create, update: if true;
+      // Allow anyone to create, but not update existing ones
+      allow create: if true;
+      allow update: if false; // Server-only
       allow read: if isSignedIn();
     }
   }

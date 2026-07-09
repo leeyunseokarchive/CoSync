@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useUserProfile } from "../../../../components/useUserProfile";
 import { useAuth } from "../../../../components/AuthContext";
 import { useAppState } from "../../../../components/AppState";
@@ -25,6 +25,8 @@ function DiagnosisCompletePageInner() {
     role, progress
   } = useAppState();
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const searchParams = useSearchParams();
   const queryTeamId = searchParams ? searchParams.get("teamId") : null;
   const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0];
@@ -32,8 +34,10 @@ function DiagnosisCompletePageInner() {
   const hasTeam = Boolean(profile?.teamIds?.length);
 
   const handleContinueAdvanced = async () => {
-    if (user) {
-      if (activeTeamId) {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (user && activeTeamId) {
         const answers = {
           extraWorkPriority, extraWorkPrinciple, underperformanceAction,
           exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
@@ -47,53 +51,68 @@ function DiagnosisCompletePageInner() {
           Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
         );
         if (Object.keys(answerUpdates).length > 0) {
-          await updateDoc(memberDocRef, answerUpdates).catch(() => {});
+          await updateDoc(memberDocRef, answerUpdates);
         }
       }
+      const url = activeTeamId 
+        ? `/onboarding/diagnosis?teamId=${activeTeamId}&goTo=q13`
+        : "/onboarding/diagnosis?goTo=q13";
+      router.push(url);
+    } catch (e) {
+      console.error(e);
+      alert("답변 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
     }
-    const url = activeTeamId 
-      ? `/onboarding/diagnosis?teamId=${activeTeamId}&goTo=q13`
-      : "/onboarding/diagnosis?goTo=q13";
-    router.push(url);
   };
 
   const handleSaveAndProceed = async (destination: string) => {
+    if (isSaving) return;
     if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
-    const answers = {
-      extraWorkPriority, extraWorkPrinciple, underperformanceAction,
-      exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
-      exitVision, pivotCriteria, dealbreaker,
-      fundingRunway, spendingApproval, investmentCriteria,
-      decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
-      salaryStructure, equityStructure, profitDistribution, growthStrategy
-    };
-    if (activeTeamId) {
-      const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
-      await setDoc(memberDocRef, {
-        name: profile?.name || user.displayName || "팀원",
-        role: role || "MEMBER",
-        status: "active",
-        progress,
-      }, { merge: true });
-      const answerUpdates = Object.fromEntries(
-        Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
-      );
-      if (Object.keys(answerUpdates).length > 0) {
-        await updateDoc(memberDocRef, answerUpdates);
+    
+    setIsSaving(true);
+    try {
+      const answers = {
+        extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+        exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+        exitVision, pivotCriteria, dealbreaker,
+        fundingRunway, spendingApproval, investmentCriteria,
+        decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+        salaryStructure, equityStructure, profitDistribution, growthStrategy
+      };
+      if (activeTeamId) {
+        const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
+        await setDoc(memberDocRef, {
+          name: profile?.name || user.displayName || "팀원",
+          role: role || "MEMBER",
+          status: "active",
+          progress,
+        }, { merge: true });
+        const answerUpdates = Object.fromEntries(
+          Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
+        );
+        if (Object.keys(answerUpdates).length > 0) {
+          await updateDoc(memberDocRef, answerUpdates);
+        }
+        await appendDiagnosisHistory(activeTeamId, user.uid, answers, progress);
+        const membersSnapshot = await getDocs(collection(db, "teams", activeTeamId, "members"));
+        const memberDocs = membersSnapshot.docs.map((d) => d.data());
+        const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
+        const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
+        const teamProgress = computeTeamProgress(memberDocs);
+        await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore, rawScore });
       }
-      await appendDiagnosisHistory(activeTeamId, user.uid, answers, progress);
-      const membersSnapshot = await getDocs(collection(db, "teams", activeTeamId, "members"));
-      const memberDocs = membersSnapshot.docs.map((d) => d.data());
-      const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as typeof answers);
-      const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
-      const teamProgress = computeTeamProgress(memberDocs);
-      await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore, rawScore });
+      let dest = destination;
+      if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
+        dest = `${destination}?teamId=${activeTeamId}`;
+      }
+      router.push(dest);
+    } catch (e) {
+      console.error(e);
+      alert("진단 결과 저장 중 오류가 발생했습니다. 네트워크를 확인해주세요.");
+    } finally {
+      setIsSaving(false);
     }
-    let dest = destination;
-    if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
-      dest = `${destination}?teamId=${activeTeamId}`;
-    }
-    router.push(dest);
   };
 
   return (

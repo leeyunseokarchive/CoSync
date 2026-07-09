@@ -7,28 +7,24 @@ import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useAuth } from "./AuthContext";
 import { useAppState } from "./AppState";
+import { useUserProfile } from "./useUserProfile";
+import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 
 export function TopNav({
   links,
   active,
-  rightLabel,
-  rightName,
-  showBell,
   hideAuthLinks
 }: {
   links: { label: string; href: string }[];
   active?: string;
-  rightLabel?: string;
-  rightName?: string;
-  showBell?: boolean;
   hideAuthLinks?: boolean;
 }) {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const { resetState } = useAppState();
+  const router = useRouter();
   const isAuthed = Boolean(user);
-  void showBell;
-  void rightName;
-  void rightLabel;
 
   // P1-#5: 모바일 햄버거 메뉴 상태
   const [menuOpen, setMenuOpen] = useState(false);
@@ -62,15 +58,26 @@ export function TopNav({
           </Link>
           {/* 데스크탑 nav */}
           <nav className="nav-links" aria-label="주 메뉴">
-            {links.map((link) => (
-              <Link
-                key={link.label}
-                className={link.label === active ? "active" : undefined}
-                href={link.href}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isLocked = (link.label === "합의 세션" || link.label === "합의서" || link.label === "히스토리" || link.label === "합의안 확정") && profile && profile.plan !== "premium";
+              return (
+                <Link
+                  key={link.label}
+                  className={link.label === active ? "active" : undefined}
+                  href={isLocked ? "/agreement/preview" : link.href}
+                  onClick={(e) => {
+                    if (isLocked) {
+                      e.preventDefault();
+                      router.push("/agreement/preview");
+                    }
+                  }}
+                  style={isLocked ? { display: "inline-flex", alignItems: "center", gap: "4px" } : undefined}
+                >
+                  {link.label}
+                  {isLocked && <Lock size={14} color="#94a3b8" />}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
@@ -128,16 +135,27 @@ export function TopNav({
             className="mobile-nav"
             aria-label="모바일 메뉴"
           >
-            {links.map((link) => (
-              <Link
-                key={link.label}
-                className={`mobile-nav-link ${link.label === active ? "active" : ""}`}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isLocked = (link.label === "합의 세션" || link.label === "합의서" || link.label === "히스토리" || link.label === "합의안 확정") && profile && profile.plan !== "premium";
+              return (
+                <Link
+                  key={link.label}
+                  className={`mobile-nav-link ${link.label === active ? "active" : ""}`}
+                  href={isLocked ? "/agreement/preview" : link.href}
+                  onClick={(e) => {
+                    setMenuOpen(false);
+                    if (isLocked) {
+                      e.preventDefault();
+                      router.push("/agreement/preview");
+                    }
+                  }}
+                  style={isLocked ? { display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" } : undefined}
+                >
+                  {link.label}
+                  {isLocked && <Lock size={16} color="#94a3b8" />}
+                </Link>
+              );
+            })}
           </nav>
         </>
       )}

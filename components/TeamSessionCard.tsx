@@ -17,7 +17,7 @@ const BASIC_FIELDS: (keyof OnboardingAnswers)[] = ["extraWorkPriority", "extraWo
 const hasBasicComplete = (m: { answers?: unknown }) =>
   BASIC_FIELDS.every(f => Boolean((m.answers as OnboardingAnswers | undefined)?.[f]));
 
-export function TeamSessionCard({ team, canViewReport: _canViewReportProp }: { team: Team; canViewReport: boolean }) {
+export function TeamSessionCard({ team }: { team: Team }) {
   const { members, loading } = useTeamMembers(team.id);
   const canViewReport = !loading && members.length >= 2 && members.every(hasBasicComplete);
   const progressValue = Math.max(0, Math.min(100, team.progress ?? 0));
