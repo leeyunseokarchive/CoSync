@@ -33,6 +33,14 @@ service cloud.firestore {
 
       match /consensus/{itemId} {
         allow read, write: if isTeamMember(teamId);
+
+        match /comments/{commentId} {
+          allow read: if isTeamMember(teamId);
+          // 본인 이름으로만 작성 가능 (다른 사람 행세 방지)
+          allow create: if isTeamMember(teamId) && request.resource.data.byUid == request.auth.uid;
+          // 본인 댓글만 삭제 가능
+          allow delete: if isTeamMember(teamId) && resource.data.byUid == request.auth.uid;
+        }
       }
 
       match /agreements/{agreementId} {

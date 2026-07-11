@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { useAuth } from "../../components/AuthContext";
@@ -10,6 +10,7 @@ import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { useConsensus } from "../../components/useConsensus";
 import { useAgreements } from "../../components/useAgreements";
+import { useComments } from "../../components/useComments";
 import {
   CAT_LABELS,
   QUESTION_CONFIGS,
@@ -20,12 +21,24 @@ import {
 import {
   QUESTION_META,
   getClauseTemplate,
+  getClauseBlankHints,
   buildClauses,
   type ResolvedItem,
   type ClauseOption,
 } from "../../lib/agreementClauses";
-import { propose, vote, reopen, finalizeAgreement, type ConsensusDoc } from "../../lib/consensus";
-import { Check, X, ChevronDown, ChevronUp, FileCheck2, RotateCcw } from "lucide-react";
+import { propose, vote, reopen, finalizeAgreement, addComment, deleteComment, type ConsensusDoc } from "../../lib/consensus";
+import { Check, X, ChevronDown, ChevronUp, FileCheck2, RotateCcw, MessageCircle, Pencil } from "lucide-react";
+
+function timeAgo(ts: { toDate: () => Date } | null | undefined): string {
+  if (!ts) return "";
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "방금 전";
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  return `${Math.floor(diffHour / 24)}일 전`;
+}
 
 type ItemState =
   | { kind: "match" }
@@ -46,7 +59,7 @@ const CHIP: Record<ItemState["kind"], { label: string; cls: string }> = {
   match: { label: "자동 합의", cls: "chip-match" },
   unanswered: { label: "진단 미완료", cls: "chip-muted" },
   "needs-proposal": { label: "제안 필요", cls: "chip-needs" },
-  voting: { label: "투표중", cls: "chip-voting" },
+  voting: { label: "조정중", cls: "chip-voting" },
   resolved: { label: "합의 완료", cls: "chip-resolved" },
 };
 
@@ -58,6 +71,12 @@ function ConsensusPageInner() {
   const { teams } = useTeams();
   const queryTeamId = searchParams ? searchParams.get("teamId") : null;
   const teamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
+
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => forceTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!profileLoading && profile && profile.plan !== "premium") {
@@ -72,8 +91,15 @@ function ConsensusPageInner() {
   const [openField, setOpenField] = useState<string | null>(null);
   const [draftOption, setDraftOption] = useState<string>("");
   const [draftText, setDraftText] = useState<string>("");
+  const [blankValues, setBlankValues] = useState<string[]>([]);
+  const [freeEditMode, setFreeEditMode] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const { comments } = useComments(teamId, openField);
 
   const memberUids = useMemo(() => members.map((m) => m.id), [members]);
   const myName = profile?.name || user?.displayName || "";
@@ -103,11 +129,45 @@ function ConsensusPageInner() {
     setOpenField((cur) => (cur === field ? null : field));
     setDraftOption("");
     setDraftText("");
+    setBlankValues([]);
+    setFreeEditMode(false);
+    setEditingField(null);
+    setCommentDraft("");
   };
 
   const handlePickOption = (field: keyof OnboardingAnswers, option: string) => {
     setDraftOption(option);
-    setDraftText(getClauseTemplate(field, option));
+    const segments = getClauseTemplate(field, option).split("[ ]");
+    setBlankValues(Array(segments.length - 1).fill(""));
+    setDraftText(segments.join(""));
+    setFreeEditMode(false);
+  };
+
+  const handleBlankChange = (field: keyof OnboardingAnswers, option: string, index: number, value: string) => {
+    setBlankValues((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      const segments = getClauseTemplate(field, option).split("[ ]");
+      const assembled = segments.reduce((acc, seg, i) => acc + seg + (i < next.length ? next[i] : ""), "");
+      setDraftText(assembled);
+      return next;
+    });
+  };
+
+  const handleEditClick = (field: string, doc: ConsensusDoc) => {
+    setEditingField(field);
+    setDraftOption(doc.proposal.option);
+    setDraftText(doc.proposal.clauseText);
+    setBlankValues([]);
+    setFreeEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingField(null);
+    setDraftOption("");
+    setDraftText("");
+    setBlankValues([]);
+    setFreeEditMode(false);
   };
 
   const run = async (fn: () => Promise<void>) => {
@@ -129,6 +189,9 @@ function ConsensusPageInner() {
       await propose(teamId, field, user.uid, myName, draftOption, draftText.trim());
       setDraftOption("");
       setDraftText("");
+      setBlankValues([]);
+      setFreeEditMode(false);
+      setEditingField(null);
     });
   };
 
@@ -140,6 +203,20 @@ function ConsensusPageInner() {
   const handleReopen = (field: string) => {
     if (!teamId) return;
     run(() => reopen(teamId, field));
+  };
+
+  const handleAddComment = (field: string) => {
+    if (!user || !teamId || !commentDraft.trim()) return;
+    run(async () => {
+      await addComment(teamId, field, user.uid, myName, commentDraft.trim());
+      setCommentDraft("");
+    });
+  };
+
+  const handleDeleteComment = (field: string, commentId: string) => {
+    if (!teamId) return;
+    if (!window.confirm("댓글을 삭제할까요?")) return;
+    run(() => deleteComment(teamId, field, commentId));
   };
 
   const handleFinalize = () => {
@@ -291,8 +368,23 @@ function ConsensusPageInner() {
                               <div className="consensus-vote">
                                 <div className="vote-proposal">
                                   <div className="vote-proposal-meta">
-                                    <strong>{state.doc.proposal.byName}</strong>님의 제안 —{" "}
-                                    {meta.optionLabels[state.doc.proposal.option as ClauseOption]}
+                                    <span>
+                                      <strong>{state.doc.proposal.byName}</strong>님의 제안 —{" "}
+                                      {meta.optionLabels[state.doc.proposal.option as ClauseOption]}
+                                      {state.doc.proposal.proposedAt && (
+                                        <span className="proposal-time"> · {timeAgo(state.doc.proposal.proposedAt)}</span>
+                                      )}
+                                    </span>
+                                    {user?.uid === state.doc.proposal.byUid && editingField !== q.field && (
+                                      <button
+                                        type="button"
+                                        className="edit-proposal-btn"
+                                        disabled={busy}
+                                        onClick={() => handleEditClick(q.field, state.doc)}
+                                      >
+                                        <Pencil size={12} /> 수정
+                                      </button>
+                                    )}
                                   </div>
                                   <div className="consensus-clause-preview">{state.doc.proposal.clauseText}</div>
                                 </div>
@@ -326,17 +418,22 @@ function ConsensusPageInner() {
                                 )}
                                 {Object.values(state.doc.votes || {}).includes("reject") && (
                                   <div className="consensus-note rejected">
-                                    반대 의견이 있습니다. 새 제안으로 다시 합의를 시작하세요.
+                                    반대 의견이 있습니다. 아래 의견을 확인하고, 제안자는 수정하거나 새 제안으로 다시 합의를 시작하세요.
                                   </div>
                                 )}
                               </div>
                             )}
 
                             {(state.kind === "needs-proposal" ||
-                              (state.kind === "voting" && Object.values(state.doc.votes || {}).includes("reject"))) && (
+                              (state.kind === "voting" && Object.values(state.doc.votes || {}).includes("reject")) ||
+                              (state.kind === "voting" && editingField === q.field)) && (
                               <div className="consensus-propose">
                                 <div className="propose-title">
-                                  {state.kind === "needs-proposal" ? "합의안 제안" : "새 제안"}
+                                  {state.kind === "needs-proposal"
+                                    ? "합의안 제안"
+                                    : editingField === q.field
+                                    ? "제안 수정"
+                                    : "새 제안"}
                                 </div>
                                 <div className="propose-options">
                                   {(["1", "2", "3", "4"] as const).map((opt) => (
@@ -350,23 +447,129 @@ function ConsensusPageInner() {
                                     </button>
                                   ))}
                                 </div>
-                                {draftOption && (
-                                  <>
-                                    <textarea
-                                      className="propose-textarea"
-                                      value={draftText}
-                                      rows={3}
-                                      onChange={(e) => setDraftText(e.target.value)}
-                                    />
-                                    <button
-                                      className="btn btn-primary"
-                                      disabled={busy || !draftText.trim()}
-                                      onClick={() => handlePropose(q.field)}
-                                    >
-                                      제안하기
-                                    </button>
-                                  </>
-                                )}
+                                {draftOption && (() => {
+                                  const template = getClauseTemplate(q.field, draftOption);
+                                  const segments = template.split("[ ]");
+                                  const hasBlanks = segments.length > 1;
+                                  const hints = getClauseBlankHints(q.field, draftOption);
+                                  const showMadlibs = hasBlanks && !freeEditMode;
+                                  const blanksIncomplete = showMadlibs && blankValues.some((v) => !v.trim());
+                                  return (
+                                    <>
+                                      {showMadlibs ? (
+                                        <div className="propose-madlibs">
+                                          {segments.map((seg, i) => (
+                                            <React.Fragment key={i}>
+                                              {seg}
+                                              {i < segments.length - 1 && (
+                                                <span
+                                                  className="blank-wrap"
+                                                  data-tooltip={hints[i] ? `예: ${hints[i].replace(/^예:\s*/, "")}` : undefined}
+                                                >
+                                                  <input
+                                                    type="text"
+                                                    className="blank-input"
+                                                    value={blankValues[i] ?? ""}
+                                                    placeholder="입력"
+                                                    onChange={(e) => handleBlankChange(q.field, draftOption, i, e.target.value)}
+                                                  />
+                                                </span>
+                                              )}
+                                            </React.Fragment>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <textarea
+                                          ref={textareaRef}
+                                          className="propose-textarea"
+                                          value={draftText}
+                                          rows={3}
+                                          onChange={(e) => setDraftText(e.target.value)}
+                                        />
+                                      )}
+                                      <div className="propose-hint">
+                                        <span>
+                                          💡{" "}
+                                          {showMadlibs
+                                            ? "빈칸에 마우스를 올리면 예시가 보여요."
+                                            : "이 문장은 예시일 뿐이니, 우리 팀 상황에 맞게 자유롭게 수정해보세요."}
+                                        </span>
+                                        {hasBlanks && (
+                                          <button type="button" className="propose-mode-toggle" onClick={() => setFreeEditMode((v) => !v)}>
+                                            {freeEditMode ? "빈칸 채우기로 전환" : "전체 수정하기"}
+                                          </button>
+                                        )}
+                                      </div>
+                                      <div className="propose-actions">
+                                        {editingField === q.field && (
+                                          <button type="button" className="btn btn-ghost small" disabled={busy} onClick={handleCancelEdit}>
+                                            취소
+                                          </button>
+                                        )}
+                                        <button
+                                          className="btn btn-primary small"
+                                          disabled={busy || !draftText.trim() || blanksIncomplete}
+                                          onClick={() => handlePropose(q.field)}
+                                        >
+                                          {editingField === q.field ? "수정 완료" : "제안하기"}
+                                        </button>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
+
+                            {(state.kind === "voting" || state.kind === "resolved") && (
+                              <div className="consensus-comments">
+                                <div className="comments-title">
+                                  <MessageCircle size={14} /> 의견
+                                </div>
+                                <div className="comments-list">
+                                  {comments.length === 0 && (
+                                    <div className="comments-empty">아직 의견이 없습니다.</div>
+                                  )}
+                                  {comments.map((c) => (
+                                    <div key={c.id} className="comment-item">
+                                      <div className="comment-meta">
+                                        <span className="comment-author">{c.byName}</span>
+                                        <span className="comment-time">{timeAgo(c.createdAt)}</span>
+                                        {user?.uid === c.byUid && (
+                                          <button
+                                            type="button"
+                                            className="comment-delete-btn"
+                                            disabled={busy}
+                                            onClick={() => handleDeleteComment(q.field, c.id)}
+                                          >
+                                            삭제
+                                          </button>
+                                        )}
+                                      </div>
+                                      <p className="comment-text">{c.text}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                                <form
+                                  className="comment-form"
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleAddComment(q.field);
+                                  }}
+                                >
+                                  <input
+                                    className="comment-input"
+                                    value={commentDraft}
+                                    onChange={(e) => setCommentDraft(e.target.value)}
+                                    placeholder="의견을 남겨보세요"
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="btn btn-primary small comment-submit"
+                                    disabled={busy || !commentDraft.trim()}
+                                  >
+                                    등록
+                                  </button>
+                                </form>
                               </div>
                             )}
                           </div>
@@ -416,7 +619,7 @@ function ConsensusPageInner() {
         .consensus-progress-fill { height: 100%; background: linear-gradient(90deg, #5858e2, #8b5cf6); border-radius: 999px; transition: width 0.3s ease-out; }
         .consensus-card { padding: 40px; text-align: center; color: #64748b; font-size: 1rem; line-height: 1.6; }
         .consensus-error { padding: 16px 24px; background: #fef2f2; color: #b91c1c; font-size: 0.9rem; font-weight: 600; border-radius: 12px; }
-        .reopen-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 0.85rem; margin-top: 12px; transition: background 0.2s; }
+        .reopen-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 0.85rem; margin-top: 12px; min-height: 0; transition: background 0.2s; }
         .reopen-btn:hover { background: #e2e8f0; }
         .consensus-hint-link { color: #5858e2; font-weight: 700; text-decoration: none; }
         .consensus-hint-link:hover { text-decoration: underline; }
@@ -444,7 +647,7 @@ function ConsensusPageInner() {
         .consensus-note.resolved { color: #4338ca; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .consensus-note.rejected { color: #b91c1c; font-weight: 600; padding: 12px 16px; background: #fef2f2; border-radius: 8px; }
         .consensus-clause-preview { width: 100%; margin-top: 12px; background: #f8fafc; border-radius: 12px; padding: 16px 20px; font-size: 0.95rem; color: #334155; font-weight: 400; line-height: 1.7; border: 1px solid #f1f5f9; }
-        .vote-proposal-meta { font-size: 0.95rem; color: #334155; margin-bottom: 8px; }
+        .vote-proposal-meta { font-size: 0.95rem; color: #334155; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .vote-status { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
         .vote-pill { font-size: 0.85rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; background: #f1f5f9; color: #64748b; }
         .vote-pill.approve { background: #ecfdf5; color: #059669; }
@@ -461,6 +664,67 @@ function ConsensusPageInner() {
         .propose-option.selected { border-color: #5858e2; background: #f5f5ff; color: #4338ca; box-shadow: 0 0 0 1px #5858e2; }
         .propose-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font: inherit; font-size: 0.95rem; line-height: 1.7; color: #334155; resize: vertical; transition: border-color 0.2s; }
         .propose-textarea:focus { outline: none; border-color: #5858e2; box-shadow: 0 0 0 3px rgba(88,88,226,0.1); }
+        .propose-madlibs { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font-size: 0.95rem; line-height: 2.4; color: #334155; background: #fff; box-sizing: border-box; }
+        .blank-wrap { position: relative; display: inline-block; }
+        .blank-wrap[data-tooltip]:hover::after, .blank-wrap[data-tooltip]:focus-within::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-bottom: 8px;
+          background: #1e1b3a;
+          color: #fff;
+          font-size: 0.75rem;
+          font-weight: 500;
+          line-height: 1.5;
+          padding: 8px 12px;
+          border-radius: 8px;
+          white-space: normal;
+          width: max-content;
+          max-width: 240px;
+          text-align: center;
+          z-index: 20;
+          pointer-events: none;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .blank-wrap[data-tooltip]:hover::before, .blank-wrap[data-tooltip]:focus-within::before {
+          content: "";
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-bottom: 3px;
+          border: 5px solid transparent;
+          border-top-color: #1e1b3a;
+          z-index: 20;
+          pointer-events: none;
+        }
+        .blank-input { display: inline-block; width: 130px; max-width: 100%; border: none; border-bottom: 2px solid #5858e2; background: #f5f5ff; border-radius: 6px 6px 0 0; padding: 2px 8px; margin: 0 2px; font: inherit; font-size: 0.9rem; font-weight: 600; color: #4338ca; text-align: center; vertical-align: baseline; transition: background 0.2s; }
+        .blank-input:focus { outline: none; background: #ede9fe; }
+        .blank-input::placeholder { color: #a5a6f0; font-weight: 400; }
+        .propose-hint { font-size: 0.85rem; color: #5858e2; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .propose-mode-toggle { background: none; border: none; color: #5858e2; font-size: 0.8rem; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0; white-space: nowrap; }
+        .propose-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .proposal-time { color: #94a3b8; font-weight: 500; font-size: 0.85rem; }
+        .edit-proposal-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; color: #5858e2; background: transparent; border: none; border-radius: 999px; cursor: pointer; white-space: nowrap; min-height: 0; transition: background 0.2s; }
+        .edit-proposal-btn:hover:not(:disabled) { background: #ede9fe; }
+        .edit-proposal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .consensus-comments { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+        .comments-title { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 700; color: #334155; }
+        .comments-list { display: flex; flex-direction: column; gap: 10px; }
+        .comments-empty { font-size: 0.85rem; color: #94a3b8; }
+        .comment-item { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 10px; padding: 10px 14px; }
+        .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .comment-author { font-size: 0.8rem; font-weight: 700; color: #334155; }
+        .comment-time { font-size: 0.75rem; color: #94a3b8; }
+        .comment-text { font-size: 0.9rem; color: #475569; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+        .comment-delete-btn { margin-left: auto; background: none; border: none; color: #94a3b8; font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: all 0.2s; }
+        .comment-delete-btn:hover:not(:disabled) { color: #b91c1c; background: #fee2e2; }
+        .comment-form { display: flex; gap: 10px; }
+        .comment-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font: inherit; font-size: 0.9rem; }
+        .comment-input:focus { outline: none; border-color: #5858e2; box-shadow: 0 0 0 3px rgba(88,88,226,0.1); }
+        .comment-submit { padding: 8px 18px; font-size: 0.85rem; white-space: nowrap; border-radius: 10px; min-width: 64px; }
         .consensus-finalize { text-align: center; padding-top: 24px; }
         .consensus-finalize-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 40px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; box-shadow: 0 4px 14px rgba(88,88,226,0.25); transition: all 0.2s; }
         .consensus-finalize-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(88,88,226,0.3); }
