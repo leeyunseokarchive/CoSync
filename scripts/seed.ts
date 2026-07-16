@@ -153,9 +153,40 @@ async function seedTeamB() {
       });
   }
 
-  const resolved = Object.fromEntries(
+  const resolved: Record<string, { option: "1"; source: "match"; text?: string }> = Object.fromEntries(
     QUESTION_CONFIGS.map((q) => [q.field, { option: "1" as const, source: "match" as const }])
   );
+  // 템플릿에 빈칸([ ])이 있는 6개 필드는 데모용 실제 값으로 채워 넣는다.
+  resolved.extraWorkPriority = {
+    option: "1",
+    source: "match",
+    text: "담당이 정해지지 않은 업무가 발생한 경우, 이를 발견한 사람이 우선 직접 처리하되 24시간 이내에 처리 결과를 팀에 공유하기로 한다.",
+  };
+  resolved.extraWorkPrinciple = {
+    option: "1",
+    source: "match",
+    text: "초기 3개월 동안은 업무 외 시간의 협업 요청에도 적극적으로 대응하는 것을 원칙으로 한다.",
+  };
+  resolved.exitDisputeResolution = {
+    option: "1",
+    source: "match",
+    text: "구성원 이탈 시 지분 정리는 등기된 지분을 그대로 인정하는 것을 원칙으로 한다. 다만 중대한 귀책 사유가 있는 경우에는 예외로 한다.",
+  };
+  resolved.pivotCriteria = {
+    option: "1",
+    source: "match",
+    text: "사업 방향 전환(피벗) 또는 중단 논의는 런웨이 3개월 이하가 되는 시점에 시작하기로 한다.",
+  };
+  resolved.deadlockTolerance = {
+    option: "1",
+    source: "match",
+    text: "의견이 교착 상태에 이른 경우, 7일 이내에 해당 안건 담당 영역 책임자의 결정을 존중하기로 한다.",
+  };
+  resolved.profitDistribution = {
+    option: "1",
+    source: "match",
+    text: "흑자 전환 시 이익은 전액 재투자하는 것을 원칙으로 하되, 창업자 최소 생계비로 300만 원은 우선 지급한다.",
+  };
   const clauses = buildClauses(resolved);
 
   await db.collection("teams").doc("demo-team-b").collection("agreements").doc("v1").set({
