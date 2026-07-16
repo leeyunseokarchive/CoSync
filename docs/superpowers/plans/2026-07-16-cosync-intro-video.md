@@ -67,6 +67,8 @@ if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "1" && !globalThis.__cosyn
 
 ```bash
 cd "/Users/leeyunseok/Desktop/Projects/CoSync"
+export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
+export PATH="$JAVA_HOME/bin:$PATH"
 firebase emulators:start --only firestore,auth &
 sleep 5
 NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev &
@@ -290,6 +292,8 @@ seed().then(() => process.exit(0)).catch((e) => {
 
 ```bash
 cd "/Users/leeyunseok/Desktop/Projects/CoSync"
+export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
+export PATH="$JAVA_HOME/bin:$PATH"
 firebase emulators:start --only firestore,auth &
 sleep 5
 npx tsx scripts/seed.ts
@@ -367,6 +371,8 @@ git commit -m "feat: seed full demo scenario (gap + consensus + confirmed agreem
 
 ```bash
 cd "/Users/leeyunseok/Desktop/Projects/CoSync"
+export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
+export PATH="$JAVA_HOME/bin:$PATH"
 firebase emulators:start --only firestore,auth &
 sleep 5
 npx tsx scripts/seed.ts
