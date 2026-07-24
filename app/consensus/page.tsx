@@ -623,14 +623,14 @@ function ConsensusPageInner() {
         .reopen-btn:hover { background: #e2e8f0; }
         .consensus-hint-link { color: #5858e2; font-weight: 700; text-decoration: none; }
         .consensus-hint-link:hover { text-decoration: underline; }
-        .consensus-cat-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; }
+        .consensus-cat-title { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; }
         .consensus-items { display: flex; flex-direction: column; gap: 16px; }
         .consensus-item { padding: 0; overflow: hidden; border-radius: 16px; transition: box-shadow 0.2s; border: 1px solid #e2e8f0; }
         .consensus-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .consensus-item-head { width: 100%; display: flex; align-items: center; gap: 16px; padding: 20px 24px; background: none; border: none; cursor: pointer; font: inherit; text-align: left; color: #334155; transition: background 0.2s; }
         .consensus-item-head:hover:not(:disabled) { background: #f8fafc; }
         .consensus-item-head:disabled { cursor: default; opacity: 0.6; }
-        .consensus-item-label { flex: 1; font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+        .consensus-item-label { flex: 1; font-size: 1.15rem; font-weight: 700; color: #0f172a; }
         .consensus-chip { font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
         .chip-match { background: #ecfdf5; color: #059669; }
         .chip-muted { background: #f1f5f9; color: #94a3b8; }
@@ -641,15 +641,15 @@ function ConsensusPageInner() {
         .consensus-positions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
         .consensus-position { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; background: #fafafa; }
         .consensus-position.me { border-color: #5858e2; background: #f5f5ff; }
-        .position-name { font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 8px; }
-        .position-answer { font-size: 0.95rem; font-weight: 600; color: #0f172a; line-height: 1.5; }
-        .consensus-note { font-size: 0.95rem; color: #475569; line-height: 1.6; }
+        .position-name { font-size: 0.95rem; font-weight: 700; color: #64748b; margin-bottom: 8px; }
+        .position-answer { font-size: 1.05rem; font-weight: 600; color: #0f172a; line-height: 1.5; }
+        .consensus-note { font-size: 1.05rem; color: #475569; line-height: 1.6; }
         .consensus-note.resolved { color: #4338ca; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .consensus-note.rejected { color: #b91c1c; font-weight: 600; padding: 12px 16px; background: #fef2f2; border-radius: 8px; }
-        .consensus-clause-preview { width: 100%; margin-top: 12px; background: #f8fafc; border-radius: 12px; padding: 16px 20px; font-size: 0.95rem; color: #334155; font-weight: 400; line-height: 1.7; border: 1px solid #f1f5f9; }
-        .vote-proposal-meta { font-size: 0.95rem; color: #334155; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .consensus-clause-preview { width: 100%; margin-top: 12px; background: #f8fafc; border-radius: 12px; padding: 16px 20px; font-size: 1.05rem; color: #334155; font-weight: 400; line-height: 1.7; border: 1px solid #f1f5f9; }
+        .vote-proposal-meta { font-size: 1.05rem; color: #334155; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .vote-status { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-        .vote-pill { font-size: 0.85rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; background: #f1f5f9; color: #64748b; }
+        .vote-pill { font-size: 0.95rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; background: #f1f5f9; color: #64748b; }
         .vote-pill.approve { background: #ecfdf5; color: #059669; }
         .vote-pill.reject { background: #fee2e2; color: #b91c1c; }
         .vote-actions { display: flex; gap: 12px; margin-top: 16px; }
@@ -659,12 +659,12 @@ function ConsensusPageInner() {
         .propose-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
         .consensus-propose { display: flex; flex-direction: column; gap: 16px; background: #fafafa; border-radius: 16px; padding: 24px; border: 1px solid #f1f5f9; }
         .propose-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-        .propose-option { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; background: #fff; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #334155; text-align: left; transition: all 0.2s; line-height: 1.5; }
+        .propose-option { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; background: #fff; cursor: pointer; font-size: 1rem; font-weight: 600; color: #334155; text-align: left; transition: all 0.2s; line-height: 1.5; }
         .propose-option:hover { border-color: #cbd5e1; }
         .propose-option.selected { border-color: #5858e2; background: #f5f5ff; color: #4338ca; box-shadow: 0 0 0 1px #5858e2; }
-        .propose-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font: inherit; font-size: 0.95rem; line-height: 1.7; color: #334155; resize: vertical; transition: border-color 0.2s; }
+        .propose-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font: inherit; font-size: 1.05rem; line-height: 1.7; color: #334155; resize: vertical; transition: border-color 0.2s; }
         .propose-textarea:focus { outline: none; border-color: #5858e2; box-shadow: 0 0 0 3px rgba(88,88,226,0.1); }
-        .propose-madlibs { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font-size: 0.95rem; line-height: 2.4; color: #334155; background: #fff; box-sizing: border-box; }
+        .propose-madlibs { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; font-size: 1.05rem; line-height: 2.4; color: #334155; background: #fff; box-sizing: border-box; }
         .blank-wrap { position: relative; display: inline-block; }
         .blank-wrap[data-tooltip]:hover::after, .blank-wrap[data-tooltip]:focus-within::after {
           content: attr(data-tooltip);
@@ -718,18 +718,18 @@ function ConsensusPageInner() {
         .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .comment-author { font-size: 0.8rem; font-weight: 700; color: #334155; }
         .comment-time { font-size: 0.75rem; color: #94a3b8; }
-        .comment-text { font-size: 0.9rem; color: #475569; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+        .comment-text { font-size: 1rem; color: #475569; line-height: 1.6; margin: 0; white-space: pre-wrap; }
         .comment-delete-btn { margin-left: auto; background: none; border: none; color: #94a3b8; font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: all 0.2s; }
         .comment-delete-btn:hover:not(:disabled) { color: #b91c1c; background: #fee2e2; }
         .comment-form { display: flex; gap: 10px; }
-        .comment-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font: inherit; font-size: 0.9rem; }
+        .comment-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font: inherit; font-size: 1rem; }
         .comment-input:focus { outline: none; border-color: #5858e2; box-shadow: 0 0 0 3px rgba(88,88,226,0.1); }
         .comment-submit { padding: 8px 18px; font-size: 0.85rem; white-space: nowrap; border-radius: 10px; min-width: 64px; }
         .consensus-finalize { text-align: center; padding-top: 24px; }
         .consensus-finalize-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 40px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; box-shadow: 0 4px 14px rgba(88,88,226,0.25); transition: all 0.2s; }
         .consensus-finalize-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(88,88,226,0.3); }
         .consensus-finalize-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
-        .consensus-finalize-hint { margin-top: 16px; font-size: 0.9rem; color: #64748b; line-height: 1.6; }
+        .consensus-finalize-hint { margin-top: 16px; font-size: 1rem; color: #64748b; line-height: 1.6; }
       `}} />
     </main>
   );
