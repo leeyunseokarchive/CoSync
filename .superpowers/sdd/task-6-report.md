@@ -1,80 +1,51 @@
-# Task 6 Implementation Report: 씬 구현 (6개)
+# Task 6 Report: Playwright 인앱 캡쳐
 
-## Summary
-Successfully implemented all 6 scenes for the CoSync intro video. All files created, TypeScript validation passed, and commit completed.
+## Status: DONE
 
-## Files Created
+Commit: `029f04a` — "chore: add in-app screenshot capture script and capture questions/consensus/document pages"
 
-### Scene Files
-1. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene1Hook.tsx` (1,941 bytes)
-   - Hook scene with animated text lines (4 lines with staggered animations)
-   - Uses Noto Sans KR font with 800/900 weights
-   - Dark background (#0b0b0f), duration: 120 frames
+## Commands run
 
-2. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene2Diagnosis.tsx` (284 bytes)
-   - Screenshot scene: "막연한 약속 대신, 20개 질문으로 먼저 확인하세요"
-   - Duration: 150 frames
+1. `npm i -D playwright` — installed (2 packages added).
+2. `npx playwright install chromium` — no-op, chromium 1223/1228 + headless_shell already cached in `~/Library/Caches/ms-playwright/`.
+3. Wrote `scripts/capture-screenshots.mjs`.
+4. `export JAVA_HOME="/opt/homebrew/opt/openjdk@21"; export PATH="$JAVA_HOME/bin:$PATH"; firebase emulators:start --only firestore,auth > /tmp/emu.log 2>&1 &` — emulators up (Auth :9099, Firestore :8080) in ~10s.
+5. `npx tsx scripts/seed.ts` — "Seeding complete: demo-team-a (진행중), demo-team-b (확정 v1.0)". (A harmless `MetadataLookupWarning` from firebase-admin's GCP metadata probe appeared but seeding succeeded.)
+6. `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev > /tmp/dev.log 2>&1 &` — Next.js 16 / Turbopack ready in 842ms.
+7. `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/login` → `200` on first attempt.
+8. `node scripts/capture-screenshots.mjs` — first run failed (see Deviation below), second run succeeded: `captured questions` / `captured consensus` / `captured agreement-document`.
+9. Verified all 3 PNGs by opening them (Read tool, image view) — see "What each PNG shows" below.
+10. `pkill -f "firebase emulators"; pkill -f "next dev"` — cleaned up.
 
-3. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene3GapReport.tsx` (271 bytes)
-   - Screenshot scene: "누가 어디서 다르게 생각하는지 한눈에"
-   - Duration: 150 frames
+## Deviations from the brief (both required, both verified before applying)
 
-4. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene4Consensus.tsx` (282 bytes)
-   - Screenshot scene: "차이 나는 부분만, 팀원 전원 합의로 좁혀갑니다"
-   - Duration: 180 frames
+**1. `waitUntil: "networkidle"` timeout on shot pages.**
+First capture run failed with `page.goto: Timeout 30000ms exceeded` navigating to `/questions?teamId=demo-team-b`. Root cause: Firestore's `onSnapshot` realtime listeners keep an open long-poll/websocket connection, so the network never goes idle — `networkidle` was never going to resolve on any authenticated page in this app. Fixed in the script: shot navigations now use `waitUntil: "load"` with the post-nav wait bumped from 1200ms → 2500ms to give the realtime subscriptions time to render. Login navigation (before Firestore listeners attach) still uses `networkidle`, which worked fine there.
 
-5. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene5Agreement.tsx` (277 bytes)
-   - Screenshot scene: "합의된 내용은 문서로, 버전까지 관리"
-   - Duration: 150 frames
+**2. `questions.png` uses `teamId=demo-team-a`, not `demo-team-b`.**
+Capturing `/questions?teamId=demo-team-b` produced a real page render (HTTP 200, no error) but with an *intentionally empty* state: "아직 심층 대화가 필요한 항목이 없어요. 팀원 2명 이상이 진단을 마치면 여기에 표시됩니다." I read `scripts/seed.ts`: `TEAM_B_ANSWERS` gives all 4 demo members identical answers (`{...BASE}`, every field `"1"`) — team B is deliberately the "fully matched, confirmed v1 agreement" demo team, so it has zero gaps by design, not by a seeding bug. `TEAM_A_ANSWERS` is the team seeded with 5 deliberately conflicting/differing fields (`extraWorkPriority`, `equityStructure`, `decisionFailure`, `growthStrategy`, `fundingRunway`), which is what actually exercises the deep-questions feature. I probed `/questions?teamId=demo-team-a` with a throwaway script and confirmed it renders exactly what the brief's Step 5 checklist asks for — cards sorted 충돌→차이, conversation-starter quotes, "정하기 팁" boxes. Updated `scripts/capture-screenshots.mjs` so only the `questions` shot points at `demo-team-a` (with a `ponytail:` comment explaining why); `consensus` and `agreement-document` stay on `demo-team-b` since that's the only team with a confirmed `v1` agreement (`/agreement/document` has nothing to show for team A — `seedTeamA()` never writes an `agreements` doc).
 
-6. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/scenes/Scene6Outro.tsx` (1,262 bytes)
-   - Outro scene with logo animation and closing text
-   - Uses Noto Sans KR font with 700/900 weights
-   - Dark background (#0b0b0f), duration: 150 frames
+Both fixes are reflected in the committed `scripts/capture-screenshots.mjs`.
 
-Total frame duration: 900 frames (30 seconds @ 30fps) ✓
+## What each PNG shows (docs/captures/2026-07-24/)
 
-## TypeScript Validation
+- **questions.png** (2880×6798, `teamId=demo-team-a`): "지금 꼭 맞춰봐야 할 대화" — 5 deep-question cards in 충돌/차이 order (회색지대 업무 배정, 런웨이 위기 대응, 실패 후 반응, 지분 구조 철학, 성장 전략), each with a badge (충돌/차이), a conversation-starter quote bubble, numbered discussion steps with per-member framing bullets, and a "정하기 팁" tip box. Matches Step 5's expectation of "충돌→차이 순으로 렌더, 대화 스크립트/팁 표시."
+- **consensus.png** (2880×5782, `teamId=demo-team-b`): "팀 합의 세션" — all 6 chapters (역할&책임 … 지분&보상) with every clause row showing a green "자동 합의" badge (all 4 members' answers matched, so every item auto-resolved), rendered in the enlarged label/body font from Task 4.
+- **agreement-document.png** (2880×4392, `teamId=demo-team-b`): "창업 팀 간 구조적 합의안" — full confirmed v1 document, 6 chapters with numbered clauses in the enlarged 1.05rem body text from Task 5, all 6 previously-blank template fields filled with concrete demo values, signer list (4 members, all confirmed 2026년 7월 24일), and the green "본문 합의안은 팀원 전원의 합의를 통해 확정되었습니다" banner. Print-width preserved (centered card layout).
+
+All three are non-trivial, fully-rendered, data-populated screenshots — no blank/error states.
+
+## Cleanup
+
+`pkill -f "firebase emulators"` and `pkill -f "next dev"` both ran successfully after capture. No lingering background processes. `next-env.d.ts` was not regenerated/modified. `package.json`/`package-lock.json` picked up the `playwright` devDependency from `npm i -D playwright` but were intentionally left uncommitted per the task's explicit `git add` file list (only `scripts/capture-screenshots.mjs` and `docs/captures/2026-07-24`). `firestore-debug.log` also picked up noise from the emulator run but was likewise left out of the commit.
+
+## Commit
+
 ```
-$ npx tsc --noEmit
-TypeScript check passed with no errors
+029f04a chore: add in-app screenshot capture script and capture questions/consensus/document pages
+ 4 files changed, 43 insertions(+)
+ create mode 100644 docs/captures/2026-07-24/agreement-document.png
+ create mode 100644 docs/captures/2026-07-24/consensus.png
+ create mode 100644 docs/captures/2026-07-24/questions.png
+ create mode 100644 scripts/capture-screenshots.mjs
 ```
-Result: **PASS** - No type errors detected.
-
-## Git Commit
-```
-Commit: a6a0751
-Author: leeyunseokarchive
-Message: feat: implement 6 scenes (hook, 4 screenshot scenes, outro)
-Files changed: 6 files, +126 insertions
-```
-
-## Implementation Details
-
-### Dependencies Used
-- `remotion` - Core animation library (AbsoluteFill, Sequence, useCurrentFrame, interpolate, Easing, Img, staticFile)
-- `@remotion/google-fonts/NotoSansKR` - Korean font support
-
-### Architecture
-- **Scene1Hook**: Independent composition with nested HookLine components
-- **Scenes 2-5**: Thin wrappers around ScreenScene component (consuming Task 5)
-- **Scene6Outro**: Independent composition with logo and text animations
-
-### Key Features
-- ✓ Fade-in/out animations (opacity interpolation)
-- ✓ Scale animations (cubic bezier easing)
-- ✓ Proper frame sequencing with Sequence layout="none"
-- ✓ Dark theme (#0b0b0f) consistent across all scenes
-- ✓ Korean font handling without modification errors
-- ✓ Proper React.FC typing
-
-## Concerns
-None. All specifications met:
-- All 6 scene files created exactly as specified in brief
-- Total duration matches requirement (900 frames)
-- TypeScript validation passed without errors
-- Code follows existing project patterns and conventions
-- Git commit completed successfully with correct message
-
-## Next Steps
-Ready for Task 7: Integration into `IntroVideo` composition that sequences these 6 scenes.

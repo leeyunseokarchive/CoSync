@@ -130,18 +130,18 @@ function AgreementDocumentInner() {
         .btn-ghost { background: #f1f5f9; color: #334155; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; text-decoration: none; }
         .agreement-doc { padding: clamp(28px, 6vw, 64px); max-width: 820px; margin: 0 auto; width: 100%; }
         .doc-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 24px; margin-bottom: 32px; }
-        .doc-header h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+        .doc-header h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); font-weight: 800; color: #0f172a; margin-bottom: 6px; }
         .doc-subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #94a3b8; font-weight: 600; }
-        .doc-meta { margin-top: 14px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: #64748b; }
+        .doc-meta { margin-top: 14px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 0.95rem; color: #64748b; }
         .doc-chapter { margin-bottom: 28px; }
-        .doc-chapter h2 { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; padding-left: 12px; border-left: 3px solid #5858e2; }
+        .doc-chapter h2 { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; padding-left: 12px; border-left: 3px solid #5858e2; }
         .doc-chapter ol { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .doc-chapter li { font-size: 0.92rem; color: #334155; line-height: 1.8; }
+        .doc-chapter li { font-size: 1.05rem; color: #334155; line-height: 1.8; }
         .doc-clause-num { color: #5858e2; font-weight: 700; margin-right: 2px; }
         .doc-footer { border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 12px; display: flex; flex-direction: column; gap: 16px; }
-        .doc-parties-label { font-size: 0.78rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; letter-spacing: 1px; }
-        .doc-party { font-size: 0.9rem; color: #334155; line-height: 1.8; }
-        .doc-confirmed-note { text-align: center; font-size: 0.88rem; font-weight: 700; color: #059669; background: #ecfdf5; border-radius: 10px; padding: 12px; }
+        .doc-parties-label { font-size: 0.85rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; letter-spacing: 1px; }
+        .doc-party { font-size: 1rem; color: #334155; line-height: 1.8; }
+        .doc-confirmed-note { text-align: center; font-size: 1rem; font-weight: 700; color: #059669; background: #ecfdf5; border-radius: 10px; padding: 12px; }
         .doc-generated { text-align: center; font-size: 0.68rem; letter-spacing: 3px; color: #cbd5e1; font-weight: 600; }
         @media print {
           .no-print { display: none !important; }

@@ -1,52 +1,46 @@
-### Task 4: Remotion 프로젝트 스캐폴딩 + 정적 에셋 준비
+## Task 4: 합의 페이지 UI 폴리시 (텍스트 상향)
+
+[app/consensus/page.tsx](../../../app/consensus/page.tsx) 하단 인라인 `<style>`의 본문 폰트를 한 단계씩 키운다. 로직/구조 변경 없음. reference `reference/CoSync UI/consensus/screen.png`와 육안 비교.
 
 **Files:**
-- Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/` (전체 프로젝트)
-- Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/logo.png`
-- Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/mascot.png`
+- Modify: `app/agreement/../consensus/page.tsx` → 실제 경로 `app/consensus/page.tsx` (인라인 `<style>` 블록만)
 
-**Interfaces:**
-- Produces: `npx remotion studio`로 열리는 blank Remotion 프로젝트, `@remotion/media`·`@remotion/google-fonts` 설치 완료.
+- [ ] **Step 1: 폰트 크기 매핑대로 수정**
 
-- [ ] **Step 1: 스캐폴딩**
+아래 각 셀렉터의 `font-size`를 좌→우로 바꾼다(값만 교체, 나머지 속성 유지). 각 항목은 고유 문자열이라 `Edit`로 정확히 치환 가능:
 
-```bash
-cd "/Users/leeyunseok/Desktop/Projects"
-npx create-video@latest --yes --blank --no-tailwind CoSync-intro-video
-cd CoSync-intro-video
-npm i
-npx remotion add @remotion/media
-npx remotion add @remotion/google-fonts
-```
+| 셀렉터 | 기존 | 신규 |
+|---|---|---|
+| `.consensus-cat-title` | `1.25rem` | `1.4rem` |
+| `.consensus-item-label` | `1.05rem` | `1.15rem` |
+| `.position-name` | `0.85rem` | `0.95rem` |
+| `.position-answer` | `0.95rem` | `1.05rem` |
+| `.consensus-note` | `0.95rem` | `1.05rem` |
+| `.consensus-clause-preview` | `0.95rem` | `1.05rem` |
+| `.vote-proposal-meta` | `0.95rem` | `1.05rem` |
+| `.vote-pill` | `0.85rem` | `0.95rem` |
+| `.propose-option` | `0.9rem` | `1rem` |
+| `.propose-textarea` | `0.95rem` | `1.05rem` |
+| `.propose-madlibs` | `0.95rem` | `1.05rem` |
+| `.comment-text` | `0.9rem` | `1rem` |
+| `.comment-input` | `0.9rem` | `1rem` |
+| `.consensus-finalize-hint` | `0.9rem` | `1rem` |
 
-- [ ] **Step 2: 브랜드 에셋 복사**
+예시(Edit): `.position-answer { font-size: 0.95rem;` → `.position-answer { font-size: 1.05rem;` (해당 규칙 블록 내 `font-size` 한 곳만).
 
-```bash
-mkdir -p "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots"
-cp "/Users/leeyunseok/Desktop/Projects/CoSync/logo.png" "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/logo.png"
-cp "/Users/leeyunseok/Desktop/Projects/CoSync/mascot.png" "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/mascot.png"
-```
+- [ ] **Step 2: 빌드 확인**
 
-(Task 3에서 캡처한 스크린샷 4장도 `public/screenshots/`에 이미 위치해 있어야 한다.)
+Run: `npm run build`
+Expected: 빌드 성공(CSS만 바뀌어 타입/컴파일 영향 없음).
 
-- [ ] **Step 3: 검증**
-
-```bash
-cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video"
-ls public/logo.png public/mascot.png public/screenshots/*.png
-npx remotion studio --no-open
-```
-
-Expected: 5개 파일 경로 모두 출력, Remotion Studio 서버 URL이 에러 없이 출력됨.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video"
-git init
-git add -A
-git commit -m "chore: scaffold Remotion project with brand assets and screenshots"
+git add app/consensus/page.tsx
+git commit -m "style: enlarge body text on consensus page for readability"
 ```
+
+> 최종 육안 검증(글자가 실제로 커졌는지, reference와 톤 일치)은 Task 6 캡쳐 결과로 확인한다.
 
 ---
 
