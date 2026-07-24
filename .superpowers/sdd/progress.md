@@ -1,20 +1,14 @@
-# SDD Progress — plan 2026-07-24-cosync-docs-and-ui-polish
+# SDD Progress — plan 2026-07-24-agreement-contract-format
 
-Base: bb53e16 (branch docs-ui-polish)
-
-(이전 intro-video plan 렉저는 archived — 아래는 현재 plan 추적)
+Base: 7766be0 (branch feat/agreement-contract-format)
 
 ## Current plan tasks
-- Task 1: complete (ae2f0b5)
-- Task 2: complete (09f2d75)
-- Task 3: complete (0a32bb9..9d47aec)
-- Task 4: complete (b2d6276)
-- Task 5: complete (581012d)
-- Task 6: complete (029f04a..eba9eb5)
+- Task 1: complete (commit fe56c56, review clean)
+- Task 2: complete (commit fadc43b, review clean; Minor: dead .doc-party CSS orphaned — final triage)
+- Task 3: complete (commit 8a3bc8e, review clean, tsc+build clean; Minor: .doc-annex-clause-body 클래스 CSS 규칙 없음(브리프 유래, inert) — final triage)
+- Task 4: complete (commit d3ab27b, review clean)
 
-Task 1: complete (commit ae2f0b5, review clean; Minor: §5.1/5.3 3개 행 인용문 q-ID 귀속 부정확 — 결론 불변, 최종 triage)
-Task 2: complete (commit 09f2d75, review clean; Minor: 표준문구 재구성 disclaimer 1줄 추가 권장, 위약벌 수치 인용 부재 — triage)
-Task 3: complete (commits 0a32bb9..9d47aec, review clean, tests 2/2+2/2, build clean; tsconfig allowImportingTsExtensions 추가)
-Task 4: complete (commit b2d6276, review clean, 14 font-size edits, build clean)
-Task 5: complete (commit 581012d, review clean, 7 font-size edits, build clean)
-Task 6: complete (commits 029f04a..eba9eb5, review clean, 3 PNG 실존·정상; questions=team-a(갭), consensus/document=team-b(확정); playwright devDep 커밋)
+## Final whole-branch review
+Ready to merge (opus). No Critical/Important.
+Minor (non-blocking): .doc-annex-clause-body inert className; vesting [4]/[12] filled brackets = intentional 관행 기본값(회색+DRAFT).
+Visual: live screenshot 불가(firestore emulator JDK21 필요). tsc+build+4 task reviews로 검증.

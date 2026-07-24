@@ -1,58 +1,134 @@
-## Task 2: 주주간 계약서 양식 분석 문서
-
-문서 리서치 태스크. TDD 대상 아님 — 검증은 콘텐츠 체크리스트.
+### Task 2: 본문 계약서화 — 전문·제N조·일반조항·서명란
 
 **Files:**
-- Create: `docs/shareholder-agreement-template-analysis.md`
+- Modify: `app/agreement/document/page.tsx` (JSX + 동 파일 `<style>` 블록)
 
-**참고 소스:**
-- [lib/agreementClauses.ts](../../../lib/agreementClauses.ts) — 현재 20문항 × 4옵션 조항 템플릿(`CLAUSE_TEMPLATES`)과 카테고리(`CAT_LABELS`). 우리가 이미 커버하는 항목 파악용.
-- 웹 리서치: 실제 주주간 계약서(SHA, Shareholders' Agreement)·동업 계약서 표준 양식.
+**Interfaces:**
+- Consumes: 기존 `groupByChapter`(이미 import됨), `members`, `team`, `doc`, `fmtDate`.
+- Produces: (없음 — 렌더링 변경)
 
-- [ ] **Step 1: 외부 표준 양식 리서치(외부 리서치 포함)**
+TDD 미적용(순수 프리젠테이션). 편집 → 타입체크 → 스크린샷으로 검증한다.
 
-WebSearch/WebFetch로 주주간 계약서의 공통 필수 조항을 조사한다. 최소 다음 항목의 유무·표준 문구를 정리:
-- 당사자/주식 보유 현황, 지분 구조.
-- 이사회 구성·의결 정족수, 주요 경영사항 사전동의(reserved matters).
-- 지분 양도 제한(우선매수권 ROFR, 동반매도권 tag-along, 동반매각요구권 drag-along).
-- 이탈/퇴사 시 지분 처리(good leaver / bad leaver, 매수청구·강제매도).
-- 베스팅(vesting)·클리프(cliff), 경업금지, 비밀유지.
-- 교착(deadlock) 해소, 분쟁 해결(중재/관할).
+- [ ] **Step 1: `doc` 정의 아래에 chapters 계산 추가**
 
-- [ ] **Step 2: 우리 조항과의 매핑 표 작성**
+[app/agreement/document/page.tsx:38-40](../../../app/agreement/document/page.tsx#L38-L40)의 `const doc = ...` 블록 **바로 아래**에 한 줄 추가:
 
-`CLAUSE_TEMPLATES`/`CAT_LABELS`(agreementClauses.ts)를 열어 우리가 **이미 커버 / 부분 커버 / 미커버**하는 표준 조항을 표로 매핑한다:
-```markdown
-| 표준 필수 조항 | 우리 커버 여부 | 대응 문항/카테고리 | 보완 제안 |
-|---|---|---|---|
+```tsx
+  const chapters = doc ? groupByChapter(doc.clauses) : [];
 ```
 
-- [ ] **Step 3: 문서 구조 확정**
+- [ ] **Step 2: 전문(preamble) 삽입**
 
-```markdown
-# 주주간 계약서 표준 양식 분석 및 CoSync 조항 매핑
+`</header>`(현재 [82행](../../../app/agreement/document/page.tsx#L82)) **바로 아래**, `{groupByChapter(...)...}` 위에 삽입:
 
-## 1. 주주간 계약서란 (법적 성격·목적)
-## 2. 공통 필수 조항 목록 (표준 문구 포함)
-## 3. CoSync 현재 조항 ↔ 표준 조항 매핑 표
-## 4. 완성도 향상을 위한 보완 필수 정보 목록
-## 5. 출처
+```tsx
+              <section className="doc-preamble">
+                <p className="doc-preamble-body">
+                  본 합의는 {team?.name || "본 팀"}의 공동창업 구성원인 아래 당사자들이 팀의 운영 원칙과 상호 약속을 정함을 목적으로 한다.
+                </p>
+                {members.length > 0 && (
+                  <div className="doc-preamble-parties">
+                    {members.map((m) => (
+                      <span key={m.id}>{m.name} ({m.role})</span>
+                    ))}
+                  </div>
+                )}
+                {doc.createdAt && (
+                  <div className="doc-preamble-date">작성일: {fmtDate(doc.createdAt)}</div>
+                )}
+              </section>
 ```
 
-- [ ] **Step 4: 콘텐츠 체크리스트 검증**
+- [ ] **Step 3: 장→조 전환 + 일반조항 2개 추가**
 
-- 2장에 ROFR/tag-along/drag-along/vesting/good-bad leaver/deadlock 항목 모두 포함.
-- 3장 매핑 표가 실제 `CAT_LABELS` 카테고리를 참조.
-- 5장에 출처 링크.
+현재 챕터 렌더 블록([84-95행](../../../app/agreement/document/page.tsx#L84-L95))을 아래로 **교체**:
 
-Run: `test -f docs/shareholder-agreement-template-analysis.md && grep -Eic "tag-along|drag-along|vesting|우선매수" docs/shareholder-agreement-template-analysis.md`
-Expected: 파일 존재, 매치 수 1 이상.
+```tsx
+              {chapters.map((ch, ci) => (
+                <section key={ch.cat} className="doc-chapter">
+                  <h2>제{ci + 1}조 ({ch.label})</h2>
+                  <ol>
+                    {ch.clauses.map((c, i) => (
+                      <li key={c.field}>
+                        <span className="doc-clause-num">{`①②③④⑤⑥⑦⑧⑨⑩`[i] ?? `${i + 1}.`}</span> {c.text}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ))}
 
-- [ ] **Step 5: Commit**
+              <section className="doc-chapter">
+                <h2>제{chapters.length + 1}조 (효력과 시행)</h2>
+                <p className="doc-general-clause">
+                  본 합의는 구성원 전원이 확정한 날부터 효력을 가지며, 구성원은 매 6개월마다 본 합의를 함께 재점검한다.
+                </p>
+              </section>
+              <section className="doc-chapter">
+                <h2>제{chapters.length + 2}조 (분쟁의 해결)</h2>
+                <p className="doc-general-clause">
+                  본 합의의 해석 또는 이행에 관하여 이견이 발생한 경우, 구성원은 우선 성실히 협의하여 해결한다.
+                </p>
+              </section>
+```
+
+- [ ] **Step 4: 참여자 목록 → 서명란 교체**
+
+현재 footer의 `.doc-parties` 블록([98-106행](../../../app/agreement/document/page.tsx#L98-L106))을 아래로 **교체**:
+
+```tsx
+                <div className="doc-signatures">
+                  <div className="doc-parties-label">서명</div>
+                  {members.map((m) => (
+                    <div key={m.id} className="doc-signature">
+                      <span className="doc-signature-name">{m.name} ({m.role})</span>
+                      <span className="doc-signature-line" />
+                      <span className="doc-signature-status">
+                        {doc.confirmations[m.id] ? `전자적 동의 ${fmtDate(doc.confirmations[m.id])}` : "미확정"}
+                      </span>
+                    </div>
+                  ))}
+                  {doc.createdAt && (
+                    <div className="doc-signature-date">작성일 {fmtDate(doc.createdAt)}</div>
+                  )}
+                </div>
+```
+
+- [ ] **Step 5: 새 클래스 CSS 추가**
+
+동 파일 `<style>` 블록([121-154행](../../../app/agreement/document/page.tsx#L121-L154)) 안, `.doc-chapter` 규칙들 뒤에 추가:
+
+```css
+        .doc-preamble { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+        .doc-preamble-body { font-size: 1.02rem; color: #334155; line-height: 1.9; }
+        .doc-preamble-parties { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.98rem; color: #1f2430; font-weight: 600; }
+        .doc-preamble-date { margin-top: 10px; font-size: 0.92rem; color: #64748b; }
+        .doc-general-clause { font-size: 1.05rem; color: #334155; line-height: 1.8; }
+        .doc-signatures { display: flex; flex-direction: column; gap: 12px; }
+        .doc-signature { display: flex; align-items: baseline; gap: 12px; font-size: 1rem; color: #334155; }
+        .doc-signature-name { min-width: 160px; font-weight: 600; }
+        .doc-signature-line { flex: 1; border-bottom: 1px solid #cbd5e1; height: 1px; max-width: 180px; }
+        .doc-signature-status { font-size: 0.9rem; color: #64748b; }
+        .doc-signature-date { margin-top: 8px; font-size: 0.92rem; color: #64748b; }
+```
+
+- [ ] **Step 6: 타입체크**
+
+Run: `npx tsc --noEmit`
+Expected: 종료 코드 0, 출력 없음.
+
+- [ ] **Step 7: 스크린샷 검증**
 
 ```bash
-git add docs/shareholder-agreement-template-analysis.md
-git commit -m "docs: shareholder agreement standard clauses analysis and clause mapping"
+# dev 서버가 이미 떠 있지 않으면: npm run dev &  (포트 3000)
+node scripts/capture-screenshots.mjs
+```
+Expected: `docs/captures/2026-07-24/agreement-document.png` 생성. 해당 이미지를 열어 전문·제1조~·제N조(효력/분쟁)·서명란이 계약서 형태로 렌더되고 조 번호가 1부터 연속인지 확인.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add app/agreement/document/page.tsx
+git commit -m "feat: 합의서 본문 계약서화 — 전문·제N조·일반조항·서명란 (Phase 1)"
 ```
 
 ---

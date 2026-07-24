@@ -1,53 +1,50 @@
-# Task 3 Report: 심층질문 로직 추출 + 페이지 신설
+# Task 3 Report: 별지 주주간계약서 조항 초안 + DRAFT 배지 + 최하단 디스클레이머
 
-## Files changed
+## Status: DONE
 
-- Created `lib/deepQuestions.ts` — `QuestionDef`, `QUESTION_DEFS` (q1–q20, verbatim), `ScriptEntry`, `SCRIPTS` (q1–q20, verbatim), `generateInsight`, `DeepQuestionItem`, `selectDeepQuestions`. Imports `getIssueStatus`/`IssueStatus`/`OnboardingAnswers` from `./gap.ts`.
-- Created `lib/deepQuestions.test.ts` — verbatim from brief Step 1.
-- Modified `app/gap-report/page.tsx` — removed inline `type QuestionDef`, `QUESTION_DEFS`, `type ScriptEntry`, `SCRIPTS`, `generateInsight` (was lines 31–94); added `import { QUESTION_DEFS, SCRIPTS, generateInsight } from "../../lib/deepQuestions";`. `QuestionDef`/`ScriptEntry` type imports were dropped since nothing else in the file references those type names directly (only the value bindings `QUESTION_DEFS`/`SCRIPTS`/`generateInsight` are used, at lines 133, 161, 250, 577, 987, 1005).
-- Modified `tsconfig.json` — added `"allowImportingTsExtensions": true` (see Deviations below).
-- Created `app/questions/page.tsx` — new page per brief Step 8, with the `m.answers` correction applied (not `m.onboardingAnswers`).
+## Edits Applied (all in `app/agreement/document/page.tsx`)
 
-## Test commands + output
+1. **Step 1 — import**: Added `import { ANNEX_CLAUSES } from "../../../lib/annexClauses";` right after the existing `groupByChapter` import (line 12).
+2. **Step 2 — `renderWithBlanks` helper**: Inserted directly below `fmtDate` (verbatim from brief), using the already-imported `React` (line 5) for `React.Fragment` / `React.ReactNode`.
+3. **Step 3 — 별지 + 디스클레이머 JSX**: Inserted immediately after `</footer>` and before `</article>` (footer close location matched structurally, not by the brief's stale line number, per task instructions). Renders `ANNEX_CLAUSES` as `제N조 (title)` list items with `renderWithBlanks(c.body)`, DRAFT badge, and the exact disclaimer paragraph.
+4. **Step 4 — CSS**: Added `.doc-annex`, `.doc-annex-badge`, `.doc-annex-title`, `.doc-annex-list`, `.doc-annex-list li`, `.doc-annex-clause-title`, `.doc-blank`, `.doc-disclaimer` rules before `@media print`, and added the two `print-color-adjust: exact` rules for `.doc-annex-badge` / `.doc-blank` inside `@media print`. Badge relies on border + bold text (no background fill), so it's visible on grayscale printers regardless of the color-adjust rule.
+5. **Extra cleanup**: Deleted the dead `.doc-party { font-size: 1rem; color: #334155; line-height: 1.8; }` rule (the `.doc-party` element was removed from JSX in a previous task). `.doc-parties-label` was left untouched as instructed.
 
-Step 2 (failing test, before creating lib/deepQuestions.ts):
+## Verification
+
+- `npx tsc --noEmit` → exit 0, no output.
+- `npm run build` → `✓ Compiled successfully`, all 22 static routes generated including `/agreement/document`, no errors.
+
 ```
-$ node --test lib/deepQuestions.test.ts
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../lib/deepQuestions.ts' imported from lib/deepQuestions.test.ts
-✖ tests 1, fail 1
-```
-
-Step 4 (after creating lib/deepQuestions.ts):
-```
-$ node --test lib/deepQuestions.test.ts
-✔ 멤버 1명 이하면 빈 배열 (0.827083ms)
-✔ 일치 문항은 제외, 차이/충돌 문항만 선택하고 충돌을 앞에 둔다 (0.223083ms)
-tests 2, pass 2, fail 0
-```
-
-Step 6 (regression, after import swap in gap-report):
-```
-$ node --test app/gap-report/earlybird-scroll.test.js
-✔ waits for the report before scrolling to the earlybird section
-✔ keeps the active team when returning from the agreement preview
-tests 2, pass 2, fail 0
+▲ Next.js 16.1.6 (Turbopack)
+✓ Compiled successfully in 3.0s
+  Running TypeScript ...
+✓ Generating static pages using 10 workers (22/22) in 301.2ms
+...
+├ ○ /agreement/document
+...
+○  (Static)  prerendered as static content
 ```
 
-## Build result
+## Files Changed
 
-`npm run build` succeeded twice (after Step 6 refactor, and again after Step 9 with the new page). Final route list includes `○ /questions` alongside all existing routes. TypeScript check and static generation (22/22 pages) both passed clean, no errors.
+- `app/agreement/document/page.tsx` (1 file, 38 insertions / 1 deletion)
 
-## Commits
+## Commit
 
-1. `0a32bb9` — `refactor: extract deep-question defs/scripts to lib/deepQuestions with selectDeepQuestions` (lib/deepQuestions.ts, lib/deepQuestions.test.ts, app/gap-report/page.tsx, tsconfig.json)
-2. `9d47aec` — `feat: add deep-question page surfacing conflict/diff discussion scripts` (app/questions/page.tsx)
+- `8a3bc8e` — `feat: 별지 주주간계약서 조항 초안 + DRAFT 배지 + 디스클레이머 (Phase 1)` (branch: `feat/agreement-contract-format`)
 
-## Deviations from the brief
+Note: other unrelated modified/untracked files were present in the working tree (`.superpowers/sdd/progress.md`, other task briefs/reports, `next-env.d.ts`, `tsconfig.tsbuildinfo`, untracked `marketing/`) from concurrent work outside this task's scope. These were left untouched — only `app/agreement/document/page.tsx` was staged and committed. (Note: `.superpowers/sdd/task-3-report.md` itself — this file — was found pre-populated with a stale report from an unrelated prior task run; it has been overwritten with this task's actual report.)
 
-1. **`m.answers` not `m.onboardingAnswers`** — applied exactly as instructed in the task prompt's "CRITICAL correction" section. Verified against `components/useTeamMembers.ts:15` (`TeamMember` type has `answers?: OnboardingAnswers`, no `onboardingAnswers` field) and `app/gap-report/page.tsx` usage (`member.answers`, `(m.answers as OnboardingAnswers | undefined)`).
+## Self-Review
 
-2. **`tsconfig.json`: added `allowImportingTsExtensions: true`** — not in the brief. Root cause: the brief's Step 3 code imports `./gap` (no extension) inside `lib/deepQuestions.ts`, but Node's native TS type-stripping (Node 24, this repo's `"type": "module"`) requires explicit extensions for relative ESM specifiers — `node --test lib/deepQuestions.test.ts` failed with `ERR_MODULE_NOT_FOUND` resolving `lib/gap` when the import had no extension. Adding `.ts` to the import fixes `node --test`, but then `next build`'s TypeScript check fails with "An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled." Enabling that compiler flag is TypeScript's own sanctioned mechanism for exactly this situation (mixing `node --test` native-TS execution with a bundler build); it's a no-op for every other file in the repo since `lib/deepQuestions.ts` is the only file using an explicit `.ts` import. Verified via two full `npm run build` runs, both clean, plus both test commands passing with `import ... from "./gap.ts"`.
+- DRAFT badge present with exact text `DRAFT · 변호사 검토 전 법적 효력 없음`, styled with border + bold color (no background fill), so it survives grayscale printing without depending on background color rendering.
+- `[  ]` blanks: `renderWithBlanks` regex-splits clause body text on `[...]` tokens and wraps matches in `<mark className="doc-blank">`, styled with light gray background/text — visually distinct as "not yet determined."
+- Disclaimer text sits at the very bottom of `<article>` (after the annex section), matching the required string verbatim, character-for-character.
+- Print CSS: `.doc-annex` has `break-before: page` so the annex starts a fresh printed page; badge and blank both get `print-color-adjust: exact` so their border/background render faithfully in printed output.
+- No broken JSX: `tsc --noEmit` and full Next.js build both succeeded, confirming the JSX nesting (`</footer>` → new `<section className="doc-annex">` → new `<p className="doc-disclaimer">` → `</article>`) is well-formed.
+- Data model untouched — only consumes `ANNEX_CLAUSES` from Task 1's `lib/annexClauses.ts` (7 entries, `제1조`–`제7조`), no changes made there.
 
-3. **Reverted `next-env.d.ts` after each build** — `next build` regenerates this file's `.next/types` vs `.next/dev/types` reference depending on build mode; that churn is unrelated to this task and was excluded from both commits via `git checkout -- next-env.d.ts`.
+## Concerns
 
-No other deviations. QUESTION_DEFS/SCRIPTS transcription was diffed line-by-line against the original `app/gap-report/page.tsx` block (pre-edit) and matched verbatim except for the added `export` keywords, confirming no Korean text was altered.
+None. Playwright screenshot verification (brief Step 6) intentionally skipped per instructions — controller handles visual verification.

@@ -1,63 +1,113 @@
-## Task 1: 리포트 산출 로직 + 근거/법률 정리 문서
-
-문서 리서치 태스크. TDD 대상 아님(단위 테스트 불가한 산문 산출물) — 검증은 아래 콘텐츠 체크리스트로 대신한다.
+### Task 1: 별지 조항 초안 모듈 (`lib/annexClauses.ts`)
 
 **Files:**
-- Create: `docs/report-logic-and-references.md`
+- Create: `lib/annexClauses.ts`
+- Test: `lib/annexClauses.test.ts`
 
-**참고 소스(작성 전 반드시 읽을 것):**
-- [lib/gap.ts](../../../lib/gap.ts) — 갭 산출 알고리즘 전체(`pairGap`, `computeGapSummary`, `CAT_WEIGHTS`, `toGapScore`, alignment 정규화 공식).
-- [docs/AI_기반_공동창업팀_운영_합의_진단_및_합의안_생성_플랫폼CoSync_보고서.md](../../AI_기반_공동창업팀_운영_합의_진단_및_합의안_생성_플랫폼CoSync_보고서.md) — 기존 서비스 근거 서술.
-- [app/gap-report/page.tsx](../../../app/gap-report/page.tsx)의 `SCRIPTS` 내 `stat`/`stake` 필드 — 이미 인용된 통계·법 조항(예: "민법 제718조", "하버드 와서만 교수 65%", "동업 분쟁 40%").
+**Interfaces:**
+- Consumes: (없음)
+- Produces:
+  - `export type AnnexClause = { id: string; title: string; body: string }`
+  - `export const ANNEX_CLAUSES: AnnexClause[]` — Task 3에서 `ANNEX_CLAUSES.map(...)`로 렌더.
 
-- [ ] **Step 1: 갭 산출 로직 섹션 초안 작성**
+- [ ] **Step 1: Write the failing test**
 
-`gap.ts`의 실제 코드를 근거로 다음을 서술한다(추상적 요약 금지, 실제 공식·상수 기입):
-- 문항→카테고리 매핑과 카테고리 가중치 `CAT_WEIGHTS`(코드에서 그대로 옮김).
-- 한 문항의 두 답변 갭 정의: 같으면 0, toxicPair면 3, 아니면 `|옵션차|`.
-- 문항 갭 = 모든 멤버 쌍 중 **최악(max)** 갭.
-- 카테고리 갭 `G_i` = 답변된 문항 평균, `rawScore = Σ W'_i × G_i`.
-- 정합도 `overallAlignment = round((1 − rawScore / (answeredWeight × 3)) × 100)`, 미진단 카테고리는 가중치 정규화에서 제외.
-- `toGapScore` 구간: ≥85 LOW / ≥65 MID / ≥45 HIGH / else CRITICAL.
+`lib/annexClauses.test.ts`:
 
-- [ ] **Step 2: 근거/법률 리서치 섹션 작성(외부 리서치 포함)**
+```ts
+import assert from "node:assert/strict";
+import test from "node:test";
+import { ANNEX_CLAUSES } from "./annexClauses.ts";
 
-`SCRIPTS`에 이미 인용된 통계·판례를 1차 출처로 삼고, **웹 리서치로 원출처를 확인·보강**한다(WebSearch/WebFetch 사용). 각 주장에 출처를 붙인다:
-- 동업/지분 분쟁 관련 통계(예: 동업 분쟁 발생률, 지분 문제 비중).
-- 관련 법 조항(민법 제718조 등 이탈·정산 관련), 주주간 계약의 법적 성격.
-- 스타트업 실패 원인 통계(인적 갈등, 비전 불일치 비중).
-확인 불가한 수치는 "출처 미확인"으로 표기하고 삭제하지 말 것(신뢰도 관리).
+test("별지 조항은 비어있지 않고 각 항목이 id·title·body를 가진다", () => {
+  assert.ok(ANNEX_CLAUSES.length >= 5);
+  for (const c of ANNEX_CLAUSES) {
+    assert.ok(c.id && c.title && c.body, `누락 필드: ${JSON.stringify(c)}`);
+  }
+});
 
-- [ ] **Step 3: 문서 구조 확정**
+test("id는 중복이 없다", () => {
+  const ids = ANNEX_CLAUSES.map((c) => c.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
 
-문서는 다음 목차를 갖는다:
-```markdown
-# CoSync 리포트 산출 로직 및 근거 자료
+test("모든 조항 body에 최소 하나의 [ ] 빈칸이 있어 허위 확정을 만들지 않는다", () => {
+  for (const c of ANNEX_CLAUSES) {
+    assert.match(c.body, /\[[^\]]*\]/, `빈칸 없는 조항: ${c.id}`);
+  }
+});
 
-## 1. 개요 — 무엇을 산출하는가
-## 2. 진단 문항 구조 (20문항 · 카테고리 · 가중치)
-## 3. 갭/정합도 산출 공식 (코드 기준)
-## 4. 갭 등급(LOW~CRITICAL) 및 해석
-## 5. 근거 통계 및 법률 리서치 (출처 포함)
-## 6. 한계 및 향후 고도화 (LLM 기반 근거 제시형 확장)
+test("핵심 하드 항목이 모두 포함된다", () => {
+  const ids = new Set(ANNEX_CLAUSES.map((c) => c.id));
+  for (const need of ["transfer", "vesting", "tagdrag", "noncompete", "penalty"]) {
+    assert.ok(ids.has(need), `누락: ${need}`);
+  }
+});
 ```
 
-- [ ] **Step 4: 콘텐츠 체크리스트 검증**
+- [ ] **Step 2: Run test to verify it fails**
 
-다음을 모두 만족하는지 자가 점검:
-- `CAT_WEIGHTS` 값이 `gap.ts` 코드와 일치.
-- 정합도 공식이 코드와 일치(정규화 항 포함).
-- 5장 각 주장에 출처(링크 또는 "미확인") 표기.
-- 파일이 `docs/report-logic-and-references.md`에 존재.
+Run: `node --test lib/annexClauses.test.ts`
+Expected: FAIL — `Cannot find module './annexClauses.ts'`
 
-Run: `test -f docs/report-logic-and-references.md && grep -c "출처" docs/report-logic-and-references.md`
-Expected: 파일 존재, "출처" 1회 이상 매치.
+- [ ] **Step 3: Write the module**
+
+`lib/annexClauses.ts` (조항 문구는 [analysis 문서](../../shareholder-agreement-template-analysis.md) 2장 "표준 문구 예"를 재구성한 초안. 관행값 `[4]`/`[12]`도 대괄호로 감싸 빈칸/미확정임을 유지):
+
+```ts
+// Phase 1 별지: 주주간계약서 조항 "초안 골격". 미정 수치는 [  ] 빈칸으로 남긴다.
+// Phase 4에서 심층 진단 결과로 빈칸을 채운다(그때 값 주입 함수 추가). 지금은 정적.
+export type AnnexClause = { id: string; title: string; body: string };
+
+export const ANNEX_CLAUSES: AnnexClause[] = [
+  {
+    id: "shares",
+    title: "지분 보유 현황",
+    body: "본 합의일 현재 각 구성원이 보유한 주식의 종류·수 및 지분율은 다음과 같다. 구성원별 보통주 [   ]주 ([  ]%)로 하며, 상세 내역은 별도 표로 확정한다.",
+  },
+  {
+    id: "transfer",
+    title: "주식양도 제한·우선매수권",
+    body: "구성원은 회사 설립일로부터 [  ]개월간 다른 구성원의 사전 서면동의 없이 보유 주식을 제3자에게 양도할 수 없다. 양도 시 다른 구성원은 동일한 조건으로 먼저 매수할 권리(우선매수권)를 가지며, 통지받은 날로부터 [  ]일 이내에 매수 여부를 회신한다.",
+  },
+  {
+    id: "vesting",
+    title: "베스팅·클리프",
+    body: "각 구성원이 보유한 주식은 본 합의일로부터 [4]년에 걸쳐 매월 균등하게 베스팅되며, 최초 [12]개월(클리프) 이내 퇴사 시 해당 기간의 주식은 베스팅되지 않는다.",
+  },
+  {
+    id: "tagdrag",
+    title: "동반매도·동반매각 (Tag/Drag-along)",
+    body: "일방이 보유 주식을 제3자에게 매각하는 경우 다른 구성원은 동일한 조건으로 함께 매각할 것을 요구(동반매도)할 수 있다. 지분 [  ]% 이상을 보유한 구성원이 회사 지분 전부를 매각하기로 결정한 경우, 다른 구성원에게 동일한 조건의 동반매각을 요구할 수 있다.",
+  },
+  {
+    id: "noncompete",
+    title: "경업금지·비밀유지",
+    body: "구성원은 재임 중 및 퇴임 후 [  ]년간 회사와 동일·유사한 사업을 영위하거나 경쟁사에 관여할 수 없다. 또한 재직 중 알게 된 영업비밀·고객정보·기술정보를 퇴임 후 [  ]년간 제3자에게 누설하거나 자기 목적으로 사용하지 않는다.",
+  },
+  {
+    id: "deadlock",
+    title: "교착 상태의 해소",
+    body: "회사의 중요한 의사결정이 [  ]개월 이상 교착된 경우, 구성원은 우선 [  ]일간 성실히 협의하고, 그 기간 내 합의에 이르지 못하면 [제3자 중재 · Buy-Sell 등 사전 합의한 방식]에 따라 해소한다.",
+  },
+  {
+    id: "penalty",
+    title: "위약벌",
+    body: "구성원이 본 별지 조항상의 의무를 위반하여 다른 구성원에게 손해가 발생한 경우, 위반 구성원은 손해배상금(위약벌)으로 금 [        ]원을 지급한다.",
+  },
+];
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `node --test lib/annexClauses.test.ts`
+Expected: PASS (4 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add docs/report-logic-and-references.md
-git commit -m "docs: report scoring logic and legal/statistical references"
+git add lib/annexClauses.ts lib/annexClauses.test.ts
+git commit -m "feat: add 별지 주주간계약서 조항 초안 모듈 (Phase 1)"
 ```
 
 ---
