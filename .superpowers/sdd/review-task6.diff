@@ -1,0 +1,177 @@
+# Review package: 853751a..a6a0751
+
+## Commits
+a6a0751 feat: implement 6 scenes (hook, 4 screenshot scenes, outro)
+
+## Files changed
+ src/scenes/Scene1Hook.tsx      | 66 ++++++++++++++++++++++++++++++++++++++++++
+ src/scenes/Scene2Diagnosis.tsx |  9 ++++++
+ src/scenes/Scene3GapReport.tsx |  9 ++++++
+ src/scenes/Scene4Consensus.tsx |  9 ++++++
+ src/scenes/Scene5Agreement.tsx |  9 ++++++
+ src/scenes/Scene6Outro.tsx     | 24 +++++++++++++++
+ 6 files changed, 126 insertions(+)
+
+## Diff
+diff --git a/src/scenes/Scene1Hook.tsx b/src/scenes/Scene1Hook.tsx
+new file mode 100644
+index 0000000..5360f1c
+--- /dev/null
++++ b/src/scenes/Scene1Hook.tsx
+@@ -0,0 +1,66 @@
++import { AbsoluteFill, Sequence, useCurrentFrame, interpolate, Easing } from "remotion";
++import { loadFont } from "@remotion/google-fonts/NotoSansKR";
++
++const { fontFamily } = loadFont("normal", { weights: ["800", "900"], subsets: ["latin"] });
++
++const LINES = [
++  { text: "팀 만들 땐 신났는데...", duration: 35, fontSize: 56 },
++  { text: "지분은?", duration: 28, fontSize: 96 },
++  { text: "역할은?", duration: 28, fontSize: 96 },
++  { text: "그만두면?", duration: 29, fontSize: 96 },
++];
++
++const HookLine: React.FC<{ text: string; fontSize: number; durationInFrames: number }> = ({
++  text,
++  fontSize,
++  durationInFrames,
++}) => {
++  const frame = useCurrentFrame();
++  const opacity = interpolate(
++    frame,
++    [0, 8, durationInFrames - 8, durationInFrames],
++    [0, 1, 1, 0],
++    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
++  );
++  const scale = interpolate(frame, [0, 10], [0.85, 1], {
++    extrapolateLeft: "clamp",
++    extrapolateRight: "clamp",
++    easing: Easing.bezier(0.16, 1, 0.3, 1),
++  });
++  return (
++    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
++      <div
++        style={{
++          opacity,
++          scale,
++          fontFamily,
++          fontSize,
++          fontWeight: 900,
++          color: "white",
++          textAlign: "center",
++          padding: "0 80px",
++          lineHeight: 1.3,
++        }}
++      >
++        {text}
++      </div>
++    </AbsoluteFill>
++  );
++};
++
++export const Scene1Hook: React.FC = () => {
++  let cursor = 0;
++  return (
++    <AbsoluteFill style={{ backgroundColor: "#0b0b0f" }}>
++      {LINES.map((line) => {
++        const from = cursor;
++        cursor += line.duration;
++        return (
++          <Sequence key={line.text} from={from} durationInFrames={line.duration} layout="none">
++            <HookLine text={line.text} fontSize={line.fontSize} durationInFrames={line.duration} />
++          </Sequence>
++        );
++      })}
++    </AbsoluteFill>
++  );
++};
+diff --git a/src/scenes/Scene2Diagnosis.tsx b/src/scenes/Scene2Diagnosis.tsx
+new file mode 100644
+index 0000000..cfb24a5
+--- /dev/null
++++ b/src/scenes/Scene2Diagnosis.tsx
+@@ -0,0 +1,9 @@
++import { ScreenScene } from "../components/ScreenScene";
++
++export const Scene2Diagnosis: React.FC = () => (
++  <ScreenScene
++    screenshot="screenshots/02-diagnosis.png"
++    caption="막연한 약속 대신, 20개 질문으로 먼저 확인하세요"
++    durationInFrames={150}
++  />
++);
+diff --git a/src/scenes/Scene3GapReport.tsx b/src/scenes/Scene3GapReport.tsx
+new file mode 100644
+index 0000000..97bcadd
+--- /dev/null
++++ b/src/scenes/Scene3GapReport.tsx
+@@ -0,0 +1,9 @@
++import { ScreenScene } from "../components/ScreenScene";
++
++export const Scene3GapReport: React.FC = () => (
++  <ScreenScene
++    screenshot="screenshots/03-gap-report.png"
++    caption="누가 어디서 다르게 생각하는지 한눈에"
++    durationInFrames={150}
++  />
++);
+diff --git a/src/scenes/Scene4Consensus.tsx b/src/scenes/Scene4Consensus.tsx
+new file mode 100644
+index 0000000..96cc22c
+--- /dev/null
++++ b/src/scenes/Scene4Consensus.tsx
+@@ -0,0 +1,9 @@
++import { ScreenScene } from "../components/ScreenScene";
++
++export const Scene4Consensus: React.FC = () => (
++  <ScreenScene
++    screenshot="screenshots/04-consensus.png"
++    caption="차이 나는 부분만, 팀원 전원 합의로 좁혀갑니다"
++    durationInFrames={180}
++  />
++);
+diff --git a/src/scenes/Scene5Agreement.tsx b/src/scenes/Scene5Agreement.tsx
+new file mode 100644
+index 0000000..cf28925
+--- /dev/null
++++ b/src/scenes/Scene5Agreement.tsx
+@@ -0,0 +1,9 @@
++import { ScreenScene } from "../components/ScreenScene";
++
++export const Scene5Agreement: React.FC = () => (
++  <ScreenScene
++    screenshot="screenshots/05-agreement-document.png"
++    caption="합의된 내용은 문서로, 버전까지 관리"
++    durationInFrames={150}
++  />
++);
+diff --git a/src/scenes/Scene6Outro.tsx b/src/scenes/Scene6Outro.tsx
+new file mode 100644
+index 0000000..3124ad5
+--- /dev/null
++++ b/src/scenes/Scene6Outro.tsx
+@@ -0,0 +1,24 @@
++import { AbsoluteFill, Img, staticFile, useCurrentFrame, interpolate, Easing } from "remotion";
++import { loadFont } from "@remotion/google-fonts/NotoSansKR";
++
++const { fontFamily } = loadFont("normal", { weights: ["700", "900"], subsets: ["latin"] });
++
++export const Scene6Outro: React.FC = () => {
++  const frame = useCurrentFrame();
++  const logoOpacity = interpolate(frame, [0, 15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
++  const logoScale = interpolate(frame, [0, 20], [0.7, 1], {
++    extrapolateLeft: "clamp",
++    extrapolateRight: "clamp",
++    easing: Easing.bezier(0.16, 1, 0.3, 1),
++  });
++  const textOpacity = interpolate(frame, [20, 35], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
++
++  return (
++    <AbsoluteFill style={{ backgroundColor: "#0b0b0f", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: 40 }}>
++      <Img src={staticFile("logo.png")} style={{ width: 220, opacity: logoOpacity, scale: logoScale }} />
++      <div style={{ opacity: textOpacity, fontFamily, fontSize: 44, fontWeight: 800, color: "white", textAlign: "center", padding: "0 90px", lineHeight: 1.4 }}>
++        CoSync — 창업은 신뢰가 아니라 실전입니다.
++      </div>
++    </AbsoluteFill>
++  );
++};

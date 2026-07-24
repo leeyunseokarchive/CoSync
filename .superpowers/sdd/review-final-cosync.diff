@@ -1,0 +1,543 @@
+# Review package: d7a902ff1f2b6539ed107ba3e2dc56115d04cb22..cf9f153
+
+## Commits
+cf9f153 fix: fill template blanks in demo-team-b agreement clauses for video capture
+5d80db4 docs: switch Task 3 screenshot capture to Playwright (interactive browser tool only shows inline images, doesn't save files)
+5946c53 feat: seed full demo scenario (gap + consensus + confirmed agreement) for video capture
+0c2141f docs: pin JAVA_HOME to brew openjdk@21 for firebase emulator commands in plan
+e1b73a2 feat: add opt-in Firebase emulator connection for local demo capture
+
+## Files changed
+ .../plans/2026-07-16-cosync-intro-video.md         | 107 +++++++---
+ lib/firebase.ts                                    |  17 +-
+ scripts/check-seed.ts                              |  28 +++
+ scripts/seed.ts                                    | 231 ++++++++++++++++++---
+ 4 files changed, 324 insertions(+), 59 deletions(-)
+
+## Diff
+diff --git a/docs/superpowers/plans/2026-07-16-cosync-intro-video.md b/docs/superpowers/plans/2026-07-16-cosync-intro-video.md
+index 5bf4080..df05a05 100644
+--- a/docs/superpowers/plans/2026-07-16-cosync-intro-video.md
++++ b/docs/superpowers/plans/2026-07-16-cosync-intro-video.md
+@@ -60,20 +60,22 @@ if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "1" && !globalThis.__cosyn
+   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+   connectFirestoreEmulator(db, "127.0.0.1", 8080);
+   globalThis.__cosyncEmulatorConnected = true;
+ }
+ ```
+ 
+ - [ ] **Step 2: 검증 — 에뮬레이터 기동 후 dev 서버가 실제로 에뮬레이터를 바라보는지 확인**
+ 
+ ```bash
+ cd "/Users/leeyunseok/Desktop/Projects/CoSync"
++export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
++export PATH="$JAVA_HOME/bin:$PATH"
+ firebase emulators:start --only firestore,auth &
+ sleep 5
+ NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev &
+ sleep 5
+ curl -s http://127.0.0.1:4000/firestore 2>&1 | head -5
+ ```
+ 
+ Expected: 에뮬레이터 UI(4000 포트)가 응답하고, `npm run dev` 콘솔에 에러 없음. (브라우저에서 `http://localhost:3000`을 열어 개발자도구 Network 탭에 `127.0.0.1:8080`/`127.0.0.1:9099` 요청이 찍히면 배선 성공 — Task 3 캡처 단계에서 최종 확인.)
+ 
+ - [ ] **Step 3: Commit**
+@@ -283,20 +285,22 @@ async function seed() {
+ seed().then(() => process.exit(0)).catch((e) => {
+   console.error(e);
+   process.exit(1);
+ });
+ ```
+ 
+ - [ ] **Step 2: 에뮬레이터 기동 후 시드 실행**
+ 
+ ```bash
+ cd "/Users/leeyunseok/Desktop/Projects/CoSync"
++export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
++export PATH="$JAVA_HOME/bin:$PATH"
+ firebase emulators:start --only firestore,auth &
+ sleep 5
+ npx tsx scripts/seed.ts
+ ```
+ 
+ Expected: `Seeding complete: demo-team-a (진행중), demo-team-b (확정 v1.0)` 출력, 에러 없음.
+ 
+ - [ ] **Step 3: 검증 스크립트로 시드 결과 확인**
+ 
+ `scripts/check-seed.ts` 생성:
+@@ -345,73 +349,128 @@ Expected: `OK: seed data verified`
+ cd "/Users/leeyunseok/Desktop/Projects/CoSync"
+ git add scripts/seed.ts scripts/check-seed.ts
+ git commit -m "feat: seed full demo scenario (gap + consensus + confirmed agreement) for video capture"
+ ```
+ 
+ ---
+ 
+ ### Task 3: 화면 캡처
+ 
+ **Files:**
++- Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/scripts/capture-screenshots.mjs`
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots/02-diagnosis.png`
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots/03-gap-report.png`
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots/04-consensus.png`
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots/05-agreement-document.png`
+ 
+ **Interfaces:**
+-- Consumes: Task 1(에뮬레이터 배선), Task 2(시드 데이터 — `demo-team-a`, `demo-team-b`, 로그인 `owner@demo.local` / `demopass123!`).
+-- Produces: 1280x800 PNG 스크린샷 4장 (Task 5에서 `ScreenshotFrame` 배경으로 사용).
++- Consumes: Task 1(에뮬레이터 배선), Task 2(시드 데이터 — `demo-team-a`, `demo-team-b`, 로그인 `owner@demo.local` / `demopass123!`), Task 4(스캐폴딩된 `CoSync-intro-video` 프로젝트 — 이미 완료됨, 이 태스크는 그 뒤에 실행).
++- Produces: 1280x800 PNG 스크린샷 4장.
+ 
+-에뮬레이터 계정(`owner@demo.local`)은 이번 시드 스크립트가 만든 테스트 픽스처이며 실제 사용자 자격증명이 아니므로, 에이전트가 브라우저에서 직접 로그인해 진행한다.
++캡처 방식: 대화형 브라우저 도구는 스크린샷을 화면에 인라인으로만 보여주고 디스크에 파일로 저장하지 않는다 — 확인됨. 대신 Playwright(헤드리스 Chromium)로 실제 로그인 플로우를 거쳐 PNG 파일을 직접 저장한다. 에뮬레이터 계정(`owner@demo.local`)은 이번 시드 스크립트가 만든 테스트 픽스처이며 실제 사용자 자격증명이 아니다.
+ 
+-- [ ] **Step 1: 에뮬레이터 + dev 서버 기동**
++- [ ] **Step 1: Playwright 설치 (CoSync-intro-video 프로젝트)**
+ 
+ ```bash
+-cd "/Users/leeyunseok/Desktop/Projects/CoSync"
+-firebase emulators:start --only firestore,auth &
+-sleep 5
+-npx tsx scripts/seed.ts
+-NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev &
+-sleep 5
++cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video"
++npm i -D playwright
++npx playwright install chromium
+ ```
+ 
+-- [ ] **Step 2: 브라우저로 로그인**
++- [ ] **Step 2: `scripts/capture-screenshots.mjs` 작성**
+ 
+-브라우저 도구로 `http://localhost:3000/login` 이동 → 이메일 `owner@demo.local`, 비밀번호 `demopass123!` 입력 → 로그인 버튼 클릭 → `/workspace`로 리다이렉트 확인.
++```js
++import { chromium } from "playwright";
++import { mkdir } from "node:fs/promises";
++import path from "node:path";
+ 
+-- [ ] **Step 3: 온보딩 진단 화면 캡처**
++const BASE_URL = "http://localhost:3000";
++const OUT_DIR = path.resolve(import.meta.dirname, "..", "public", "screenshots");
++
++const SHOTS = [
++  { url: `${BASE_URL}/onboarding/diagnosis`, file: "02-diagnosis.png" },
++  { url: `${BASE_URL}/gap-report?teamId=demo-team-a`, file: "03-gap-report.png" },
++  { url: `${BASE_URL}/consensus?teamId=demo-team-a`, file: "04-consensus.png" },
++  { url: `${BASE_URL}/agreement/document?teamId=demo-team-b`, file: "05-agreement-document.png" },
++];
++
++async function main() {
++  await mkdir(OUT_DIR, { recursive: true });
++
++  const browser = await chromium.launch();
++  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
++
++  await page.goto(`${BASE_URL}/login`);
++  await page.getByPlaceholder("example@cosync.com").fill("owner@demo.local");
++  await page.getByPlaceholder("••••••••").fill("demopass123!");
++  await page.getByRole("button", { name: "로그인하기 →" }).click();
++  await page.waitForURL(`${BASE_URL}/workspace`, { timeout: 15000 });
++
++  for (const shot of SHOTS) {
++    await page.goto(shot.url, { waitUntil: "networkidle" });
++    await page.waitForTimeout(800);
++    const outPath = path.join(OUT_DIR, shot.file);
++    await page.screenshot({ path: outPath });
++    console.log(`saved ${outPath}`);
++  }
++
++  await browser.close();
++}
+ 
+-`http://localhost:3000/onboarding/diagnosis` 이동 → 뷰포트 1280x800 → 스크린샷 → `public/screenshots/02-diagnosis.png` 저장.
++main().catch((e) => {
++  console.error(e);
++  process.exit(1);
++});
++```
+ 
+-- [ ] **Step 4: 갭 리포트 화면 캡처**
++- [ ] **Step 3: 에뮬레이터 + dev 서버 기동 (CoSync 레포)**
+ 
+-`http://localhost:3000/gap-report?teamId=demo-team-a` 이동 → 히트맵/카테고리 섹션이 보이도록 스크롤 → 스크린샷 → `public/screenshots/03-gap-report.png` 저장.
++```bash
++cd "/Users/leeyunseok/Desktop/Projects/CoSync"
++export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
++export PATH="$JAVA_HOME/bin:$PATH"
++firebase emulators:start --only firestore,auth > /tmp/emu.log 2>&1 &
++sleep 8
++npx tsx scripts/seed.ts
++NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev > /tmp/dev.log 2>&1 &
++sleep 8
++curl -s http://localhost:3000/login -o /dev/null -w "%{http_code}\n"
++```
+ 
+-- [ ] **Step 5: 합의 세션 화면 캡처**
++Expected: `200` 출력.
+ 
+-`http://localhost:3000/consensus?teamId=demo-team-a` 이동 → resolved(초록)/voting(진행중) 항목이 함께 보이는 스크롤 위치 → 스크린샷 → `public/screenshots/04-consensus.png` 저장.
++- [ ] **Step 4: 캡처 스크립트 실행**
+ 
+-- [ ] **Step 6: 합의서 문서 화면 캡처**
++```bash
++cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video"
++node scripts/capture-screenshots.mjs
++```
+ 
+-`http://localhost:3000/agreement/document?teamId=demo-team-b` 이동 → 조항 목록이 보이는 위치 → 스크린샷 → `public/screenshots/05-agreement-document.png` 저장.
++Expected: `saved .../02-diagnosis.png` ~ `saved .../05-agreement-document.png` 4줄 출력, 에러 없음.
+ 
+-- [ ] **Step 7: 검증**
++- [ ] **Step 5: 검증**
+ 
+ ```bash
+ file /Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/screenshots/*.png
+ ```
+ 
+-Expected: 4개 파일 모두 `PNG image data, 1280 x 800` (또는 캡처 시 사용한 실제 해상도)로 출력, 파일 크기 0바이트 아님.
++Expected: 4개 파일 모두 `PNG image data, 1280 x 800`, 파일 크기 0바이트 아님. 스크린샷 이미지를 열어 각각 온보딩 진단/갭 리포트/합의 세션/합의서 문서 화면이 맞는지, 한글 텍스트가 깨지지 않았는지 육안 확인.
+ 
+-- [ ] **Step 8: 서버 정리**
++- [ ] **Step 6: 서버 정리 + Commit**
+ 
+-에뮬레이터 및 dev 서버 백그라운드 프로세스 종료 (`kill` 또는 터미널 종료).
++```bash
++pkill -f "firebase emulators" || true
++pkill -f "next dev" || true
++cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video"
++git add package.json package-lock.json scripts/capture-screenshots.mjs public/screenshots
++git commit -m "feat: capture live app screenshots via Playwright for video scenes"
++```
+ 
+ ---
+ 
+ ### Task 4: Remotion 프로젝트 스캐폴딩 + 정적 에셋 준비
+ 
+ **Files:**
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/` (전체 프로젝트)
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/logo.png`
+ - Create: `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/public/mascot.png`
+ 
+diff --git a/lib/firebase.ts b/lib/firebase.ts
+index 58e5455..1454bb9 100644
+--- a/lib/firebase.ts
++++ b/lib/firebase.ts
+@@ -1,17 +1,30 @@
+ import { initializeApp, getApps } from "firebase/app";
+-import { getAuth } from "firebase/auth";
+-import { getFirestore } from "firebase/firestore";
++import { connectAuthEmulator, getAuth } from "firebase/auth";
++import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
++import { getFunctions } from "firebase/functions";
+ 
+ const firebaseConfig = {
+   apiKey: "AIzaSyDIJw3leCw1Ay1wYBgB7jTgLj8lwZkHuOs",
+   authDomain: "cosync-d7dd7.firebaseapp.com",
+   projectId: "cosync-d7dd7",
+   storageBucket: "cosync-d7dd7.firebasestorage.app",
+   messagingSenderId: "542201096247",
+   appId: "1:542201096247:web:864ef9700f0491e92377b2"
+ };
+ 
+ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+ 
+ export const auth = getAuth(app);
+ export const db = getFirestore(app);
++export const functions = getFunctions(app);
++
++declare global {
++  // eslint-disable-next-line no-var
++  var __cosyncEmulatorConnected: boolean | undefined;
++}
++
++if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "1" && !globalThis.__cosyncEmulatorConnected) {
++  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
++  connectFirestoreEmulator(db, "127.0.0.1", 8080);
++  globalThis.__cosyncEmulatorConnected = true;
++}
+diff --git a/scripts/check-seed.ts b/scripts/check-seed.ts
+new file mode 100644
+index 0000000..55f7181
+--- /dev/null
++++ b/scripts/check-seed.ts
+@@ -0,0 +1,28 @@
++// 시드 결과 확인: npx tsx scripts/check-seed.ts
++import assert from "node:assert";
++import { initializeApp } from "firebase-admin/app";
++import { getFirestore } from "firebase-admin/firestore";
++
++process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
++const app = initializeApp({ projectId: "cosync-d7dd7" });
++const db = getFirestore(app);
++
++async function main() {
++  const teamA = await db.collection("teams").doc("demo-team-a").get();
++  assert(teamA.exists, "demo-team-a missing");
++  assert((teamA.data()!.gapCount as number) > 0, "demo-team-a should have gaps");
++
++  const resolved = await db.collection("teams").doc("demo-team-a").collection("consensus").doc("extraWorkPriority").get();
++  assert.equal(resolved.data()!.status, "resolved");
++
++  const voting = await db.collection("teams").doc("demo-team-a").collection("consensus").doc("equityStructure").get();
++  assert.equal(voting.data()!.status, "voting");
++
++  const agreement = await db.collection("teams").doc("demo-team-b").collection("agreements").doc("v1").get();
++  assert.equal(agreement.data()!.status, "confirmed");
++  assert.equal((agreement.data()!.clauses as unknown[]).length, 20);
++
++  console.log("OK: seed data verified");
++}
++
++main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
+diff --git a/scripts/seed.ts b/scripts/seed.ts
+index ab01d3e..2b8a8c3 100644
+--- a/scripts/seed.ts
++++ b/scripts/seed.ts
+@@ -1,49 +1,214 @@
+-import { initializeApp, cert } from 'firebase-admin/app';
+-import { getFirestore } from 'firebase-admin/firestore';
+-import { getAuth } from 'firebase-admin/auth';
++import { initializeApp } from "firebase-admin/app";
++import { getFirestore, Timestamp } from "firebase-admin/firestore";
++import { getAuth } from "firebase-admin/auth";
++import { buildClauses } from "../lib/agreementClauses";
++import { QUESTION_CONFIGS, computeGapSummary, type OnboardingAnswers } from "../lib/gap";
+ 
+-process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+-process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
++process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
++process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
+ 
+-const app = initializeApp({ projectId: 'cosync-d7dd7' });
++const app = initializeApp({ projectId: "cosync-d7dd7" });
+ const db = getFirestore(app);
+ const auth = getAuth(app);
+ 
+-async function seed() {
+-  console.log("Seeding Database...");
++const MEMBER_UIDS = ["demo-owner", "demo-member-2", "demo-member-3", "demo-member-4"];
++const MEMBER_NAMES: Record<string, string> = {
++  "demo-owner": "태오",
++  "demo-member-2": "민서",
++  "demo-member-3": "재윤",
++  "demo-member-4": "하은",
++};
+ 
+-  const testUser = {
+-    uid: "test-user-1",
+-    email: "test@example.com",
+-    password: "password123",
+-    displayName: "Test User 1"
+-  };
++// 필드별 4명 응답. 기본은 전원 "1"(일치), 아래 5개 필드만 의도적으로 차이/충돌을 만든다.
++const BASE: OnboardingAnswers = Object.fromEntries(
++  QUESTION_CONFIGS.map((q) => [q.field, "1"])
++) as unknown as OnboardingAnswers;
++
++const TEAM_A_ANSWERS: Record<string, OnboardingAnswers> = {
++  "demo-owner": { ...BASE, extraWorkPriority: "3", equityStructure: "2", decisionFailure: "2", growthStrategy: "3", fundingRunway: "1" },
++  "demo-member-2": { ...BASE, extraWorkPriority: "4", equityStructure: "4", decisionFailure: "3", growthStrategy: "4", fundingRunway: "3" },
++  "demo-member-3": { ...BASE, extraWorkPriority: "3", equityStructure: "2", decisionFailure: "2", growthStrategy: "3", fundingRunway: "1" },
++  "demo-member-4": { ...BASE, extraWorkPriority: "3", equityStructure: "2", decisionFailure: "2", growthStrategy: "3", fundingRunway: "1" },
++};
++
++const TEAM_B_ANSWERS: Record<string, OnboardingAnswers> = {
++  "demo-owner": { ...BASE },
++  "demo-member-2": { ...BASE },
++  "demo-member-3": { ...BASE },
++  "demo-member-4": { ...BASE },
++};
+ 
+-  try {
+-    await auth.getUser(testUser.uid);
+-    console.log("User already exists");
+-  } catch {
+-    await auth.createUser({
+-      uid: testUser.uid,
+-      email: testUser.email,
+-      password: testUser.password,
+-      displayName: testUser.displayName
+-    });
+-    console.log("Created test user");
++async function ensureUsers() {
++  for (const uid of MEMBER_UIDS) {
++    const email = uid === "demo-owner" ? "owner@demo.local" : `${uid}@demo.local`;
++    try {
++      await auth.getUser(uid);
++    } catch {
++      await auth.createUser({ uid, email, password: "demopass123!", displayName: MEMBER_NAMES[uid] });
++    }
++    await db.collection("users").doc(uid).set(
++      {
++        name: MEMBER_NAMES[uid],
++        email,
++        plan: "premium",
++        subscriptionStatus: "active",
++        teamIds: ["demo-team-a", "demo-team-b"],
++        lastActiveTeamId: "demo-team-a",
++      },
++      { merge: true }
++    );
+   }
++}
++
++async function seedTeamA() {
++  const answersList = MEMBER_UIDS.map((uid) => TEAM_A_ANSWERS[uid]);
++  const { gapCount, gapScore } = computeGapSummary(answersList);
+ 
+-  await db.collection("users").doc(testUser.uid).set({
+-    name: testUser.displayName,
+-    email: testUser.email,
+-    plan: "premium",
+-    subscriptionStatus: "active",
+-    teamIds: []
++  await db.collection("teams").doc("demo-team-a").set({
++    name: "노트펀치 팀",
++    industry: "SaaS",
++    memberCount: "3-5명",
++    stage: "MVP 단계",
++    inviteCode: "DEM-OTE-AMA",
++    createdBy: "demo-owner",
++    members: MEMBER_UIDS,
++    createdAt: Timestamp.now(),
++    progress: 100,
++    gapCount,
++    gapScore,
+   });
+ 
+-  console.log("Seeding complete");
++  for (const uid of MEMBER_UIDS) {
++    await db
++      .collection("teams").doc("demo-team-a")
++      .collection("members").doc(uid)
++      .set({
++        name: MEMBER_NAMES[uid],
++        role: uid === "demo-owner" ? "OWNER" : "MEMBER",
++        department: "",
++        status: "active",
++        progress: 100,
++        answers: TEAM_A_ANSWERS[uid],
++      });
++  }
++
++  // extraWorkPriority: 전원 동의로 해결됨
++  await db.collection("teams").doc("demo-team-a").collection("consensus").doc("extraWorkPriority").set({
++    status: "resolved",
++    proposal: {
++      byUid: "demo-owner",
++      byName: "태오",
++      option: "3",
++      clauseText: "담당이 정해지지 않은 업무가 발생한 경우, 기존 업무의 우선순위를 유지하며 신규 업무는 별도 논의를 거쳐 배정하기로 한다.",
++      proposedAt: Timestamp.now(),
++    },
++    votes: { "demo-owner": "approve", "demo-member-2": "approve", "demo-member-3": "approve", "demo-member-4": "approve" },
++    resolvedOption: "3",
++    resolvedClause: "담당이 정해지지 않은 업무가 발생한 경우, 기존 업무의 우선순위를 유지하며 신규 업무는 별도 논의를 거쳐 배정하기로 한다.",
++  });
++
++  // equityStructure: 투표 진행 중 (4명 중 2명만 승인)
++  await db.collection("teams").doc("demo-team-a").collection("consensus").doc("equityStructure").set({
++    status: "voting",
++    proposal: {
++      byUid: "demo-member-2",
++      byName: "민서",
++      option: "2",
++      clauseText: "지분 구조는 초기 합의된 등기 비율을 유지하되, 이후 기여도에 따라 [ ] 시점에 재조정 여부를 논의하기로 한다.",
++      proposedAt: Timestamp.now(),
++    },
++    votes: { "demo-owner": "approve", "demo-member-2": "approve" },
++  });
++}
++
++async function seedTeamB() {
++  const answersList = MEMBER_UIDS.map((uid) => TEAM_B_ANSWERS[uid]);
++  const { gapCount, gapScore } = computeGapSummary(answersList);
++
++  await db.collection("teams").doc("demo-team-b").set({
++    name: "얼리버드 팀",
++    industry: "커머스",
++    memberCount: "3-5명",
++    stage: "PMF 단계",
++    inviteCode: "DEM-OTE-BMB",
++    createdBy: "demo-owner",
++    members: MEMBER_UIDS,
++    createdAt: Timestamp.now(),
++    progress: 100,
++    gapCount,
++    gapScore,
++  });
++
++  for (const uid of MEMBER_UIDS) {
++    await db
++      .collection("teams").doc("demo-team-b")
++      .collection("members").doc(uid)
++      .set({
++        name: MEMBER_NAMES[uid],
++        role: uid === "demo-owner" ? "OWNER" : "MEMBER",
++        department: "",
++        status: "active",
++        progress: 100,
++        answers: TEAM_B_ANSWERS[uid],
++      });
++  }
++
++  const resolved: Record<string, { option: "1"; source: "match"; text?: string }> = Object.fromEntries(
++    QUESTION_CONFIGS.map((q) => [q.field, { option: "1" as const, source: "match" as const }])
++  );
++  // 템플릿에 빈칸([ ])이 있는 6개 필드는 데모용 실제 값으로 채워 넣는다.
++  resolved.extraWorkPriority = {
++    option: "1",
++    source: "match",
++    text: "담당이 정해지지 않은 업무가 발생한 경우, 이를 발견한 사람이 우선 직접 처리하되 24시간 이내에 처리 결과를 팀에 공유하기로 한다.",
++  };
++  resolved.extraWorkPrinciple = {
++    option: "1",
++    source: "match",
++    text: "초기 3개월 동안은 업무 외 시간의 협업 요청에도 적극적으로 대응하는 것을 원칙으로 한다.",
++  };
++  resolved.exitDisputeResolution = {
++    option: "1",
++    source: "match",
++    text: "구성원 이탈 시 지분 정리는 등기된 지분을 그대로 인정하는 것을 원칙으로 한다. 다만 중대한 귀책 사유가 있는 경우에는 예외로 한다.",
++  };
++  resolved.pivotCriteria = {
++    option: "1",
++    source: "match",
++    text: "사업 방향 전환(피벗) 또는 중단 논의는 런웨이 3개월 이하가 되는 시점에 시작하기로 한다.",
++  };
++  resolved.deadlockTolerance = {
++    option: "1",
++    source: "match",
++    text: "의견이 교착 상태에 이른 경우, 7일 이내에 해당 안건 담당 영역 책임자의 결정을 존중하기로 한다.",
++  };
++  resolved.profitDistribution = {
++    option: "1",
++    source: "match",
++    text: "흑자 전환 시 이익은 전액 재투자하는 것을 원칙으로 하되, 창업자 최소 생계비로 300만 원은 우선 지급한다.",
++  };
++  const clauses = buildClauses(resolved);
++
++  await db.collection("teams").doc("demo-team-b").collection("agreements").doc("v1").set({
++    version: 1,
++    createdAt: Timestamp.now(),
++    createdBy: "demo-owner",
++    createdByName: "태오",
++    status: "confirmed",
++    confirmations: Object.fromEntries(MEMBER_UIDS.map((uid) => [uid, Timestamp.now()])),
++    clauses,
++  });
++}
++
++async function seed() {
++  console.log("Seeding demo scenario...");
++  await ensureUsers();
++  await seedTeamA();
++  await seedTeamB();
++  console.log("Seeding complete: demo-team-a (진행중), demo-team-b (확정 v1.0)");
+ }
+ 
+-seed().then(() => process.exit(0)).catch(e => {
++seed().then(() => process.exit(0)).catch((e) => {
+   console.error(e);
+   process.exit(1);
+ });

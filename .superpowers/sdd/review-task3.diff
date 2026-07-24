@@ -1,0 +1,222 @@
+# Review package: ef79bb1..4c6f133
+
+## Commits
+4c6f133 feat: capture live app screenshots via Playwright for video scenes
+
+## Files changed
+ package-lock.json                            |  48 +++++++++++++++++++++++++++
+ package.json                                 |   1 +
+ public/screenshots/02-diagnosis.png          | Bin 0 -> 57295 bytes
+ public/screenshots/03-gap-report.png         | Bin 0 -> 181081 bytes
+ public/screenshots/04-consensus.png          | Bin 0 -> 209827 bytes
+ public/screenshots/05-agreement-document.png | Bin 0 -> 169046 bytes
+ scripts/capture-screenshots.mjs              |  43 ++++++++++++++++++++++++
+ 7 files changed, 92 insertions(+)
+
+## Diff
+diff --git a/package-lock.json b/package-lock.json
+index 9e17156..750b4f2 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -16,20 +16,21 @@
+         "react": "19.2.3",
+         "react-dom": "19.2.3",
+         "remotion": "4.0.489",
+         "tailwindcss": "4.0.0"
+       },
+       "devDependencies": {
+         "@remotion/eslint-config-flat": "4.0.489",
+         "@types/react": "19.2.7",
+         "@types/web": "0.0.166",
+         "eslint": "9.19.0",
++        "playwright": "^1.61.1",
+         "prettier": "3.8.1",
+         "typescript": "5.9.3"
+       }
+     },
+     "node_modules/@alloc/quick-lru": {
+       "version": "5.2.0",
+       "resolved": "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz",
+       "integrity": "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==",
+       "license": "MIT",
+       "engines": {
+@@ -3167,20 +3168,35 @@
+       "integrity": "sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==",
+       "dev": true,
+       "license": "ISC"
+     },
+     "node_modules/fs-monkey": {
+       "version": "1.0.3",
+       "resolved": "https://registry.npmjs.org/fs-monkey/-/fs-monkey-1.0.3.tgz",
+       "integrity": "sha512-cybjIfiiE+pTWicSCLFHSrXZ6EilF30oh91FDP9S2B051prEa7QWfrVTQm10/dDpswBDXZugPa1Ogu8Yh+HV0Q==",
+       "license": "Unlicense"
+     },
++    "node_modules/fsevents": {
++      "version": "2.3.2",
++      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz",
++      "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
++      "dev": true,
++      "hasInstallScript": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": "^8.16.0 || ^10.6.0 || >=11.0.0"
++      }
++    },
+     "node_modules/get-stream": {
+       "version": "6.0.1",
+       "resolved": "https://registry.npmjs.org/get-stream/-/get-stream-6.0.1.tgz",
+       "integrity": "sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==",
+       "license": "MIT",
+       "engines": {
+         "node": ">=10"
+       },
+       "funding": {
+         "url": "https://github.com/sponsors/sindresorhus"
+@@ -4131,20 +4147,52 @@
+       "integrity": "sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=8.6"
+       },
+       "funding": {
+         "url": "https://github.com/sponsors/jonschlinkert"
+       }
+     },
++    "node_modules/playwright": {
++      "version": "1.61.1",
++      "resolved": "https://registry.npmjs.org/playwright/-/playwright-1.61.1.tgz",
++      "integrity": "sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "dependencies": {
++        "playwright-core": "1.61.1"
++      },
++      "bin": {
++        "playwright": "cli.js"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "optionalDependencies": {
++        "fsevents": "2.3.2"
++      }
++    },
++    "node_modules/playwright-core": {
++      "version": "1.61.1",
++      "resolved": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.61.1.tgz",
++      "integrity": "sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "bin": {
++        "playwright-core": "cli.js"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
+     "node_modules/postcss": {
+       "version": "8.5.19",
+       "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.5.19.tgz",
+       "integrity": "sha512-Mz8SaolMd8nB+G13WkORcxQKHZ/NE4xXevtkJHVuG+guo9/wYKlIMTKAqGdEmYOXR2ijPjTYNHssizdaVSUNdQ==",
+       "funding": [
+         {
+           "type": "opencollective",
+           "url": "https://opencollective.com/postcss/"
+         },
+         {
+diff --git a/package.json b/package.json
+index cd3b608..44f75d4 100644
+--- a/package.json
++++ b/package.json
+@@ -13,20 +13,21 @@
+     "react": "19.2.3",
+     "react-dom": "19.2.3",
+     "remotion": "4.0.489",
+     "tailwindcss": "4.0.0"
+   },
+   "devDependencies": {
+     "@remotion/eslint-config-flat": "4.0.489",
+     "@types/react": "19.2.7",
+     "@types/web": "0.0.166",
+     "eslint": "9.19.0",
++    "playwright": "^1.61.1",
+     "prettier": "3.8.1",
+     "typescript": "5.9.3"
+   },
+   "scripts": {
+     "dev": "remotion studio",
+     "build": "remotion bundle",
+     "upgrade": "remotion upgrade",
+     "lint": "eslint src && tsc"
+   },
+   "sideEffects": [
+diff --git a/public/screenshots/02-diagnosis.png b/public/screenshots/02-diagnosis.png
+new file mode 100644
+index 0000000..5042092
+Binary files /dev/null and b/public/screenshots/02-diagnosis.png differ
+diff --git a/public/screenshots/03-gap-report.png b/public/screenshots/03-gap-report.png
+new file mode 100644
+index 0000000..ce3ef10
+Binary files /dev/null and b/public/screenshots/03-gap-report.png differ
+diff --git a/public/screenshots/04-consensus.png b/public/screenshots/04-consensus.png
+new file mode 100644
+index 0000000..b210314
+Binary files /dev/null and b/public/screenshots/04-consensus.png differ
+diff --git a/public/screenshots/05-agreement-document.png b/public/screenshots/05-agreement-document.png
+new file mode 100644
+index 0000000..d0db385
+Binary files /dev/null and b/public/screenshots/05-agreement-document.png differ
+diff --git a/scripts/capture-screenshots.mjs b/scripts/capture-screenshots.mjs
+new file mode 100644
+index 0000000..184a281
+--- /dev/null
++++ b/scripts/capture-screenshots.mjs
+@@ -0,0 +1,43 @@
++import { chromium } from "playwright";
++import { mkdir } from "node:fs/promises";
++import path from "node:path";
++
++const BASE_URL = "http://localhost:3000";
++const OUT_DIR = path.resolve(import.meta.dirname, "..", "public", "screenshots");
++
++const SHOTS = [
++  { url: `${BASE_URL}/onboarding/diagnosis`, file: "02-diagnosis.png" },
++  { url: `${BASE_URL}/gap-report?teamId=demo-team-a`, file: "03-gap-report.png" },
++  { url: `${BASE_URL}/consensus?teamId=demo-team-a`, file: "04-consensus.png" },
++  { url: `${BASE_URL}/agreement/document?teamId=demo-team-b`, file: "05-agreement-document.png" },
++];
++
++async function main() {
++  await mkdir(OUT_DIR, { recursive: true });
++
++  const browser = await chromium.launch();
++  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
++
++  await page.goto(`${BASE_URL}/login`);
++  await page.getByPlaceholder("example@cosync.com").fill("owner@demo.local");
++  await page.getByPlaceholder("••••••••").fill("demopass123!");
++  await page.getByRole("button", { name: "로그인하기 →" }).click();
++  await page.waitForURL(`${BASE_URL}/workspace`, { timeout: 15000 });
++
++  for (const shot of SHOTS) {
++    // ponytail: Firestore's realtime listener long-polls forever, so "networkidle"
++    // never resolves here — use "load" + a fixed settle delay instead.
++    await page.goto(shot.url, { waitUntil: "load" });
++    await page.waitForTimeout(1500);
++    const outPath = path.join(OUT_DIR, shot.file);
++    await page.screenshot({ path: outPath });
++    console.log(`saved ${outPath}`);
++  }
++
++  await browser.close();
++}
++
++main().catch((e) => {
++  console.error(e);
++  process.exit(1);
++});

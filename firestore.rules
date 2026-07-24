@@ -22,8 +22,13 @@ service cloud.firestore {
     }
 
     match /teams/{teamId} {
-      allow read, update: if isSignedIn() && request.auth.uid in resource.data.members;
-      // Teams are now created via Server Action, but just in case we allow client creation if member includes self:
+      allow read: if isSignedIn() && request.auth.uid in resource.data.members;
+      // Existing members can update team fields freely; non-members may only add themselves
+      // (join flow, verified client-side against inviteCodes before calling this).
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.members ||
+        request.resource.data.members == resource.data.members.concat([request.auth.uid])
+      );
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.members;
 
       match /members/{memberId} {
@@ -44,7 +49,12 @@ service cloud.firestore {
       }
 
       match /agreements/{agreementId} {
-        allow read, create, update: if isTeamMember(teamId);
+        allow read, create: if isTeamMember(teamId);
+        // Confirm flow: a member may only write their own confirmation entry
+        // (plus flip status to "confirmed", computed client-side once all members are in).
+        allow update: if isTeamMember(teamId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["confirmations", "status"])
+          && request.resource.data.confirmations[request.auth.uid] == request.time;
       }
     }
 

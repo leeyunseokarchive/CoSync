@@ -1,0 +1,75 @@
+# Review package: a6a0751..12055c7
+
+## Commits
+12055c7 feat: assemble 30s IntroVideo composition from 6 scenes
+
+## Files changed
+ src/IntroVideo.tsx | 33 +++++++++++++++++++++++++++++++++
+ src/Root.tsx       | 15 ++++++++++-----
+ 2 files changed, 43 insertions(+), 5 deletions(-)
+
+## Diff
+diff --git a/src/IntroVideo.tsx b/src/IntroVideo.tsx
+new file mode 100644
+index 0000000..d9c1c45
+--- /dev/null
++++ b/src/IntroVideo.tsx
+@@ -0,0 +1,33 @@
++import { AbsoluteFill, Sequence } from "remotion";
++import { Scene1Hook } from "./scenes/Scene1Hook";
++import { Scene2Diagnosis } from "./scenes/Scene2Diagnosis";
++import { Scene3GapReport } from "./scenes/Scene3GapReport";
++import { Scene4Consensus } from "./scenes/Scene4Consensus";
++import { Scene5Agreement } from "./scenes/Scene5Agreement";
++import { Scene6Outro } from "./scenes/Scene6Outro";
++
++const SCENES = [
++  { Component: Scene1Hook, duration: 120 },
++  { Component: Scene2Diagnosis, duration: 150 },
++  { Component: Scene3GapReport, duration: 150 },
++  { Component: Scene4Consensus, duration: 180 },
++  { Component: Scene5Agreement, duration: 150 },
++  { Component: Scene6Outro, duration: 150 },
++];
++
++export const IntroVideo: React.FC = () => {
++  let cursor = 0;
++  return (
++    <AbsoluteFill>
++      {SCENES.map(({ Component, duration }, i) => {
++        const from = cursor;
++        cursor += duration;
++        return (
++          <Sequence key={i} from={from} durationInFrames={duration}>
++            <Component />
++          </Sequence>
++        );
++      })}
++    </AbsoluteFill>
++  );
++};
+diff --git a/src/Root.tsx b/src/Root.tsx
+index 2be4c12..063e059 100644
+--- a/src/Root.tsx
++++ b/src/Root.tsx
+@@ -1,10 +1,15 @@
+-import "./index.css";
+-import { MyComposition } from "./Composition";
++import { Composition } from "remotion";
++import { IntroVideo } from "./IntroVideo";
+ 
+ export const RemotionRoot: React.FC = () => {
+   return (
+-    <>
+-      <MyComposition />
+-    </>
++    <Composition
++      id="CoSyncIntro"
++      component={IntroVideo}
++      durationInFrames={900}
++      fps={30}
++      width={1080}
++      height={1920}
++    />
+   );
+ };

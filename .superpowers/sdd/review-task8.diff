@@ -1,0 +1,68 @@
+# Review package: 12055c7..afbec0b
+
+## Commits
+afbec0b feat: add background music with fade in/out
+
+## Files changed
+ public/audio/bgm.mp3 | Bin 0 -> 981368 bytes
+ src/IntroVideo.tsx   |  16 +++++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+## Diff
+diff --git a/public/audio/bgm.mp3 b/public/audio/bgm.mp3
+new file mode 100644
+index 0000000..46f7563
+Binary files /dev/null and b/public/audio/bgm.mp3 differ
+diff --git a/src/IntroVideo.tsx b/src/IntroVideo.tsx
+index d9c1c45..aac03f5 100644
+--- a/src/IntroVideo.tsx
++++ b/src/IntroVideo.tsx
+@@ -1,33 +1,47 @@
+-import { AbsoluteFill, Sequence } from "remotion";
++import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
++import { Audio } from "@remotion/media";
++import { staticFile } from "remotion";
+ import { Scene1Hook } from "./scenes/Scene1Hook";
+ import { Scene2Diagnosis } from "./scenes/Scene2Diagnosis";
+ import { Scene3GapReport } from "./scenes/Scene3GapReport";
+ import { Scene4Consensus } from "./scenes/Scene4Consensus";
+ import { Scene5Agreement } from "./scenes/Scene5Agreement";
+ import { Scene6Outro } from "./scenes/Scene6Outro";
+ 
+ const SCENES = [
+   { Component: Scene1Hook, duration: 120 },
+   { Component: Scene2Diagnosis, duration: 150 },
+   { Component: Scene3GapReport, duration: 150 },
+   { Component: Scene4Consensus, duration: 180 },
+   { Component: Scene5Agreement, duration: 150 },
+   { Component: Scene6Outro, duration: 150 },
+ ];
+ 
++const TOTAL_DURATION = SCENES.reduce((sum, s) => sum + s.duration, 0);
++
++const BackgroundMusic: React.FC = () => {
++  const frame = useCurrentFrame();
++  const volume = interpolate(frame, [0, 20, TOTAL_DURATION - 20, TOTAL_DURATION], [0, 0.35, 0.35, 0], {
++    extrapolateLeft: "clamp",
++    extrapolateRight: "clamp",
++  });
++  return <Audio src={staticFile("audio/bgm.mp3")} volume={volume} />;
++};
++
+ export const IntroVideo: React.FC = () => {
+   let cursor = 0;
+   return (
+     <AbsoluteFill>
+       {SCENES.map(({ Component, duration }, i) => {
+         const from = cursor;
+         cursor += duration;
+         return (
+           <Sequence key={i} from={from} durationInFrames={duration}>
+             <Component />
+           </Sequence>
+         );
+       })}
++      <BackgroundMusic />
+     </AbsoluteFill>
+   );
+ };

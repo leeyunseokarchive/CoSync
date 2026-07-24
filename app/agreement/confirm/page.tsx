@@ -10,7 +10,8 @@ import { useUserProfile } from "../../../components/useUserProfile";
 import { useTeams } from "../../../components/useTeams";
 import { useTeamMembers } from "../../../components/useTeamMembers";
 import { useAgreements } from "../../../components/useAgreements";
-import { confirmAgreementServer } from "../../../app/actions/consensus";
+import { db } from "../../../lib/firebase";
+import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { groupByChapter } from "../../../lib/agreementClauses";
 import { BadgeCheck, CheckCircle2, Clock } from "lucide-react";
 
@@ -49,7 +50,29 @@ function AgreementConfirmInner() {
     setBusy(true);
     setError(null);
     try {
-      await confirmAgreementServer(teamId, pending.id, user.uid);
+      await runTransaction(db, async (tx) => {
+        const teamRef = doc(db, "teams", teamId);
+        const teamSnap = await tx.get(teamRef);
+        if (!teamSnap.exists()) throw new Error("Team not found");
+        const memberUids: string[] = teamSnap.data()?.members || [];
+        if (!memberUids.includes(user.uid)) {
+          throw new Error("User is not a member of this team");
+        }
+
+        const agreementRef = doc(db, "teams", teamId, "agreements", pending.id);
+        const snap = await tx.get(agreementRef);
+        if (!snap.exists()) throw new Error("Agreement not found");
+
+        const cur = snap.data() || {};
+        const confirmed = new Set(Object.keys(cur.confirmations || {}));
+        confirmed.add(user.uid);
+        const allConfirmed = memberUids.every((m) => confirmed.has(m));
+
+        tx.update(agreementRef, {
+          [`confirmations.${user.uid}`]: serverTimestamp(),
+          ...(allConfirmed ? { status: "confirmed" } : {}),
+        });
+      });
     } catch (e) {
       console.error(e);
       setError("확정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");

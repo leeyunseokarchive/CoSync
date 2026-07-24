@@ -7,9 +7,8 @@ import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
 import { useAuth } from "../../components/AuthContext";
 import { useTeams } from "../../components/useTeams";
-import { arrayUnion, collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
+import { arrayUnion, collection, doc, getDoc, getDocs, runTransaction, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { joinTeam } from "../../app/actions/team";
 import { useRouter } from "next/navigation";
 import { TeamSessionCard } from "../../components/TeamSessionCard";
 import { TeamGapSlot } from "../../components/TeamGapSlot";
@@ -212,7 +211,23 @@ export default function WorkspaceHubPage() {
       if (!targetTeam.inviteCode) {
         throw new Error("팀 가입 코드가 없습니다.");
       }
-      await joinTeam(user.uid, targetTeam.id, targetTeam.inviteCode);
+      await runTransaction(db, async (tx) => {
+        const inviteRef = doc(db, "inviteCodes", targetTeam.inviteCode);
+        const inviteSnap = await tx.get(inviteRef);
+        if (!inviteSnap.exists() || inviteSnap.data()?.teamId !== targetTeam.id) {
+          throw new Error("유효하지 않은 초대 코드입니다.");
+        }
+        const teamRef = doc(db, "teams", targetTeam.id);
+        const teamSnap = await tx.get(teamRef);
+        if (!teamSnap.exists()) {
+          throw new Error("팀을 찾을 수 없습니다.");
+        }
+        tx.update(teamRef, { members: arrayUnion(user.uid) });
+        tx.update(doc(db, "users", user.uid), {
+          teamIds: arrayUnion(targetTeam.id),
+          lastActiveTeamId: targetTeam.id,
+        });
+      });
     } catch (e) {
       console.error(e);
       alert("팀 가입 중 오류가 발생했습니다.");
