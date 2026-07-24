@@ -1,29 +1,31 @@
-# Task 5 Implementation Report
+# Task 5 Report: 문서 생성 페이지 UI 폴리시 (텍스트 상향)
 
 ## Status: DONE
 
-### Files Created
-1. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/components/Caption.tsx` — Caption component with fade-in and slide animation
-2. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/components/ScreenshotFrame.tsx` — Browser mockup frame container
-3. `/Users/leeyunseok/Desktop/Projects/CoSync-intro-video/src/components/ScreenScene.tsx` — Combined scene component using Caption and ScreenshotFrame
+## Font-Size Changes Applied
 
-### Type Check Results
-```
-cd "/Users/leeyunseok/Desktop/Projects/CoSync-intro-video" && npx tsc --noEmit
-```
-**Result:** No type errors. Compilation successful.
+| Selector | Old → New | Status |
+|----------|-----------|--------|
+| `.doc-header h1` | `clamp(1.5rem, 4vw, 2rem)` → `clamp(1.7rem, 4.5vw, 2.4rem)` | ✓ Applied |
+| `.doc-meta` | `0.85rem` → `0.95rem` | ✓ Applied |
+| `.doc-chapter h2` | `1.05rem` → `1.2rem` | ✓ Applied |
+| `.doc-chapter li` | `0.92rem` → `1.05rem` | ✓ Applied |
+| `.doc-party` | `0.9rem` → `1rem` | ✓ Applied |
+| `.doc-parties-label` | `0.78rem` → `0.85rem` | ✓ Applied |
+| `.doc-confirmed-note` | `0.88rem` → `1rem` | ✓ Applied |
 
-### Commit
-- **Hash:** `853751a`
-- **Message:** `feat: add Caption, ScreenshotFrame, ScreenScene shared components`
-- **Files changed:** 3 files, 103 insertions
+## Build & Verification
+- ✓ Build successful (no errors, all 22 routes generated)
+- ✓ `git diff --stat`: Only `app/agreement/document/page.tsx` changed (7 insertions, 7 deletions)
+- ✓ `next-env.d.ts` regenerated and reverted
+- ✓ No selectors missing — all 7 rules found and applied correctly
 
-### Implementation Notes
-- All three components created with exact code from the brief
-- `Caption.tsx` uses `@remotion/google-fonts/NotoSansKR` for Korean typography with weights 700 and 900
-- `ScreenshotFrame.tsx` renders a browser chrome mockup with macOS-style traffic light buttons
-- `ScreenScene.tsx` composes both components with animations (zoom, slide-in, opacity) and 0b0b0f dark background
-- Components are ready for reuse in Scene 2+ tasks
+## Commit
+- **Hash:** `581012d`
+- **Message:** `style: enlarge clause and heading text on agreement document page`
+- **File:** `app/agreement/document/page.tsx` (inline `<style>` block only)
 
-### No Concerns
-All requirements from the brief completed successfully.
+## Notes
+- Only font-size values modified; no other CSS properties changed
+- JSX structure untouched
+- `@media print` block left intact (does not redefine these font-sizes)
