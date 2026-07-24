@@ -1,23 +1,10 @@
-export function BrandMark({ variant = "primary" }: { variant?: "primary" | "dark" }) {
-  const fill = variant === "primary" ? "linear-gradient(135deg, #5b5be7, #8a8ff5)" : "#1f2430";
+import Image from "next/image";
+import logo from "../logo.png";
+
+export function BrandMark() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 9,
-          background: fill,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14
-        }}
-      >
-        C
-      </span>
+      <Image src={logo} alt="" width={34} height={34} priority />
       <strong style={{ fontSize: 16 }}>CoSync</strong>
     </div>
   );
