@@ -151,8 +151,8 @@ function DiagnosisCompletePageInner() {
 
           <p className="diag-complete-desc">
             {hasTeam
-              ? <>공동창업자와 결과를 비교하거나,<br /><strong>의사결정·지분&amp;보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
-              : <>심화 진단을 계속하거나,<br />공동창업자/팀원을 초대해서 진단 결과를 확인하세요.</>
+              ? <>팀원과 결과를 비교하거나,<br /><strong>의사결정·지분&amp;보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
+              : <>심화 진단을 계속하거나,<br />팀원을 초대해서 진단 결과를 확인하세요.</>
             }
           </p>
 
@@ -177,13 +177,23 @@ function DiagnosisCompletePageInner() {
                 결과 바로 확인하기
               </button>
             ) : (
-              <button
-                className="btn btn-ghost diag-complete-btn"
-                type="button"
-                onClick={() => handleSaveAndProceed("/workspace/create")}
-              >
-                공동창업자/팀원 초대하기
-              </button>
+              <>
+                <button
+                  className="btn btn-ghost diag-complete-btn"
+                  type="button"
+                  onClick={() => handleSaveAndProceed("/gap-report")}
+                >
+                  내 기준 먼저 확인하기
+                </button>
+                <button
+                  className="btn btn-ghost diag-complete-btn"
+                  type="button"
+                  onClick={() => handleSaveAndProceed("/workspace/create")}
+                  style={{ color: "#94a3b8", fontSize: "13px" }}
+                >
+                  팀원 초대하기
+                </button>
+              </>
             )}
           </div>
 

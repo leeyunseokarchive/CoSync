@@ -18,6 +18,7 @@ import { QUESTION_DEFS, SCRIPTS, generateInsight } from "../../lib/deepQuestions
 import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { useAppState } from "../../components/AppState";
 
 const WARN_WORDS = ["경영권 분쟁","신뢰 문제","신뢰를 잃","법적 분쟁","팀 해체","파산","소송","수억 원","계약을 철회","지분 분쟁","의사결정 교착","실행력 자체","동업 해지","감정 싸움","책임 전가","독단으로","갈등이 자주 터","폭발에 가깝","방어로 끝","피해자가 됩니다"];
 const hlBody = (stake: string, dispute: string) => {
@@ -83,6 +84,16 @@ const CLAUSE_DEFS: Record<string, ClauseDef> = {
 };
 
 
+const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[] }> = [
+  { label: "역할 & 책임",     fields: ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction"] },
+  { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"] },
+  { label: "비전 & 가치관",   fields: ["exitVision", "pivotCriteria", "dealbreaker"] },
+  { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"] },
+  { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"] },
+  { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"] },
+];
+const FIELD_TO_DEF: Record<string, QuestionDef> = Object.fromEntries(QUESTION_DEFS.map(d => [d.field, d]));
+
 const statusRank = (s: IssueStatus): number => {
   if (s === "conflict") return 3;
   if (s === "diff") return 2;
@@ -108,6 +119,25 @@ function GapReportPageInner() {
   const queryTeamId = searchParams ? searchParams.get("teamId") : null;
   const activeTeamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
   const { members, loading: membersLoading } = useTeamMembers(activeTeamId);
+
+  const {
+    extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+    exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+    exitVision, pivotCriteria, dealbreaker,
+    fundingRunway, spendingApproval, investmentCriteria,
+    decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+    salaryStructure, equityStructure, profitDistribution, growthStrategy
+  } = useAppState();
+  const soloAnswers: Partial<OnboardingAnswers> = {
+    extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+    exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
+    exitVision, pivotCriteria, dealbreaker,
+    fundingRunway, spendingApproval, investmentCriteria,
+    decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
+    salaryStructure, equityStructure, profitDistribution, growthStrategy
+  };
+  const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
+  const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -332,6 +362,50 @@ function GapReportPageInner() {
       </div>
 
       <section className="container gap-wrap" style={{ position: "relative", zIndex: 10, marginTop: "-40px" }}>
+        {/* 솔로 기준 리포트 */}
+        {hasSoloAnswers && (
+          <div className="card" style={{ width: "100%", maxWidth: "640px", margin: "0 auto", padding: "32px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", color: "#0f172a", marginBottom: "6px" }}>내 창업 기준 요약</h2>
+            <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.6" }}>
+              팀원을 초대하면 서로의 기준 차이를 한눈에 비교할 수 있어요.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
+              {SOLO_CATEGORIES.map(cat => {
+                const answeredItems = cat.fields
+                  .map(f => ({ field: f, def: FIELD_TO_DEF[f], val: soloAnswers[f] }))
+                  .filter(item => Boolean(item.val) && item.def);
+                if (answeredItems.length === 0) return null;
+                return (
+                  <div key={cat.label} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
+                    <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "12px", fontWeight: "700", color: "#475569", letterSpacing: "0.04em" }}>{cat.label}</span>
+                    </div>
+                    <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {answeredItems.map(item => (
+                        <div key={item.field} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                          <span style={{ fontSize: "13px", color: "#64748b" }}>{item.def.label}</span>
+                          <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b", textAlign: "right" }}>
+                            {item.def.optionLabels[item.val!] ?? item.val}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "24px", textAlign: "center" }}>
+              <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <Lock size={13} />
+                비교 분석은 팀원이 완료해야 자동 생성됩니다
+              </p>
+              <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
+                팀원 초대하고 갭 리포트 확인하기 →
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* 팀 통합 보기 - 미완료 */}
         {!isTeamComplete && members.length >= 2 && (
           <div className="card gap-summary" style={{ width: "100%", maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 32px" }}>
