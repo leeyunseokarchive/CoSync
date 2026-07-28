@@ -71,18 +71,21 @@ export async function propose(
 
 // 투표. 트랜잭션으로 최신 문서 기준 판정 — 동시 투표/재제안 교차 레이스 방지.
 // seen: 투표자가 화면에서 본 제안. 트랜잭션 시점의 제안과 다르면(재제안됨) 투표를 버린다.
+// 전원 동의 판정은 트랜잭션 안에서 읽은 team.members 기준 — 투표 도중 합류한 팀원 누락 방지.
 export async function vote(
   teamId: string,
   field: string,
   uid: string,
   choice: VoteChoice,
-  memberUids: string[],
   seen: ConsensusDoc
 ) {
   const ref = doc(db, "teams", teamId, "consensus", field);
   await runTransaction(db, async (tx) => {
+    // Firestore 트랜잭션은 모든 읽기가 쓰기보다 먼저여야 한다.
+    const teamSnap = await tx.get(doc(db, "teams", teamId));
     const snap = await tx.get(ref);
     if (!snap.exists()) return;
+    const memberUids: string[] = teamSnap.data()?.members || [];
     const cur = snap.data() as ConsensusDoc;
     if (cur.status === "resolved") return;
     if (
@@ -136,6 +139,7 @@ export async function deleteComment(teamId: string, field: string, commentId: st
   await deleteDoc(doc(db, "teams", teamId, "consensus", field, "comments", commentId));
 }
 
+// 결정적 문서 ID(v{버전})로 생성 — 동시 생성 시 같은 버전의 중복 합의안 방지
 export async function finalizeAgreement(
   teamId: string,
   uid: string,
@@ -143,36 +147,25 @@ export async function finalizeAgreement(
   clauses: Clause[],
   nextVersion: number
 ) {
-  const ref = await addDoc(collection(db, "teams", teamId, "agreements"), {
-    version: nextVersion,
-    createdAt: serverTimestamp(),
-    createdBy: uid,
-    createdByName: name,
-    status: "pending_confirmation",
-    confirmations: {},
-    clauses,
-  });
-  return ref.id;
-}
-
-// 트랜잭션: 마지막 두 명이 동시에 확정해도 status가 확정으로 넘어가도록 보장
-export async function confirmAgreement(
-  teamId: string,
-  agreementId: string,
-  uid: string,
-  memberUids: string[]
-) {
-  const ref = doc(db, "teams", teamId, "agreements", agreementId);
+  const id = `v${nextVersion}`;
+  const ref = doc(db, "teams", teamId, "agreements", id);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    if (!snap.exists()) return;
-    const cur = snap.data() as Omit<AgreementDoc, "id">;
-    const confirmed = new Set(Object.keys(cur.confirmations || {}));
-    confirmed.add(uid);
-    const allConfirmed = memberUids.every((m) => confirmed.has(m));
-    tx.update(ref, {
-      [`confirmations.${uid}`]: serverTimestamp(),
-      ...(allConfirmed ? { status: "confirmed" } : {}),
+    if (snap.exists()) throw new Error("이미 같은 버전의 합의안이 생성되어 있습니다.");
+    tx.set(ref, {
+      version: nextVersion,
+      createdAt: serverTimestamp(),
+      createdBy: uid,
+      createdByName: name,
+      status: "pending_confirmation",
+      confirmations: {},
+      clauses,
     });
   });
+  return id;
+}
+
+// 미확정(pending_confirmation) 합의안 파기 — 보안 규칙상 pending 상태 문서만 삭제 가능
+export async function discardPendingAgreement(teamId: string, agreementId: string) {
+  await deleteDoc(doc(db, "teams", teamId, "agreements", agreementId));
 }

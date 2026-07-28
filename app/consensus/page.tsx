@@ -27,6 +27,7 @@ import {
   type ClauseOption,
 } from "../../lib/agreementClauses";
 import { propose, vote, reopen, finalizeAgreement, addComment, deleteComment, type ConsensusDoc } from "../../lib/consensus";
+import { isPremium } from "../../lib/premium";
 import { Check, X, ChevronDown, ChevronUp, FileCheck2, RotateCcw, MessageCircle, Pencil } from "lucide-react";
 
 function timeAgo(ts: { toDate: () => Date } | null | undefined): string {
@@ -79,7 +80,7 @@ function ConsensusPageInner() {
   }, []);
 
   useEffect(() => {
-    if (!profileLoading && profile && profile.plan !== "premium") {
+    if (!profileLoading && profile && !isPremium(profile)) {
       router.replace("/agreement/preview");
     }
   }, [profile, profileLoading, router]);
@@ -101,7 +102,6 @@ function ConsensusPageInner() {
 
   const { comments } = useComments(teamId, openField);
 
-  const memberUids = useMemo(() => members.map((m) => m.id), [members]);
   const myName = profile?.name || user?.displayName || "";
 
   const rows = useMemo(
@@ -197,7 +197,7 @@ function ConsensusPageInner() {
 
   const handleVote = (field: string, doc: ConsensusDoc, choice: "approve" | "reject") => {
     if (!user || !teamId) return;
-    run(() => vote(teamId, field, user.uid, choice, memberUids, doc));
+    run(() => vote(teamId, field, user.uid, choice, doc));
   };
 
   const handleReopen = (field: string) => {
@@ -237,7 +237,16 @@ function ConsensusPageInner() {
       }
       const clauses = buildClauses(resolved);
       const nextVersion = (agreements[0]?.version ?? 0) + 1;
-      await finalizeAgreement(teamId, user.uid, myName, clauses, nextVersion);
+      try {
+        await finalizeAgreement(teamId, user.uid, myName, clauses, nextVersion);
+      } catch (e) {
+        // 동시 생성 레이스: 이미 같은 버전이 있으면 그 메시지를 그대로 보여준다
+        if (e instanceof Error && e.message === "이미 같은 버전의 합의안이 생성되어 있습니다.") {
+          setError(e.message);
+          return;
+        }
+        throw e;
+      }
       router.push(`/agreement/confirm?teamId=${teamId}`);
     });
   };

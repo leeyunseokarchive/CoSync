@@ -13,6 +13,8 @@ import { useAgreements } from "../../../components/useAgreements";
 import { db } from "../../../lib/firebase";
 import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { groupByChapter } from "../../../lib/agreementClauses";
+import { discardPendingAgreement } from "../../../lib/consensus";
+import { isPremium } from "../../../lib/premium";
 import { BadgeCheck, CheckCircle2, Clock } from "lucide-react";
 
 function AgreementConfirmInner() {
@@ -25,7 +27,7 @@ function AgreementConfirmInner() {
   const teamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
 
   useEffect(() => {
-    if (!profileLoading && profile && profile.plan !== "premium") {
+    if (!profileLoading && profile && !isPremium(profile)) {
       router.replace("/agreement/preview");
     }
   }, [profile, profileLoading, router]);
@@ -76,6 +78,22 @@ function AgreementConfirmInner() {
     } catch (e) {
       console.error(e);
       setError("확정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (!teamId || !pending) return;
+    if (!window.confirm("현재 미확정 합의안을 파기합니다. 확정된 이전 버전은 유지되며, 합의 세션에서 새로 생성할 수 있습니다. 계속할까요?")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await discardPendingAgreement(teamId, pending.id);
+      router.push(`/consensus?teamId=${teamId}`);
+    } catch (e) {
+      console.error(e);
+      setError("합의안 파기 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setBusy(false);
     }
@@ -166,6 +184,11 @@ function AgreementConfirmInner() {
                     </Link>
                   </>
                 )}
+                {pending && (
+                  <button className="btn btn-ghost confirm-discard-btn" disabled={busy} onClick={handleDiscard}>
+                    합의안 파기하고 다시 만들기
+                  </button>
+                )}
               </div>
             </div>
 
@@ -214,6 +237,9 @@ function AgreementConfirmInner() {
         .confirm-doc-btn { width: 100%; padding: 14px; margin-top: 8px; font-size: 0.95rem; }
         .confirm-doc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .confirm-back-link { display: block; text-align: center; margin-top: 12px; font-size: 0.85rem; color: #64748b; }
+        .confirm-discard-btn { width: 100%; padding: 12px; margin-top: 12px; font-size: 0.87rem; color: #b91c1c; }
+        .confirm-discard-btn:hover:not(:disabled) { background: #fee2e2; }
+        .confirm-discard-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .confirm-done-note { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; font-size: 0.9rem; color: #059669; font-weight: 600; line-height: 1.6; }
         .confirm-preview { padding: 28px; }
         .confirm-chapter { margin-top: 16px; }

@@ -131,29 +131,39 @@ export default function WorkspaceHubPage() {
       return;
     }
     const code = codeToSearch.trim().toUpperCase();
-    const inviteRef = doc(db, "inviteCodes", code);
-    const inviteSnap = await getDoc(inviteRef);
-    if (!inviteSnap.exists()) {
-      setJoinHint("해당 팀 코드를 찾을 수 없습니다.");
-      return;
+    try {
+      const inviteRef = doc(db, "inviteCodes", code);
+      const inviteSnap = await getDoc(inviteRef);
+      if (!inviteSnap.exists()) {
+        setJoinHint("해당 팀 코드를 찾을 수 없습니다.");
+        return;
+      }
+      const { teamId } = inviteSnap.data() as { teamId: string };
+      const teamRef = doc(db, "teams", teamId);
+      const teamSnap = await getDoc(teamRef);
+      if (!teamSnap.exists()) {
+        setJoinHint("팀 정보를 찾지 못했습니다.");
+        return;
+      }
+      const teamData = teamSnap.data() as {
+        name: string;
+        industry?: string;
+        stage?: string;
+        inviteCode?: string;
+        members?: string[];
+        status?: string;
+      };
+      if (teamData.status === "archived") {
+        setJoinHint("해당 팀 코드를 찾을 수 없습니다.");
+        return;
+      }
+      setFoundTeam({ id: teamId, ...teamData });
+      setIsExistingMember((teamData.members ?? []).includes(user.uid));
+      setShowJoinModal(true);
+    } catch (e) {
+      console.error(e);
+      setJoinHint("팀 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
-    const { teamId } = inviteSnap.data() as { teamId: string };
-    const teamRef = doc(db, "teams", teamId);
-    const teamSnap = await getDoc(teamRef);
-    if (!teamSnap.exists()) {
-      setJoinHint("팀 정보를 찾지 못했습니다.");
-      return;
-    }
-    const teamData = teamSnap.data() as {
-      name: string;
-      industry?: string;
-      stage?: string;
-      inviteCode?: string;
-      members?: string[];
-    };
-    setFoundTeam({ id: teamId, ...teamData });
-    setIsExistingMember((teamData.members ?? []).includes(user.uid));
-    setShowJoinModal(true);
   };
 
   const handleJoinSearch = () => executeJoinSearch(teamCode);
@@ -222,6 +232,9 @@ export default function WorkspaceHubPage() {
         if (!teamSnap.exists()) {
           throw new Error("팀을 찾을 수 없습니다.");
         }
+        if (teamSnap.data()?.status === "archived") {
+          throw new Error("이미 삭제된 팀입니다. 팀 코드를 다시 확인해주세요.");
+        }
         tx.update(teamRef, { members: arrayUnion(user.uid) });
         tx.update(doc(db, "users", user.uid), {
           teamIds: arrayUnion(targetTeam.id),
@@ -230,7 +243,11 @@ export default function WorkspaceHubPage() {
       });
     } catch (e) {
       console.error(e);
-      alert("팀 가입 중 오류가 발생했습니다.");
+      if (e instanceof Error && e.message === "이미 삭제된 팀입니다. 팀 코드를 다시 확인해주세요.") {
+        alert(e.message);
+      } else {
+        alert("팀 가입 중 오류가 발생했습니다.");
+      }
       setJoinLoading(false);
       return;
     }
@@ -271,33 +288,39 @@ export default function WorkspaceHubPage() {
       resetAnswers();
     }
 
-    await setDoc(
-      doc(db, "teams", targetTeam.id, "members", user.uid),
-      {
-        name: user.displayName || "팀원",
-        role: role || "MEMBER",
-        department: department || "",
-        status: "active",
-        progress: finalProgress,
-        answers: finalAnswers
-      },
-      { merge: true }
-    );
+    try {
+      await setDoc(
+        doc(db, "teams", targetTeam.id, "members", user.uid),
+        {
+          name: user.displayName || "팀원",
+          role: role || "MEMBER",
+          department: department || "",
+          status: "active",
+          progress: finalProgress,
+          answers: finalAnswers
+        },
+        { merge: true }
+      );
 
-    const membersSnapshot = await getDocs(collection(db, "teams", targetTeam.id, "members"));
-    const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
-    const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as any);
-    const { gapCount, gapScore } = computeGapSummary(memberAnswers);
-    const teamProgress = computeTeamProgress(memberDocs);
-    await updateDoc(doc(db, "teams", targetTeam.id), {
-      progress: teamProgress,
-      gapCount,
-      gapScore
-    });
+      const membersSnapshot = await getDocs(collection(db, "teams", targetTeam.id, "members"));
+      const memberDocs = membersSnapshot.docs.map((doc) => doc.data());
+      const memberAnswers = memberDocs.map((data) => (data.answers ?? {}) as any);
+      const { gapCount, gapScore } = computeGapSummary(memberAnswers);
+      const teamProgress = computeTeamProgress(memberDocs);
+      await updateDoc(doc(db, "teams", targetTeam.id), {
+        progress: teamProgress,
+        gapCount,
+        gapScore
+      });
+    } catch (e) {
+      console.error(e);
+      alert("팀 가입은 완료됐지만 일부 데이터 동기화에 실패했습니다. 진단 페이지에서 다시 저장해주세요.");
+    } finally {
+      setJoinLoading(false);
+    }
 
     setActiveTeams(Math.max(1, activeTeams + 1));
     setActiveSessions(Math.max(1, activeSessions + 1));
-    setJoinLoading(false);
     setShowCopyModal(false);
     setShowJoinModal(false);
 

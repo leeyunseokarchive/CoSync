@@ -85,8 +85,8 @@ function OnboardingDiagnosisPageInner() {
     loadAnswersForTeam,
     resetAnswers
   } = useAppState();
-  const { user } = useAuth();
-  const { profile } = useUserProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryTeamId = searchParams ? searchParams.get("teamId") : null;
@@ -95,7 +95,10 @@ function OnboardingDiagnosisPageInner() {
   const [showRestoreModal, setShowRestoreModal] = useState(false);
 
   useEffect(() => {
-    if (!queryTeamId) {
+    if (authLoading || profileLoading) return;
+    // goTo = 완료 페이지에서 중간 복귀, 로그인+팀 보유 = Firestore가 원본 — 둘 다 복원 모달 불필요
+    const goTo = searchParams ? searchParams.get("goTo") : null;
+    if (!queryTeamId && !goTo && !(user && activeTeamId)) {
       const saved = localStorage.getItem("cosync-state");
       if (saved) {
         try {
@@ -111,7 +114,7 @@ function OnboardingDiagnosisPageInner() {
         }
       }
     }
-  }, [queryTeamId]);
+  }, [authLoading, profileLoading, queryTeamId, searchParams, user, activeTeamId]);
 
   useEffect(() => {
     if (activeTeamId) {
@@ -988,7 +991,20 @@ function OnboardingDiagnosisPageInner() {
               <button className="btn btn-primary" type="button" onClick={() => setShowRestoreModal(false)} style={{ width: "100%" }}>
                 이어서 진행하기
               </button>
-              <button className="btn btn-ghost" type="button" onClick={() => { resetAnswers(); setShowRestoreModal(false); }} style={{ width: "100%" }}>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => {
+                  resetAnswers();
+                  setShowRestoreModal(false);
+                  // Firestore 답변도 초기화 — 로컬만 지우면 다음 로드 때 재수화되어 초기화가 무효화됨
+                  if (user && activeTeamId) {
+                    updateDoc(doc(db, "teams", activeTeamId, "members", user.uid), { answers: {}, progress: 0 })
+                      .catch(console.error);
+                  }
+                }}
+                style={{ width: "100%" }}
+              >
                 새로 시작하기 (답변 초기화)
               </button>
             </div>

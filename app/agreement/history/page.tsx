@@ -8,6 +8,7 @@ import { Footer } from "../../../components/Footer";
 import { useUserProfile } from "../../../components/useUserProfile";
 import { useTeams } from "../../../components/useTeams";
 import { useAgreements } from "../../../components/useAgreements";
+import { isPremium } from "../../../lib/premium";
 import { FileText, GitCompare } from "lucide-react";
 import type { Timestamp } from "firebase/firestore";
 
@@ -23,7 +24,7 @@ function AgreementHistoryInner() {
   const teamId = queryTeamId || profile?.lastActiveTeamId || profile?.teamIds?.[0] || teams[0]?.id;
 
   useEffect(() => {
-    if (!profileLoading && profile && profile.plan !== "premium") {
+    if (!profileLoading && profile && !isPremium(profile)) {
       router.replace("/agreement/preview");
     }
   }, [profile, profileLoading, router]);

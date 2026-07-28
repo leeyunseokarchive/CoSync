@@ -104,19 +104,12 @@ export default function WorkspaceCreatePage() {
 
   const handleCreate = async () => {
     if (!user) return;
-    setCreateLoading(true);
-    try {
-      const teamIds = profile?.teamIds || [];
-      if (teamIds.length > 0) {
-        setShowCopyModal(true);
-        setCreateLoading(false);
-        return;
-      }
-      await executeCreate(false);
-    } catch (e) {
-      console.error(e);
-      setCreateLoading(false);
+    const teamIds = profile?.teamIds || [];
+    if (teamIds.length > 0) {
+      setShowCopyModal(true);
+      return;
     }
+    await executeCreate(false);
   };
 
   const handleCopyAndCreate = async () => {
@@ -133,7 +126,9 @@ export default function WorkspaceCreatePage() {
       }
       await executeCreate(true, prevAnswers, prevProgress);
     } catch (e) {
+      // executeCreate는 내부에서 에러를 처리하므로 여기는 getDoc 실패만 도달
       console.error(e);
+      alert("팀 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       setCreateLoading(false);
     }
   };
@@ -141,6 +136,7 @@ export default function WorkspaceCreatePage() {
   const executeCreate = async (copyAnswers: boolean, customAnswers?: any, customProgress?: number) => {
     if (!user) return;
     setCreateLoading(true);
+    try {
 
     let finalAnswers: any = {};
     let finalProgress = 0;
@@ -195,13 +191,18 @@ export default function WorkspaceCreatePage() {
 
     setActiveTeams(activeTeams + 1);
     setActiveSessions(activeSessions + 1);
-    setCreateLoading(false);
     setShowCopyModal(false);
 
     if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
       router.push(`/onboarding/diagnosis?teamId=${teamRef.id}`);
     } else {
       router.push(`/session?teamId=${teamRef.id}`);
+    }
+    } catch (e) {
+      console.error(e);
+      alert("팀 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setCreateLoading(false);
     }
   };
 

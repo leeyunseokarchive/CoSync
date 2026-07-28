@@ -74,6 +74,29 @@
 - **hosting**: `npm run build` 완료(out/ 최신), `npx firebase deploy --only hosting`만 실행하면 됨 (에이전트 권한 차단으로 사용자 직접 실행).
 - 배포 후 테스터 재테스트 요청 필요. 테스터의 기존 좀비 계정은 재가입 시도 시 복구 경로로 살아남.
 
+## 4.6. Hotfix 2차 — 전체 감사 후 수정 (2026-07-28)
+
+3개 서브에이전트 감사에서 나온 이슈 중 서버(Functions) 없이 고칠 수 있는 것 일괄 수정. **미커밋·미배포** (working tree).
+
+수정 내역:
+- **firestore.rules** — teams `get`(로그인 사용자)/`list`(멤버만) 분리 → 초대 가입 흐름의 permission-denied 해소(가입 기능 자체가 죽어 있었음). 비멤버 self-join은 members 필드만 변경 가능하도록 제한. inviteCodes list 차단(코드 열거→임의 팀 가입 공격 봉쇄)·create/delete는 해당 팀 멤버만. earlybird read 차단(이메일 PII). agreements update에 "본인 confirmation만 추가 가능 + confirmed 전환은 전원 서명 시만" 강제, pending 삭제 허용.
+- **workspace/page.tsx** — 가입 검색/트랜잭션/후처리 try/catch, archived 팀 가입 차단.
+- **team-setting-client.tsx** — 팀 나가기 순서 수정(집계 재계산→member 문서 삭제→members 제거→users 정리, 기존엔 member 문서 삭제가 항상 규칙 거부됨), lastActiveTeamId 정리, 팀 삭제 시 초대코드 삭제.
+- **lib/consensus.ts** — vote() 정족수를 트랜잭션 내 team.members 기준으로(늦게 합류한 멤버 무시 버그), finalizeAgreement() 결정적 ID `v{n}`+트랜잭션(중복 버전 방지), discardPendingAgreement() 추가(pending 파기 경로 — 기존엔 낡은 pending 확정 외 진행 불가), dead code confirmAgreement 삭제.
+- **agreement/confirm** — 파기 버튼 추가. consensus/agreement 4페이지 프리미엄 게이트를 isPremium()으로 통일.
+- **DiagnosisSyncOnLogin** — pending 플래그를 동기화 성공 후 삭제(실패 시 유실 방지), 답변 있는 팀은 덮어쓰지 않음(로그인이 기존 팀 답변 클로버하던 버그).
+- **diagnosis/page** — 복원 모달을 goTo 복귀·로그인+팀 보유 시 생략(심화 진단 진입 시 "새로 시작하기" 오클릭→전체 삭제 함정), "새로 시작하기"가 Firestore 답변도 삭제.
+- **complete/page** — 뒤로가기 URL teamId 유지, handleContinueAdvanced에 setDoc(merge) 폴백.
+- **workspace/create** — executeCreate try/catch/finally(모달 버튼 영구 잠김 버그).
+
+검증: `npx tsc --noEmit` 0 errors, `npm run build` 22 라우트 ✓. 테스트 러너 없음.
+
+**남은 배포**: `npx firebase deploy --only firestore:rules` → `npx firebase deploy --only hosting` (에이전트 권한 차단, 사용자 직접 실행. 새 규칙은 구 코드와도 호환 — 규칙 먼저 배포해도 안전).
+
+**의도적으로 안 고침 (구조적 — Functions 필요)**: 팀 집계(progress/gapScore) read-modify-write 레이스, 프리미엄의 데이터 레이어 강제, consensus 문서 위조 방지 규칙(투표 shape 검증 — 규칙 복잡도 대비 팀 내부 위협이라 보류), 공용 PC localStorage 오염(#가입 시 이전 익명 답변 승계 문제 — 휴리스틱으로 구분 불가).
+
+잔여물: `git stash stash@{0}` — 에이전트 작업 중간본 백업, 현재 트리가 최신이므로 `git stash drop` 안전.
+
 ## 5. 알려진 이슈 / 미해결
 
 - **visual 미검증**: 실제 브라우저 스크린샷 못 찍음. `scripts/capture-screenshots.mjs`가 로그인/데이터에 firestore 에뮬레이터를 쓰는데, 에뮬레이터가 **JDK 21+** 요구 → 이 환경에 없음. 로컬에서 JDK 21 설치 후 `firebase emulators:start --only auth,firestore` + `node scripts/seed.ts` + `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=1 npm run dev` → `node scripts/capture-screenshots.mjs`로 확인 가능.

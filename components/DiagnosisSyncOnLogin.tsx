@@ -37,20 +37,30 @@ export function DiagnosisSyncOnLogin() {
     const teamIds = profile.teamIds || [];
     if (teamIds.length === 0) return;
 
-    localStorage.removeItem("cosync-pending-save");
-
     const sync = async () => {
       const saved = localStorage.getItem("cosync-state");
-      if (!saved) return;
+      if (!saved) {
+        localStorage.removeItem("cosync-pending-save");
+        return;
+      }
       const state = JSON.parse(saved) as Record<string, string>;
 
       const answerUpdates = Object.fromEntries(
         ANSWER_KEYS.filter(k => state[k]).map(k => [`answers.${k}`, state[k]])
       );
-      if (!Object.keys(answerUpdates).length) return;
+      if (!Object.keys(answerUpdates).length) {
+        localStorage.removeItem("cosync-pending-save");
+        return;
+      }
 
+      let wroteAny = false;
       for (const teamId of teamIds) {
         const memberDocRef = doc(db, "teams", teamId, "members", user.uid);
+
+        // 이미 답변이 있는 팀은 건너뜀 — 로그인이 기존 답변을 덮어쓰지 않도록
+        const existing = await getDoc(memberDocRef);
+        const existingAnswers = existing.exists() ? (existing.data().answers ?? {}) : {};
+        if (Object.keys(existingAnswers).length > 0) continue;
 
         await setDoc(memberDocRef, {
           name: profile.name || user.displayName || "팀원",
@@ -65,9 +75,12 @@ export function DiagnosisSyncOnLogin() {
         const { gapCount, gapScore } = computeGapSummary(memberAnswers);
         const teamProgress = computeTeamProgress(memberDocs);
         await updateDoc(doc(db, "teams", teamId), { progress: teamProgress, gapCount, gapScore });
+        wroteAny = true;
       }
 
-      setToast("이전 진단 결과가 저장되었습니다");
+      // 동기화 성공 후에만 플래그 제거 — 실패 시 다음 마운트에서 자연 재시도
+      localStorage.removeItem("cosync-pending-save");
+      if (wroteAny) setToast("이전 진단 결과가 저장되었습니다");
     };
 
     sync().catch(console.error);

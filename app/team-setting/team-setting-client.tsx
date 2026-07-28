@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { arrayRemove, deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { arrayRemove, collection, deleteDoc, deleteField, doc, getDoc, getDocs, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { computeGapSummary, type OnboardingAnswers } from "../../lib/gap";
+import { computeTeamProgress } from "../../lib/teamProgress";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { useAuth } from "../../components/AuthContext";
@@ -137,24 +139,54 @@ export function TeamSettingClient() {
   const handleDeleteTeam = async () => {
     if (!teamId) return;
     if (!confirm("팀을 삭제하면 복구할 수 없습니다. 계속하시겠습니까?")) return;
-    await updateDoc(doc(db, "teams", teamId), {
-      status: "archived",
-      archivedAt: serverTimestamp()
-    });
-    router.push("/workspace");
+    try {
+      // 초대 코드 삭제는 멤버 권한이 필요하므로 아카이브 전에 수행
+      if (team?.inviteCode) {
+        await deleteDoc(doc(db, "inviteCodes", team.inviteCode));
+      }
+      await updateDoc(doc(db, "teams", teamId), {
+        status: "archived",
+        archivedAt: serverTimestamp()
+      });
+      router.push("/workspace");
+    } catch (e) {
+      console.error(e);
+      alert("팀 삭제 처리 중 오류가 발생했습니다.");
+    }
   };
 
   const handleLeaveTeam = async () => {
     if (!teamId || !user) return;
     if (!confirm("이 팀에서 나가시겠습니까?")) return;
-    await updateDoc(doc(db, "teams", teamId), {
-      members: arrayRemove(user.uid)
-    });
-    await updateDoc(doc(db, "users", user.uid), {
-      teamIds: arrayRemove(teamId)
-    });
-    await deleteDoc(doc(db, "teams", teamId, "members", user.uid));
-    router.push("/workspace");
+    try {
+      // 멤버 문서 삭제/집계 갱신은 아직 members 배열에 남아있을 때만 허용됨
+      const membersSnapshot = await getDocs(collection(db, "teams", teamId, "members"));
+      const remainingDocs = membersSnapshot.docs.filter((memberDoc) => memberDoc.id !== user.uid).map((memberDoc) => memberDoc.data());
+      if (remainingDocs.length > 0) {
+        const memberAnswers = remainingDocs.map((data) => (data.answers ?? {}) as OnboardingAnswers);
+        const { gapCount, gapScore } = computeGapSummary(memberAnswers);
+        await updateDoc(doc(db, "teams", teamId), {
+          progress: computeTeamProgress(remainingDocs),
+          gapCount,
+          gapScore
+        });
+      }
+      await deleteDoc(doc(db, "teams", teamId, "members", user.uid));
+      await updateDoc(doc(db, "teams", teamId), {
+        members: arrayRemove(user.uid)
+      });
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      const userUpdate: Record<string, unknown> = { teamIds: arrayRemove(teamId) };
+      if (userSnap.data()?.lastActiveTeamId === teamId) {
+        userUpdate.lastActiveTeamId = deleteField();
+      }
+      await updateDoc(userRef, userUpdate as any);
+      router.push("/workspace");
+    } catch (e) {
+      console.error(e);
+      alert("팀 나가기 처리 중 오류가 발생했습니다.");
+    }
   };
 
   return (

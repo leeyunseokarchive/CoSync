@@ -47,6 +47,12 @@ function DiagnosisCompletePageInner() {
           salaryStructure, equityStructure, profitDistribution, growthStrategy
         };
         const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
+        await setDoc(memberDocRef, {
+          name: profile?.name || user.displayName || "팀원",
+          role: role || "MEMBER",
+          status: "active",
+          progress,
+        }, { merge: true });
         const answerUpdates = Object.fromEntries(
           Object.entries(answers).filter(([, v]) => v !== "").map(([k, v]) => [`answers.${k}`, v])
         );
@@ -54,7 +60,7 @@ function DiagnosisCompletePageInner() {
           await updateDoc(memberDocRef, answerUpdates);
         }
       }
-      const url = activeTeamId 
+      const url = activeTeamId
         ? `/onboarding/diagnosis?teamId=${activeTeamId}&goTo=q13`
         : "/onboarding/diagnosis?goTo=q13";
       router.push(url);
@@ -121,7 +127,9 @@ function DiagnosisCompletePageInner() {
         <button
           className="diag-complete-back"
           type="button"
-          onClick={() => router.push("/onboarding/diagnosis?goTo=q12")}
+          onClick={() => router.push(activeTeamId
+            ? `/onboarding/diagnosis?teamId=${activeTeamId}&goTo=q12`
+            : "/onboarding/diagnosis?goTo=q12")}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>

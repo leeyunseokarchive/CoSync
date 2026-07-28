@@ -11,6 +11,7 @@ import { useTeamMembers } from "../../../components/useTeamMembers";
 import { useAgreements } from "../../../components/useAgreements";
 import { groupByChapter } from "../../../lib/agreementClauses";
 import { ANNEX_CLAUSES } from "../../../lib/annexClauses";
+import { isPremium } from "../../../lib/premium";
 import { Printer, History } from "lucide-react";
 import type { Timestamp } from "firebase/firestore";
 
@@ -37,7 +38,7 @@ function AgreementDocumentInner() {
   const versionParam = searchParams ? searchParams.get("version") : null;
 
   useEffect(() => {
-    if (!profileLoading && profile && profile.plan !== "premium") {
+    if (!profileLoading && profile && !isPremium(profile)) {
       router.replace("/agreement/preview");
     }
   }, [profile, profileLoading, router]);
