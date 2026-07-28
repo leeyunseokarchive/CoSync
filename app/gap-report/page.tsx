@@ -14,7 +14,7 @@ import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { QUESTION_DEFS, SCRIPTS, generateInsight } from "../../lib/deepQuestions";
+import { QUESTION_DEFS, SCRIPTS, generateInsight, type QuestionDef } from "../../lib/deepQuestions";
 import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";

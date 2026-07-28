@@ -1,7 +1,7 @@
 # CoSync 합의서·계약서 기능 — 진행 상황 (Process / Handoff)
 
 > 목적: 심층질문 → 전문 합의안 → 주주간계약서(SHA) 조항 초안까지 이어지는 기능을 단계적으로 구현. 이 문서는 다음 세션이 이어서 작업할 수 있게 결정·완료·다음 할 일을 정리한다.
-> 최종 갱신: 2026-07-24 (Phase 1 완료 후)
+> 최종 갱신: 2026-07-28 (테스터 회원가입 버그 hotfix 후)
 
 ## 1. 큰 그림 (비전)
 
@@ -56,6 +56,23 @@
 - [app/agreement/document/page.tsx](../../app/agreement/document/page.tsx) — 렌더. `renderWithBlanks(body)`가 `[...]` 토큰을 `.doc-blank` 회색으로 표시.
 
 검증: 테스트 6/6, `npx tsc --noEmit` 0, `npm run build` 22 라우트 ✓, 4 태스크 리뷰 + whole-branch 리뷰 all approved.
+
+## 4.5. Hotfix — 테스터 회원가입/완료 버튼 버그 (2026-07-28)
+
+테스터(김도현) 피드백: 가입 실패 → "이미 존재하는 아이디" → 로그인 불가 → 새로고침하면 로그인됨 → 진단 '완료' 버튼 무반응.
+
+**근본 원인 하나**: `firestore.rules`의 users create 규칙이 `subscriptionStatus == 'none'` 요구, 가입 코드는 `"expired"` 기록 → **모든 신규 가입에서 프로필 문서 생성 거부**. Auth 계정만 생기고(자동 로그인 세션 포함) users 문서 없는 "좀비 계정" 발생. '완료' 버튼은 없는 문서에 `updateDoc` → not-found throw, try/catch 없어 무반응.
+
+수정 (미커밋 — working tree):
+- `firestore.rules` — create/update 규칙을 코드 실제 값(`"expired"`)에 맞춤. 프리미엄 자가 부여 차단 유지(`plan=='free'`, `status!='active'`). `resource.data.get()` 기본값 사용으로 레거시 문서 lazy migration(`useUserProfile.ts`)도 통과.
+- `app/register/page.tsx` — 이미 로그인된 동일 이메일이면 createUser 생략, users 문서 없을 때만 생성 후 진행 (좀비 계정 복구 경로).
+- `app/onboarding/diagnosis/page.tsx` — `handleFinish`/`handleSaveAndProceed`에 try/catch+alert, users 쓰기 `updateDoc`→`setDoc(merge)` (문서 없어도 생성).
+- `app/gap-report/page.tsx` — 빌드 깨뜨리던 `QuestionDef` import 누락 fix (기존 버그).
+
+배포 상태:
+- **rules 배포 완료** ✔ (`npx firebase deploy --only firestore:rules` — 이전 세션에서 미배포였던 것 이번에 성공. 라이브 규칙이 구버전이었음)
+- **hosting**: `npm run build` 완료(out/ 최신), `npx firebase deploy --only hosting`만 실행하면 됨 (에이전트 권한 차단으로 사용자 직접 실행).
+- 배포 후 테스터 재테스트 요청 필요. 테스터의 기존 좀비 계정은 재가입 시도 시 복구 경로로 살아남.
 
 ## 5. 알려진 이슈 / 미해결
 

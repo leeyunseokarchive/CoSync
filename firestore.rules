@@ -15,10 +15,10 @@ service cloud.firestore {
       // If resource == null (create), they shouldn't set plan to premium.
       allow create: if isSignedIn() && request.auth.uid == userId
                     && request.resource.data.get('plan', 'free') == 'free'
-                    && request.resource.data.get('subscriptionStatus', 'none') == 'none';
+                    && request.resource.data.get('subscriptionStatus', 'expired') != 'active';
       allow update: if isSignedIn() && request.auth.uid == userId
-                    && request.resource.data.get('plan', 'free') == resource.data.plan
-                    && request.resource.data.get('subscriptionStatus', 'none') == resource.data.subscriptionStatus;
+                    && request.resource.data.get('plan', 'free') == resource.data.get('plan', 'free')
+                    && request.resource.data.get('subscriptionStatus', 'expired') == resource.data.get('subscriptionStatus', 'expired');
     }
 
     match /teams/{teamId} {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
@@ -79,9 +79,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-      await setDoc(doc(db, "users", cred.user.uid), {
+      const profileData = {
         name,
         email,
         department,
@@ -91,7 +89,20 @@ export default function RegisterPage() {
         plan: "free",
         subscriptionStatus: "expired",
         createdAt: serverTimestamp(),
-      });
+      };
+      // 이전 시도에서 계정은 생성됐지만 프로필 저장에 실패한 경우 복구
+      const current = auth.currentUser;
+      if (current && current.email === email) {
+        const ref = doc(db, "users", current.uid);
+        if (!(await getDoc(ref)).exists()) {
+          await setDoc(ref, profileData);
+        }
+        router.push("/workspace");
+        return;
+      }
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+      await setDoc(doc(db, "users", cred.user.uid), profileData);
       router.push("/workspace");
     } catch (err) {
       const code = (err as { code?: string })?.code;

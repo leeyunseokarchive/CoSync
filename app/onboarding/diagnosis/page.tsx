@@ -643,6 +643,7 @@ function OnboardingDiagnosisPageInner() {
       decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
       salaryStructure, equityStructure, profitDistribution, growthStrategy
     };
+    try {
     if (activeTeamId) {
       const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
       await setDoc(memberDocRef, {
@@ -669,6 +670,10 @@ function OnboardingDiagnosisPageInner() {
       dest = `${destination}?teamId=${activeTeamId}`;
     }
     router.push(dest);
+    } catch (e) {
+      console.error(e);
+      alert("진단 결과 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   const handleContinueAdvanced = () => {
@@ -706,6 +711,7 @@ function OnboardingDiagnosisPageInner() {
       profitDistribution,
       growthStrategy
     };
+    try {
     if (activeTeamId) {
       const memberDocRef = doc(db, "teams", activeTeamId, "members", user.uid);
       await setDoc(
@@ -735,12 +741,17 @@ function OnboardingDiagnosisPageInner() {
         gapScore
       });
     }
-    await updateDoc(doc(db, "users", user.uid), {
+    // ponytail: setDoc merge — 프로필 문서가 없는 계정(가입 중 저장 실패)도 여기서 복구
+    await setDoc(doc(db, "users", user.uid), {
       department,
       role,
       updatedAt: serverTimestamp()
-    });
+    }, { merge: true });
     router.push(activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace");
+    } catch (e) {
+      console.error(e);
+      alert("진단 결과 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
 
