@@ -2,42 +2,80 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
 
+const TOTAL_STEPS = 5;
+
+const EyeOpen = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const EyeClosed = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7.5-9.5 15 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export default function RegisterPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { department, role, progress } = useAppState();
 
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setError("");
+    const refs: Record<number, React.RefObject<HTMLInputElement | null>> = {
+      1: nameRef, 2: emailRef, 3: passwordRef, 4: confirmRef,
+    };
+    const timer = setTimeout(() => refs[step]?.current?.focus(), 60);
+    return () => clearTimeout(timer);
+  }, [step]);
+
+  const validate = (): boolean => {
+    if (step === 1 && !name.trim()) { setError("이름을 입력해주세요."); return false; }
+    if (step === 2) {
+      if (!email.trim()) { setError("이메일을 입력해주세요."); return false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("올바른 이메일 형식이 아닙니다."); return false; }
+    }
+    if (step === 3 && password.length < 8) { setError("비밀번호는 8자 이상이어야 합니다."); return false; }
+    if (step === 4 && password !== confirm) { setError("비밀번호가 일치하지 않습니다."); return false; }
+    return true;
+  };
+
+  const goNext = () => {
+    if (validate()) { setError(""); setStep(s => s + 1); }
+  };
+
+  const goBack = () => {
+    setError("");
+    setStep(s => s - 1);
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password) {
-      setError("필수 항목을 모두 입력해주세요.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("비밀번호가 일치하지 않습니다.");
-      return;
-    }
-    if (!agreeTerms || !agreePrivacy) {
-      setError("필수 약관에 모두 동의해주세요.");
-      return;
-    }
+    if (!agreeTerms || !agreePrivacy) { setError("필수 약관에 모두 동의해주세요."); return; }
     setLoading(true);
     setError("");
     try {
@@ -52,7 +90,7 @@ export default function RegisterPage() {
         teamIds: [],
         plan: "free",
         subscriptionStatus: "expired",
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
       router.push("/workspace");
     } catch (err) {
@@ -61,8 +99,10 @@ export default function RegisterPage() {
         setError("이미 사용 중인 이메일입니다. 로그인해 주세요.");
       } else if (code === "auth/invalid-email") {
         setError("이메일 형식이 올바르지 않습니다.");
+        setStep(2);
       } else if (code === "auth/weak-password") {
         setError("비밀번호가 너무 약합니다. 8자 이상으로 설정해주세요.");
+        setStep(3);
       } else {
         setError("회원가입에 실패했습니다. 다시 시도해주세요.");
       }
@@ -73,148 +113,199 @@ export default function RegisterPage() {
 
   return (
     <main className="page auth-page">
-      <section className="center-card auth-card">
-        <Link className="back-arrow auth-back" href="/login">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none">
-            <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </Link>
-        <h1>회원가입</h1>
-        <p className="auth-sub">
-          이미 계정이 있으신가요? <Link href="/login">로그인</Link>
-        </p>
-
-        <form className="form-grid" onSubmit={(e) => { e.preventDefault(); handleRegister(); }}>
-          <label className="label" htmlFor="name-input">이름</label>
-          <input
-            id="name-input"
-            className="input"
-            placeholder="성함을 입력하세요"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-
-          <label className="label" htmlFor="email-input">이메일 주소</label>
-          <input
-            id="email-input"
-            className="input"
-            placeholder="example@cosync.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-
-          <label className="label" htmlFor="password-input">비밀번호</label>
-          <div className="password-row">
-            <input
-              id="password-input"
-              className="input"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-            <button
-              className="eye-btn"
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
-            >
-              {showPassword ? (
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7.5-9.5 15 11"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
+      <section className="center-card auth-card wizard-card">
+        <div className="wizard-header">
+          {step > 1 ? (
+            <button className="wizard-back-btn" type="button" onClick={goBack} aria-label="이전 단계">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
+          ) : (
+            <Link className="wizard-back-btn" href="/login" aria-label="로그인으로 이동">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          )}
+          <div className="wizard-progress">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <div
+                key={i}
+                className={`wizard-dot${i + 1 < step ? " done" : ""}${i + 1 === step ? " active" : ""}`}
+              />
+            ))}
           </div>
-          <div className="hint">✓ 최소 8자 이상, 영문/숫자 포함</div>
+          <div className="wizard-spacer" />
+        </div>
 
-          <label className="label">비밀번호 확인</label>
-          <div className="password-row">
-            <input
-              className="input"
-              type={showConfirm ? "text" : "password"}
-              placeholder="••••••••"
-              value={confirm}
-              onChange={(event) => setConfirm(event.target.value)}
-            />
-            <button
-              className="eye-btn"
-              type="button"
-              onClick={() => setShowConfirm((prev) => !prev)}
-              aria-label={showConfirm ? "비밀번호 숨기기" : "비밀번호 표시"}
-            >
-              {showConfirm ? (
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7.5-9.5 15 11"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Zm9 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+        <div className="wizard-body" key={step}>
+        <form onSubmit={e => { e.preventDefault(); goNext(); }}>
+          {step === 1 && (
+            <>
+              <p className="wizard-step-label">1 / {TOTAL_STEPS}</p>
+              <h1 className="wizard-question">성함이 어떻게 되세요?</h1>
+              <input
+                ref={nameRef}
+                className="input wizard-input"
+                placeholder="이름 입력"
+                value={name}
+                autoComplete="name"
+                onChange={e => setName(e.target.value)}
+              />
+              {error && <div className="error-text">{error}</div>}
+              <button className="btn btn-primary full wizard-btn" type="submit" disabled={!name.trim()}>
+                다음 →
+              </button>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <p className="wizard-step-label">2 / {TOTAL_STEPS}</p>
+              <h1 className="wizard-question">이메일 주소를 알려주세요</h1>
+              <input
+                ref={emailRef}
+                className="input wizard-input"
+                type="email"
+                placeholder="example@cosync.com"
+                value={email}
+                autoComplete="email"
+                onChange={e => setEmail(e.target.value)}
+              />
+              {error && <div className="error-text">{error}</div>}
+              <button className="btn btn-primary full wizard-btn" type="submit" disabled={!email.trim()}>
+                다음 →
+              </button>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <p className="wizard-step-label">3 / {TOTAL_STEPS}</p>
+              <h1 className="wizard-question">비밀번호를 설정해주세요</h1>
+              <div className="password-row">
+                <input
+                  ref={passwordRef}
+                  className="input wizard-input"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="8자 이상"
+                  value={password}
+                  autoComplete="new-password"
+                  onChange={e => setPassword(e.target.value)}
+                />
+                <button
+                  className="eye-btn"
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  aria-label="비밀번호 표시 전환"
+                >
+                  {showPassword ? <EyeClosed /> : <EyeOpen />}
+                </button>
+              </div>
+              <div className="hint">✓ 최소 8자 이상, 영문/숫자 포함</div>
+              {error && <div className="error-text">{error}</div>}
+              <button className="btn btn-primary full wizard-btn" type="submit" disabled={password.length < 8}>
+                다음 →
+              </button>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <p className="wizard-step-label">4 / {TOTAL_STEPS}</p>
+              <h1 className="wizard-question">비밀번호를 한 번 더 입력해주세요</h1>
+              <div className="password-row">
+                <input
+                  ref={confirmRef}
+                  className="input wizard-input"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="비밀번호 재입력"
+                  value={confirm}
+                  autoComplete="new-password"
+                  onChange={e => setConfirm(e.target.value)}
+                />
+                <button
+                  className="eye-btn"
+                  type="button"
+                  onClick={() => setShowConfirm(p => !p)}
+                  aria-label="비밀번호 표시 전환"
+                >
+                  {showConfirm ? <EyeClosed /> : <EyeOpen />}
+                </button>
+              </div>
+              {confirm && (
+                password === confirm
+                  ? <div className="hint wizard-match-hint">✓ 비밀번호가 일치합니다</div>
+                  : <div className="error-text">비밀번호가 일치하지 않습니다.</div>
               )}
-            </button>
-          </div>
+              {error && <div className="error-text">{error}</div>}
+              <button className="btn btn-primary full wizard-btn" type="submit" disabled={!confirm || password !== confirm}>
+                다음 →
+              </button>
+            </>
+          )}
 
-          {error && <div className="error-text">{error}</div>}
-
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-            />
-            <span>
-              <em className="req">(필수)</em>{" "}
-              <button type="button" className="terms-link" onClick={() => setShowTermsModal(true)}>서비스 이용약관</button>에 동의합니다.
-            </span>
-          </label>
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={agreePrivacy}
-              onChange={(e) => setAgreePrivacy(e.target.checked)}
-            />
-            <span>
-              <em className="req">(필수)</em>{" "}
-              <button type="button" className="terms-link" onClick={() => setShowPrivacyModal(true)}>개인정보 수집 및 이용</button>에 동의합니다.
-            </span>
-          </label>
-        <button className="btn btn-primary full" type="submit" disabled={loading}>
-          {loading ? "계정 생성 중..." : "계정 만들기 →"}
-        </button>
+          {step === 5 && (
+            <>
+              <p className="wizard-step-label">5 / {TOTAL_STEPS}</p>
+              <h1 className="wizard-question">약관에 동의해주세요</h1>
+              <div className="wizard-terms-list">
+                <div
+                  className={`wizard-terms-item${agreeTerms ? " agreed" : ""}`}
+                  onClick={() => setAgreeTerms(p => !p)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => (e.key === " " || e.key === "Enter") && setAgreeTerms(p => !p)}
+                >
+                  <div className="wizard-terms-check">{agreeTerms ? "✓" : ""}</div>
+                  <span className="wizard-terms-text">
+                    <em className="req">(필수)</em> 서비스 이용약관
+                  </span>
+                  <button
+                    type="button"
+                    className="terms-link"
+                    onClick={e => { e.stopPropagation(); setShowTermsModal(true); }}
+                  >
+                    보기
+                  </button>
+                </div>
+                <div
+                  className={`wizard-terms-item${agreePrivacy ? " agreed" : ""}`}
+                  onClick={() => setAgreePrivacy(p => !p)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => (e.key === " " || e.key === "Enter") && setAgreePrivacy(p => !p)}
+                >
+                  <div className="wizard-terms-check">{agreePrivacy ? "✓" : ""}</div>
+                  <span className="wizard-terms-text">
+                    <em className="req">(필수)</em> 개인정보 수집 및 이용
+                  </span>
+                  <button
+                    type="button"
+                    className="terms-link"
+                    onClick={e => { e.stopPropagation(); setShowPrivacyModal(true); }}
+                  >
+                    보기
+                  </button>
+                </div>
+              </div>
+              {error && <div className="error-text">{error}</div>}
+              <button
+                className="btn btn-primary full wizard-btn"
+                type="button"
+                onClick={handleRegister}
+                disabled={loading || !agreeTerms || !agreePrivacy}
+              >
+                {loading ? "계정 생성 중..." : "계정 만들기 →"}
+              </button>
+              <p className="auth-sub" style={{ marginTop: 14, textAlign: "center" }}>
+                이미 계정이 있으신가요? <Link href="/login">로그인</Link>
+              </p>
+            </>
+          )}
         </form>
+        </div>
       </section>
       <Footer />
 

@@ -319,22 +319,27 @@ export default function WorkspaceHubPage() {
           <Link className="card workspace-card compact" href="/workspace/create">
             <div className="icon-box">+</div>
             <h3>새로운 팀 만들기</h3>
-            <p>새로운 비즈니스 가치를 창출하기 위한 첫걸음</p>
+            <p>팀 이름, 분야, 단계를 설정하고 진단을 시작하세요</p>
           </Link>
           <div className="card workspace-card compact">
             <h3>팀 코드로 참가하기</h3>
             <p>팀원에게 전달받은 초대코드를 입력하세요</p>
-            <div style={{ maxWidth: "280px", width: "100%", alignSelf: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <input
-                className="code-input"
-                value={teamCode}
-                onChange={(event) => setTeamCode(event.target.value)}
-                placeholder="예: HJM-LYS-JJH"
-              />
-              {joinHint && <div className="hint">{joinHint}</div>}
-              <button className="btn btn-primary" type="button" onClick={handleJoinSearch} style={{ width: "100%" }}>
-                참가하기
-              </button>
+            <div style={{ maxWidth: "320px", width: "100%", alignSelf: "center" }}>
+              <div className="code-input-row">
+                <input
+                  className="code-input"
+                  value={teamCode}
+                  onChange={(event) => setTeamCode(event.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleJoinSearch()}
+                  placeholder="예: HJM-LYS-JJH"
+                />
+                <button className="code-input-btn" type="button" onClick={handleJoinSearch} aria-label="참가하기">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              {joinHint && <div className="hint" style={{ marginTop: 8, textAlign: "center" }}>{joinHint}</div>}
             </div>
           </div>
         </div>
