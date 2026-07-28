@@ -288,7 +288,7 @@ export default function LandingPage() {
         <div className="container">
           <div className="section-header animate-fade-up">
             <h2 className="section-title">
-              공동창업 갈등은 감정 문제가 아니라<br />
+              창업팀 내 갈등은 감정 문제가 아니라<br />
               <span className="accent">기준 불일치가 만든 리스크</span>입니다.
             </h2>
             <p className="section-sub" style={{ marginTop: '16px' }}>
@@ -406,7 +406,7 @@ export default function LandingPage() {
               <div className="step-content">
                 <h4>기준 입력</h4>
                 <p>
-                  공동창업자 각자가 구조화된 질문에 답하며,<br className="mob-br" /> 역할과 보상, 이탈에 대한 기준을 정리합니다.
+                  창업팀 구성원 각자가 구조화된 질문에 답하며,<br className="mob-br" /> 역할과 보상, 이탈에 대한 기준을 정리합니다.
                 </p>
               </div>
             </div>
@@ -540,7 +540,7 @@ export default function LandingPage() {
             </div>
             <div className="diff-item delay-2">
               <h4>법률 서비스가 아닙니다</h4>
-              <p>다만 법률 전문가 자문을 바탕으로,<br className="mob-br" /> 공동창업팀 핵심 쟁점을 반영해 설계했습니다.</p>
+              <p>다만 법률 전문가 자문을 바탕으로,<br className="mob-br" /> 창업팀 핵심 쟁점을 반영해 설계했습니다.</p>
             </div>
           </div>
           <p className="diff-closing animate-fade-up delay-3">
@@ -557,7 +557,7 @@ export default function LandingPage() {
           <div className="faq-list">
             <div className="faq-item">
               <div className="faq-q">Q. CoSync는 지분만 다루는 서비스인가요?</div>
-              <div className="faq-a">A. 아닙니다. CoSync는 역할 & 책임, 지분 & 보상, 이탈 & 회수 등 총 6가지 핵심 기준으로 공동창업팀의 운영 전반을 다룹니다.</div>
+              <div className="faq-a">A. 아닙니다. CoSync는 역할 & 책임, 지분 & 보상, 이탈 & 회수 등 총 6가지 핵심 기준으로 창업팀의 운영 전반을 다룹니다.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 법적인 효력이 있는 계약서인가요?</div>
@@ -569,7 +569,7 @@ export default function LandingPage() {
             </div>
             <div className="faq-item">
               <div className="faq-q">Q. 팀원 한 명만 먼저 시작할 수 있나요?</div>
-              <div className="faq-a">A. 가능합니다. 먼저 본인의 기준을 정리한 뒤, 초대 링크를 통해 다른 공동창업자를 합류시킬 수 있습니다. 팀원 모두가 입력을 완료하면 비교와 조율이 시작됩니다.</div>
+              <div className="faq-a">A. 가능합니다. 먼저 본인의 기준을 정리한 뒤, 초대 링크를 통해 팀원을 합류시킬 수 있습니다. 팀원 모두가 입력을 완료하면 비교와 조율이 시작됩니다.</div>
             </div>
           </div>
         </div>
@@ -578,7 +578,7 @@ export default function LandingPage() {
       {/* 9. Final CTA */}
       <section className="section cta-section">
         <div className="container text-center animate-fade-up">
-          <h2 className="section-title">공동창업 기준, 지금 정리하십시오</h2>
+          <h2 className="section-title">창업팀 기준, 지금 정리하십시오</h2>
           <p className="section-sub mb-8 text-white-80">
             역할, 지분, 이탈 기준을 구두로 넘기지 말고 <br />
             우리 팀이 실제로 채택할 합의안 문서로 정리해 보세요.

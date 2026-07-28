@@ -8,57 +8,52 @@ import { useAppState } from "../../../components/AppState";
 import { addDoc, arrayUnion, collection, doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { generateInviteCode } from "../../../lib/team";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUserProfile } from "../../../components/useUserProfile";
 import { useTeams } from "../../../components/useTeams";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 
+const TOTAL_STEPS = 5;
+
+const INDUSTRIES = ["SaaS", "핀테크", "커머스", "콘텐츠", "바이오/헬스", "기타"];
+const MEMBER_OPTIONS = ["2명", "3-5명", "6-10명", "11명 이상"];
+const STAGE_OPTIONS = [
+  { value: "아이디어 단계", sub: "제품이 아직 없어요" },
+  { value: "초기 단계", sub: "제품을 만들거나 첫 고객을 찾고 있어요" },
+  { value: "성장 단계", sub: "고객이 늘고 매출이 나오고 있어요" },
+  { value: "스케일업", sub: "본격적으로 사업을 키우고 있어요" },
+];
+
 export default function WorkspaceCreatePage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const {
-    activeTeams,
-    activeSessions,
-    setActiveTeams,
-    setActiveSessions,
-    progress,
-    department,
-    role,
-    extraWorkPriority,
-    extraWorkPrinciple,
-    underperformanceAction,
-    exitRecoveryPriority,
-    exitCleanupTiming,
-    exitDisputeResolution,
-    exitVision,
-    pivotCriteria,
-    dealbreaker,
-    fundingRunway,
-    spendingApproval,
-    investmentCriteria,
-    decisionStructure,
-    decisionFailure,
-    actionVsConsensus,
-    deadlockTolerance,
-    salaryStructure,
-    equityStructure,
-    profitDistribution,
-    growthStrategy,
-    resetAnswers
+    activeTeams, activeSessions, setActiveTeams, setActiveSessions,
+    progress, department, role,
+    extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+    exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution, exitVision,
+    pivotCriteria, dealbreaker, fundingRunway, spendingApproval,
+    investmentCriteria, decisionStructure, decisionFailure, actionVsConsensus,
+    deadlockTolerance, salaryStructure, equityStructure, profitDistribution,
+    growthStrategy, resetAnswers,
   } = useAppState();
   const { profile } = useUserProfile();
+  const { teams } = useTeams();
+
+  const [step, setStep] = useState(1);
   const [teamName, setTeamName] = useState("");
-  const [industry, setIndustry] = useState("선택해주세요");
-  const [members, setMembers] = useState("선택해주세요");
-  const [stage, setStage] = useState("선택해주세요");
+  const [industry, setIndustry] = useState("");
+  const [industryCustom, setIndustryCustom] = useState("");
+  const [members, setMembers] = useState("");
+  const [stage, setStage] = useState("");
   const [showCopyModal, setShowCopyModal] = useState(false);
-  const [prevAnswers, setPrevAnswers] = useState<any>(null);
-  const [prevProgress, setPrevProgress] = useState(0);
   const [selectedSourceTeamId, setSelectedSourceTeamId] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState("");
-  const { teams } = useTeams();
+
+  const teamNameRef = useRef<HTMLInputElement>(null);
+  const industryCustomRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (teams && teams.length > 0 && !selectedSourceTeamId) {
@@ -67,32 +62,49 @@ export default function WorkspaceCreatePage() {
   }, [teams, selectedSourceTeamId]);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/register");
-    }
+    if (!loading && !user) router.push("/register");
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (step === 1) setTimeout(() => teamNameRef.current?.focus(), 60);
+    setError("");
+  }, [step]);
+
+  const goBack = () => setStep(s => s - 1);
+
+  const handleNameNext = () => {
+    if (!teamName.trim()) { setError("팀 이름을 입력해주세요."); return; }
+    setError("");
+    setStep(2);
+  };
+
+  const selectIndustry = (val: string) => {
+    setIndustry(val);
+    if (val === "기타") {
+      setTimeout(() => industryCustomRef.current?.focus(), 60);
+      return;
+    }
+    setTimeout(() => setStep(3), 220);
+  };
+
+  const confirmIndustryCustom = () => {
+    if (!industryCustom.trim()) return;
+    setStep(3);
+  };
+
+  const selectMembers = (val: string) => {
+    setMembers(val);
+    setTimeout(() => setStep(4), 220);
+  };
+
+  const selectStage = (val: string) => {
+    setStage(val);
+    setTimeout(() => setStep(5), 220);
+  };
 
   const handleCreate = async () => {
     if (!user) return;
-    if (!teamName.trim()) {
-      setError("팀 이름을 입력해주세요.");
-      return;
-    }
-    if (industry === "선택해주세요") {
-      setError("비즈니스 분야를 선택해주세요.");
-      return;
-    }
-    if (members === "선택해주세요") {
-      setError("팀원 수를 선택해주세요.");
-      return;
-    }
-    if (stage === "선택해주세요") {
-      setError("팀 단계를 선택해주세요.");
-      return;
-    }
-
     setCreateLoading(true);
-
     try {
       const teamIds = profile?.teamIds || [];
       if (teamIds.length > 0) {
@@ -100,7 +112,6 @@ export default function WorkspaceCreatePage() {
         setCreateLoading(false);
         return;
       }
-
       await executeCreate(false);
     } catch (e) {
       console.error(e);
@@ -139,26 +150,11 @@ export default function WorkspaceCreatePage() {
       finalProgress = customProgress || 0;
     } else if (!profile?.teamIds || profile.teamIds.length === 0) {
       finalAnswers = {
-        extraWorkPriority,
-        extraWorkPrinciple,
-        underperformanceAction,
-        exitRecoveryPriority,
-        exitCleanupTiming,
-        exitDisputeResolution,
-        exitVision,
-        pivotCriteria,
-        dealbreaker,
-        fundingRunway,
-        spendingApproval,
-        investmentCriteria,
-        decisionStructure,
-        decisionFailure,
-        actionVsConsensus,
-        deadlockTolerance,
-        salaryStructure,
-        equityStructure,
-        profitDistribution,
-        growthStrategy
+        extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+        exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution, exitVision,
+        pivotCriteria, dealbreaker, fundingRunway, spendingApproval,
+        investmentCriteria, decisionStructure, decisionFailure, actionVsConsensus,
+        deadlockTolerance, salaryStructure, equityStructure, profitDistribution, growthStrategy,
       };
       finalProgress = progress;
     } else {
@@ -170,24 +166,16 @@ export default function WorkspaceCreatePage() {
     const { gapCount, gapScore } = computeGapSummary([finalAnswers]);
     const teamProgress = computeTeamProgress([{ progress: finalProgress }]);
     const inviteCode = generateInviteCode();
-    
+
+    const finalIndustry = industry === "기타" && industryCustom ? industryCustom : industry;
     const teamRef = await addDoc(collection(db, "teams"), {
-      name: teamName,
-      industry,
-      memberCount: members,
-      stage,
-      inviteCode,
-      createdBy: user.uid,
-      members: [user.uid],
-      createdAt: serverTimestamp(),
-      progress: teamProgress,
-      gapCount,
-      gapScore
+      name: teamName, industry: finalIndustry, memberCount: members, stage,
+      inviteCode, createdBy: user.uid, members: [user.uid],
+      createdAt: serverTimestamp(), progress: teamProgress, gapCount, gapScore,
     });
 
     await setDoc(doc(db, "inviteCodes", inviteCode), {
-      teamId: teamRef.id,
-      createdAt: serverTimestamp()
+      teamId: teamRef.id, createdAt: serverTimestamp(),
     });
 
     await setDoc(
@@ -196,16 +184,13 @@ export default function WorkspaceCreatePage() {
         name: profile?.name || user.displayName || "팀원",
         role: role || profile?.role || "OWNER",
         department: department || "",
-        status: "active",
-        progress: finalProgress,
-        answers: finalAnswers
+        status: "active", progress: finalProgress, answers: finalAnswers,
       },
       { merge: true }
     );
 
     await updateDoc(doc(db, "users", user.uid), {
-      teamIds: arrayUnion(teamRef.id),
-      lastActiveTeamId: teamRef.id
+      teamIds: arrayUnion(teamRef.id), lastActiveTeamId: teamRef.id,
     });
 
     setActiveTeams(activeTeams + 1);
@@ -222,88 +207,175 @@ export default function WorkspaceCreatePage() {
 
   return (
     <main className="page auth-page">
-      <div className="container">
-        <Link className="back-arrow" href="/workspace">
-          ←
-        </Link>
-      </div>
-      <section className="center-card auth-card">
-        <h1>팀 생성하기</h1>
-        <p className="auth-sub">워크스페이스 정보를 입력하여 팀 구성을 완료하세요.</p>
-
-        <div className="form-grid">
-          <label className="label">팀 이름</label>
-          <input
-            className="input"
-            placeholder="회사 또는 팀 이름을 입력하세요"
-            value={teamName}
-            onChange={(event) => setTeamName(event.target.value)}
-          />
-
-          <label className="label">비즈니스 분야</label>
-          <div className="select-row">
-            <select className="input select" value={industry} onChange={(event) => setIndustry(event.target.value)}>
-              <option>선택해주세요</option>
-              <option>SaaS</option>
-              <option>핀테크</option>
-              <option>커머스</option>
-              <option>콘텐츠</option>
-              <option>바이오/헬스</option>
-              <option>기타</option>
-            </select>
+      <section className="center-card auth-card wizard-card">
+        <div className="wizard-header">
+          {step > 1 ? (
+            <button className="wizard-back-btn" type="button" onClick={goBack} aria-label="이전 단계">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          ) : (
+            <Link className="wizard-back-btn" href="/workspace" aria-label="워크스페이스로 이동">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          )}
+          <div className="wizard-progress">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <div
+                key={i}
+                className={`wizard-dot${i + 1 < step ? " done" : ""}${i + 1 === step ? " active" : ""}`}
+              />
+            ))}
           </div>
-
-          <div className="two-col">
-            <div>
-              <label className="label">팀원 수</label>
-              <div className="select-row">
-                <select className="input select" value={members} onChange={(event) => setMembers(event.target.value)}>
-                  <option>선택해주세요</option>
-                  <option>1-2명</option>
-                  <option>3-5명</option>
-                  <option>6-10명</option>
-                  <option>10명 이상</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="label">팀 단계</label>
-              <div className="select-row">
-                <select className="input select" value={stage} onChange={(event) => setStage(event.target.value)}>
-                  <option>선택해주세요</option>
-                  <option value="아이디어 단계">아이디어 단계</option>
-                  <option value="MVP 단계">MVP 단계</option>
-                  <option value="PMF 단계">PMF 단계</option>
-                  <option value="스케일업 단계">스케일업 단계</option>
-                </select>
-                {stage !== "선택해주세요" && (
-                  <p className="hint" style={{ marginTop: "6px" }}>
-                    {stage === "아이디어 단계" && "아직 제품이 없고 아이디어를 구체화하는 단계예요."}
-                    {stage === "MVP 단계" && "핵심 기능만 담은 첫 제품을 만들어 시장에 검증하는 단계예요."}
-                    {stage === "PMF 단계" && "제품이 시장에 맞는지 반복 실험하며 맞춰가는 단계예요."}
-                    {stage === "스케일업 단계" && "검증된 모델을 바탕으로 본격적으로 성장을 가속하는 단계예요."}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          <div className="wizard-spacer" />
         </div>
 
-        {error && <div className="error-text">{error}</div>}
+        <div className="wizard-body" key={step}>
 
-        <button className="btn btn-primary full" type="button" onClick={handleCreate}>
-          생성하기 →
-        </button>
+        {step === 1 && (
+          <form onSubmit={e => { e.preventDefault(); handleNameNext(); }}>
+            <p className="wizard-step-label">1 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">팀 이름이 어떻게 되나요?</h1>
+            <input
+              ref={teamNameRef}
+              className="input wizard-input"
+              placeholder="회사 또는 팀 이름"
+              value={teamName}
+              onChange={e => setTeamName(e.target.value)}
+            />
+            {error && <div className="error-text">{error}</div>}
+            <button className="btn btn-primary full wizard-btn" type="submit" disabled={!teamName.trim()}>
+              다음 →
+            </button>
+          </form>
+        )}
+
+        {step === 2 && (
+          <>
+            <p className="wizard-step-label">2 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">어떤 분야에서 창업하셨나요?</h1>
+            <div className="wizard-choice-grid cols-2">
+              {INDUSTRIES.map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  className={`wizard-choice-btn${industry === opt ? " selected" : ""}`}
+                  onClick={() => selectIndustry(opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            {industry === "기타" && (
+              <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
+                <input
+                  ref={industryCustomRef}
+                  className="input wizard-input"
+                  placeholder="분야를 직접 입력해주세요"
+                  value={industryCustom}
+                  onChange={e => setIndustryCustom(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && confirmIndustryCustom()}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={confirmIndustryCustom}
+                  disabled={!industryCustom.trim()}
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  다음 →
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <p className="wizard-step-label">3 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">팀 구성원이 몇 명인가요?</h1>
+            <div className="wizard-choice-grid cols-2">
+              {MEMBER_OPTIONS.map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  className={`wizard-choice-btn${members === opt ? " selected" : ""}`}
+                  onClick={() => selectMembers(opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
+            <p className="wizard-step-label">4 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">현재 어떤 단계에 있나요?</h1>
+            <div className="wizard-choice-grid cols-2">
+              {STAGE_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`wizard-choice-btn${stage === opt.value ? " selected" : ""}`}
+                  onClick={() => selectStage(opt.value)}
+                >
+                  {opt.value}
+                  <span className="choice-sub">{opt.sub}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <p className="wizard-step-label">5 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">이대로 팀을 생성할게요</h1>
+            <div className="wizard-summary">
+              <div className="wizard-summary-row">
+                <span className="summary-label">팀 이름</span>
+                <span className="summary-value">{teamName}</span>
+              </div>
+              <div className="wizard-summary-row">
+                <span className="summary-label">비즈니스 분야</span>
+                <span className="summary-value">{industry === "기타" && industryCustom ? industryCustom : industry}</span>
+              </div>
+              <div className="wizard-summary-row">
+                <span className="summary-label">구성원 수</span>
+                <span className="summary-value">{members}</span>
+              </div>
+              <div className="wizard-summary-row">
+                <span className="summary-label">단계</span>
+                <span className="summary-value">{stage}</span>
+              </div>
+            </div>
+            <button
+              className="btn btn-primary full wizard-btn"
+              type="button"
+              onClick={handleCreate}
+              disabled={createLoading}
+            >
+              {createLoading ? "생성 중..." : "팀 생성하기 →"}
+            </button>
+          </>
+        )}
+
+        </div>
       </section>
       <Footer />
+
       {showCopyModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <div className="modal-top">
               <div />
-              <button className="close" type="button" onClick={() => setShowCopyModal(false)}>
-                ✕
-              </button>
+              <button className="close" type="button" onClick={() => setShowCopyModal(false)}>✕</button>
             </div>
             <h2>이전 진단 결과 불러오기</h2>
             <p className="section-sub join-modal-sub" style={{ wordBreak: "keep-all", marginBottom: "16px" }}>
@@ -315,21 +387,14 @@ export default function WorkspaceCreatePage() {
                 <label style={{ fontSize: "12px", fontWeight: "bold", color: "#64748b" }}>답변을 가져올 팀 선택</label>
                 <select
                   value={selectedSourceTeamId}
-                  onChange={(e) => setSelectedSourceTeamId(e.target.value)}
+                  onChange={e => setSelectedSourceTeamId(e.target.value)}
                   style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
+                    width: "100%", padding: "10px 14px", borderRadius: "8px",
+                    border: "1px solid #cbd5e1", fontSize: "14px", outline: "none", backgroundColor: "#fff",
                   }}
                 >
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
+                  {teams.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
               </div>

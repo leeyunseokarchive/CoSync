@@ -50,7 +50,7 @@ function AgreementPreviewInner() {
           <div className="agreement-badge">PREMIUM</div>
           <h1 className="agreement-hero-title">합의안 만들기</h1>
           <p className="agreement-hero-sub">
-            공동창업자 간 운영 규칙을 문서로 만드는 과정입니다.
+            창업팀 운영 규칙을 문서로 만드는 과정입니다.
             <br />
             각자 독립적으로 작성한 뒤, 함께 확인하고 합의합니다.
           </p>
