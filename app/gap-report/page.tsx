@@ -84,13 +84,13 @@ const CLAUSE_DEFS: Record<string, ClauseDef> = {
 };
 
 
-const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[] }> = [
-  { label: "역할 & 책임",     fields: ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction"] },
-  { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"] },
-  { label: "비전 & 가치관",   fields: ["exitVision", "pivotCriteria", "dealbreaker"] },
-  { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"] },
-  { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"] },
-  { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"] },
+const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[]; why: string }> = [
+  { label: "역할 & 책임",     fields: ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction"],               why: "'이건 내가 해야 해, 네가 해야 해?' — 이 질문이 자주 나온다면 역할 기준이 없는 거예요. 기준이 맞으면 마찰 대신 실행에 에너지를 씁니다." },
+  { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"],               why: "팀에서 누군가 떠나는 건 드문 일이 아니에요. 기준이 있으면 그때가 와도 원칙대로 처리할 수 있지만, 없으면 감정이 개입되고 법적 분쟁으로 번질 수 있습니다." },
+  { label: "비전 & 가치관",   fields: ["exitVision", "pivotCriteria", "dealbreaker"],                                      why: "좋은 인수 제안이 들어왔을 때, 팀이 같은 답을 할까요? 비전은 평소엔 맞는 것 같다가, 결정적인 순간에 갈립니다." },
+  { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"],                          why: "런웨이 2개월, 투자도 없고 매출도 없다면 — 팀의 첫 번째 결정이 뭔지 지금 말할 수 있나요? 위기가 오기 전에만 이 대화가 쉽습니다." },
+  { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"],  why: "빠른 사람과 신중한 사람이 함께 일하면, 둘 다 상대가 문제라고 느껴요. 결정 방식을 맞춰본 팀과 그렇지 않은 팀은 실행 속도부터 달라집니다." },
+  { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"],      why: "말 안 해도 서로 기대하고 있는 게 지분과 보상이에요. 초기에 맞춰두지 않으면 매출이 나고 규모가 커질수록 이해관계가 벌어져, 나중엔 조율 비용이 훨씬 더 커집니다." },
 ];
 const FIELD_TO_DEF: Record<string, QuestionDef> = Object.fromEntries(QUESTION_DEFS.map(d => [d.field, d]));
 
@@ -128,7 +128,18 @@ function GapReportPageInner() {
     decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
     salaryStructure, equityStructure, profitDistribution, growthStrategy
   } = useAppState();
-  const soloAnswers: Partial<OnboardingAnswers> = {
+  const [firestoreSoloAnswers, setFirestoreSoloAnswers] = useState<Partial<OnboardingAnswers>>({});
+  useEffect(() => {
+    if (!user || activeTeamId) return;
+    getDoc(doc(db, "users", user.uid)).then(snap => {
+      if (snap.exists()) {
+        const data = snap.data() as { soloAnswers?: Partial<OnboardingAnswers> };
+        if (data.soloAnswers) setFirestoreSoloAnswers(data.soloAnswers);
+      }
+    }).catch(() => {});
+  }, [user, activeTeamId]);
+
+  const appStateSoloAnswers: Partial<OnboardingAnswers> = {
     extraWorkPriority, extraWorkPrinciple, underperformanceAction,
     exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution,
     exitVision, pivotCriteria, dealbreaker,
@@ -136,6 +147,9 @@ function GapReportPageInner() {
     decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
     salaryStructure, equityStructure, profitDistribution, growthStrategy
   };
+  const soloAnswers: Partial<OnboardingAnswers> = Object.values(appStateSoloAnswers).some(Boolean)
+    ? appStateSoloAnswers
+    : firestoreSoloAnswers;
   const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
   const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
 
@@ -367,9 +381,9 @@ function GapReportPageInner() {
           <div className="card" style={{ width: "100%", maxWidth: "640px", margin: "0 auto", padding: "32px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: "800", color: "#0f172a", marginBottom: "6px" }}>내 창업 기준 요약</h2>
             <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.6" }}>
-              팀원을 초대하면 서로의 기준 차이를 한눈에 비교할 수 있어요.
+              진단에서 선택한 내 기준이에요. 팀원이 완료하면 어떤 항목에서 기준이 다른지 자동으로 분석됩니다.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               {SOLO_CATEGORIES.map(cat => {
                 const answeredItems = cat.fields
                   .map(f => ({ field: f, def: FIELD_TO_DEF[f], val: soloAnswers[f] }))
@@ -380,7 +394,7 @@ function GapReportPageInner() {
                     <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0" }}>
                       <span style={{ fontSize: "12px", fontWeight: "700", color: "#475569", letterSpacing: "0.04em" }}>{cat.label}</span>
                     </div>
-                    <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
                       {answeredItems.map(item => (
                         <div key={item.field} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
                           <span style={{ fontSize: "13px", color: "#64748b" }}>{item.def.label}</span>
@@ -389,18 +403,25 @@ function GapReportPageInner() {
                           </span>
                         </div>
                       ))}
+                      <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px dashed #e2e8f0" }}>
+                        <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: "1.6", margin: 0, display: "flex", gap: "6px" }}>
+                          <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "2px" }} />
+                          <span>{cat.why}</span>
+                        </p>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "24px", textAlign: "center" }}>
-              <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <Lock size={13} />
-                비교 분석은 팀원이 완료해야 자동 생성됩니다
+            <div style={{ background: "rgba(91,91,231,0.05)", border: "1px solid rgba(91,91,231,0.15)", borderRadius: "12px", padding: "20px 24px", textAlign: "center" }}>
+              <p style={{ fontSize: "13px", color: "#475569", marginBottom: "14px", lineHeight: "1.6" }}>
+                혼자 보는 기준은 <strong>절반의 정보</strong>예요.<br />
+                팀 전체가 완료하면 어디서 인식이 다른지,<br />
+                <strong>갈등이 생기기 전에 미리 확인</strong>할 수 있어요.
               </p>
               <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
-                팀원 초대하고 갭 리포트 확인하기 →
+                팀 갭 리포트 무료로 받기 →
               </Link>
             </div>
           </div>

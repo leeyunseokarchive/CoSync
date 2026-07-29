@@ -38,7 +38,14 @@ export default function RegisterPage() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fromDiagnosis, setFromDiagnosis] = useState(false);
   const { department, role, progress } = useAppState();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("cosync-pending-save")) {
+      setFromDiagnosis(true);
+    }
+  }, []);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -154,12 +161,21 @@ export default function RegisterPage() {
         <form onSubmit={e => { e.preventDefault(); goNext(); }}>
           {step === 1 && (
             <>
+              {fromDiagnosis && (
+                <div className="register-diagnosis-banner">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                    <path d="M4 8.5L6.5 11L12 5.5" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="8" cy="8" r="6.5" stroke="#6366f1" strokeWidth="1.3"/>
+                  </svg>
+                  <span>진단 결과를 저장하고 팀원을 초대하려면 계정이 필요해요. 계정을 만들면 오늘 입력한 답변이 저장되고, 팀원과 갭 리포트를 받을 수 있어요.</span>
+                </div>
+              )}
               <p className="wizard-step-label">1 / {TOTAL_STEPS}</p>
-              <h1 className="wizard-question">성함이 어떻게 되세요?</h1>
+              <h1 className="wizard-question">어떻게 불러드릴까요?</h1>
               <input
                 ref={nameRef}
                 className="input wizard-input"
-                placeholder="이름 입력"
+                placeholder="이름 또는 닉네임"
                 value={name}
                 autoComplete="name"
                 onChange={e => setName(e.target.value)}

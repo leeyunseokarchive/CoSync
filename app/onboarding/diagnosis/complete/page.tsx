@@ -74,7 +74,12 @@ function DiagnosisCompletePageInner() {
 
   const handleSaveAndProceed = async (destination: string) => {
     if (isSaving) return;
-    if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
+    if (!user) {
+      if (destination === "/gap-report") { router.push("/gap-report"); return; }
+      localStorage.setItem("cosync-pending-save", "true");
+      router.push("/register");
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -107,6 +112,11 @@ function DiagnosisCompletePageInner() {
         const { gapCount, gapScore, rawScore } = computeGapSummary(memberAnswers);
         const teamProgress = computeTeamProgress(memberDocs);
         await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore, rawScore });
+      } else {
+        const filledAnswers = Object.fromEntries(Object.entries(answers).filter(([, v]) => v !== ""));
+        if (Object.keys(filledAnswers).length > 0) {
+          await updateDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress });
+        }
       }
       let dest = destination;
       if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {

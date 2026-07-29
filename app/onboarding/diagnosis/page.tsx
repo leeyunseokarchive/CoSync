@@ -988,7 +988,19 @@ function OnboardingDiagnosisPageInner() {
               이어서 진행하시겠습니까?
             </p>
             <div className="modal-footer" style={{ flexDirection: "column", gap: "10px" }}>
-              <button className="btn btn-primary" type="button" onClick={() => setShowRestoreModal(false)} style={{ width: "100%" }}>
+              <button className="btn btn-primary" type="button" onClick={() => {
+                setShowRestoreModal(false);
+                for (let ci = 0; ci < categories.length; ci++) {
+                  for (let qi = 0; qi < categories[ci].questions.length; qi++) {
+                    const q = categories[ci].questions[qi];
+                    if (isSingleQuestion(q) && !q.value) {
+                      setCategoryIndex(ci);
+                      setQuestionIndex(qi);
+                      return;
+                    }
+                  }
+                }
+              }} style={{ width: "100%" }}>
                 이어서 진행하기
               </button>
               <button
