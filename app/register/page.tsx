@@ -180,6 +180,7 @@ export default function RegisterPage() {
                 autoComplete="name"
                 onChange={e => setName(e.target.value)}
               />
+              <div className="hint">팀원에게 이 이름으로 표시돼요</div>
               {error && <div className="error-text">{error}</div>}
               <button className="btn btn-primary full wizard-btn" type="submit" disabled={!name.trim()}>
                 다음 →
