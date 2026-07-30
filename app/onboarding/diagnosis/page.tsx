@@ -483,18 +483,6 @@ function OnboardingDiagnosisPageInner() {
         }
       ]
     },
-    {
-      id: "profile",
-      title: "부서/직책",
-      scenario: "",
-      questions: [
-        {
-          id: "profile",
-          label: "마지막입니다. 본인의 부서와 직책을 정확히 선택해 주세요.",
-          type: "profile"
-        }
-      ]
-    }
   ];
 
   const [categoryIndex, setCategoryIndex] = useState(0);

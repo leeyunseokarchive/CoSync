@@ -195,23 +195,13 @@ function DiagnosisCompletePageInner() {
                 결과 바로 확인하기
               </button>
             ) : (
-              <>
-                <button
-                  className="btn btn-ghost diag-complete-btn"
-                  type="button"
-                  onClick={() => handleSaveAndProceed("/gap-report")}
-                >
-                  내 기준 먼저 확인하기
-                </button>
-                <button
-                  className="btn btn-ghost diag-complete-btn"
-                  type="button"
-                  onClick={() => handleSaveAndProceed("/workspace/create")}
-                  style={{ color: "#94a3b8", fontSize: "13px" }}
-                >
-                  팀원 초대하기
-                </button>
-              </>
+              <button
+                className="btn btn-ghost diag-complete-btn"
+                type="button"
+                onClick={() => handleSaveAndProceed("/gap-report")}
+              >
+                내 기준 먼저 확인하기
+              </button>
             )}
           </div>
 

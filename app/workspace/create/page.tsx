@@ -14,7 +14,17 @@ import { useTeams } from "../../../components/useTeams";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
+
+const ROLE_OPTIONS: Record<string, string[]> = {
+  "경영/대표": ["CEO", "공동대표", "COO"],
+  "제품/기획": ["CPO", "PO", "PM", "서비스 기획"],
+  "기술/개발": ["CTO", "프론트엔드", "백엔드", "모바일", "DevOps", "데이터"],
+  "디자인": ["CDO", "프로덕트 디자인", "UX/UI 디자인", "브랜드 디자인"],
+  "비즈니스": ["사업개발", "세일즈", "CS", "제휴/파트너십"],
+  "마케팅": ["CMO", "퍼포먼스 마케팅", "콘텐츠 마케팅", "PR/커뮤니케이션"],
+  "운영/지원": ["운영 총괄", "HR/조직문화", "재무/회계", "총무/법무"],
+};
 
 const INDUSTRIES = ["SaaS", "핀테크", "커머스", "콘텐츠", "바이오/헬스", "기타"];
 const MEMBER_OPTIONS = ["2명", "3-5명", "6-10명", "11명 이상"];
@@ -30,7 +40,7 @@ export default function WorkspaceCreatePage() {
   const { user, loading } = useAuth();
   const {
     activeTeams, activeSessions, setActiveTeams, setActiveSessions,
-    progress, department, role,
+    progress, department, setDepartment, role, setRole,
     extraWorkPriority, extraWorkPrinciple, underperformanceAction,
     exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution, exitVision,
     pivotCriteria, dealbreaker, fundingRunway, spendingApproval,
@@ -101,6 +111,8 @@ export default function WorkspaceCreatePage() {
     setStage(val);
     setTimeout(() => setStep(5), 220);
   };
+
+  const rolesForDepartment = ROLE_OPTIONS[department] ?? ["CEO", "CPO", "CTO", "COO", "CDO"];
 
   const handleCreate = async () => {
     if (!user) return;
@@ -337,6 +349,55 @@ export default function WorkspaceCreatePage() {
         {step === 5 && (
           <>
             <p className="wizard-step-label">5 / {TOTAL_STEPS}</p>
+            <h1 className="wizard-question">팀에서 맡은 역할이 어떻게 되나요?</h1>
+            <div className="select-stack" style={{ marginBottom: 8 }}>
+              <select
+                className="chip-select"
+                value={department}
+                onChange={e => { setDepartment(e.target.value); setRole(""); }}
+              >
+                <option value="">부서 선택</option>
+                <option value="경영/대표">경영/대표</option>
+                <option value="제품/기획">제품/기획</option>
+                <option value="기술/개발">기술/개발</option>
+                <option value="디자인">디자인</option>
+                <option value="비즈니스">비즈니스</option>
+                <option value="마케팅">마케팅</option>
+                <option value="운영/지원">운영/지원</option>
+              </select>
+              <select
+                className="chip-select"
+                value={role}
+                onChange={e => setRole(e.target.value)}
+                disabled={!department}
+              >
+                <option value="">직책 선택</option>
+                {rolesForDepartment.map(item => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              className="btn btn-primary full wizard-btn"
+              type="button"
+              onClick={() => setStep(6)}
+            >
+              다음 →
+            </button>
+            <button
+              className="btn btn-ghost full"
+              type="button"
+              style={{ marginTop: 8, fontSize: 13, color: "var(--text-3)" }}
+              onClick={() => setStep(6)}
+            >
+              나중에 설정하기
+            </button>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <p className="wizard-step-label">6 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">이대로 팀을 생성할게요</h1>
             <div className="wizard-summary">
               <div className="wizard-summary-row">
