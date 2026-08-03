@@ -147,8 +147,16 @@ function GapReportPageInner() {
     decisionStructure, decisionFailure, actionVsConsensus, deadlockTolerance,
     salaryStructure, equityStructure, profitDistribution, growthStrategy
   };
+  const myMemberAnswers: Partial<OnboardingAnswers> = useMemo(() => {
+    if (!user || members.length !== 1) return {};
+    const me = members.find(m => m.id === user.uid);
+    return (me?.answers as Partial<OnboardingAnswers>) ?? {};
+  }, [user, members]);
+
   const soloAnswers: Partial<OnboardingAnswers> = Object.values(appStateSoloAnswers).some(Boolean)
     ? appStateSoloAnswers
+    : Object.values(myMemberAnswers).some(Boolean)
+    ? myMemberAnswers
     : firestoreSoloAnswers;
   const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
   const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
@@ -622,7 +630,7 @@ function GapReportPageInner() {
                   <>
                     <div style={{ gridColumn: "1 / -1", height: "1px", background: "#e2e8f0", margin: "8px 0" }} />
                     <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                      <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#6366f1", background: "rgba(99,102,241,0.08)", padding: "3px 10px", borderRadius: "999px", letterSpacing: "0.5px" }}>심화 진단</span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#6366f1", background: "rgba(99,102,241,0.08)", padding: "3px 10px", borderRadius: "999px", letterSpacing: "0.5px" }}>추가 진단</span>
                     </div>
 
                     {/* 심화 2개 행 */}

@@ -161,17 +161,11 @@ export default function RegisterPage() {
         <form onSubmit={e => { e.preventDefault(); goNext(); }}>
           {step === 1 && (
             <>
-              {fromDiagnosis && (
-                <div className="register-diagnosis-banner">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-                    <path d="M4 8.5L6.5 11L12 5.5" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="8" cy="8" r="6.5" stroke="#6366f1" strokeWidth="1.3"/>
-                  </svg>
-                  <span>진단 결과를 저장하고 팀원을 초대하려면 계정이 필요해요. 계정을 만들면 오늘 입력한 답변이 저장되고, 팀원과 갭 리포트를 받을 수 있어요.</span>
-                </div>
-              )}
-              <p className="wizard-step-label">1 / {TOTAL_STEPS}</p>
               <h1 className="wizard-question">어떻게 불러드릴까요?</h1>
+              {fromDiagnosis && (
+                <p className="wizard-sub">진단 결과를 저장하고 팀원을 초대하세요.</p>
+              )}
+              <p className="wizard-sub">팀원에게 이 이름으로 표시돼요.</p>
               <input
                 ref={nameRef}
                 className="input wizard-input"
@@ -180,7 +174,6 @@ export default function RegisterPage() {
                 autoComplete="name"
                 onChange={e => setName(e.target.value)}
               />
-              <div className="hint">팀원에게 이 이름으로 표시돼요</div>
               {error && <div className="error-text">{error}</div>}
               <button className="btn btn-primary full wizard-btn" type="submit" disabled={!name.trim()}>
                 다음 →
@@ -190,7 +183,6 @@ export default function RegisterPage() {
 
           {step === 2 && (
             <>
-              <p className="wizard-step-label">2 / {TOTAL_STEPS}</p>
               <h1 className="wizard-question">이메일 주소를 알려주세요</h1>
               <input
                 ref={emailRef}
@@ -210,7 +202,6 @@ export default function RegisterPage() {
 
           {step === 3 && (
             <>
-              <p className="wizard-step-label">3 / {TOTAL_STEPS}</p>
               <h1 className="wizard-question">비밀번호를 설정해주세요</h1>
               <div className="password-row">
                 <input
@@ -241,7 +232,6 @@ export default function RegisterPage() {
 
           {step === 4 && (
             <>
-              <p className="wizard-step-label">4 / {TOTAL_STEPS}</p>
               <h1 className="wizard-question">비밀번호를 한 번 더 입력해주세요</h1>
               <div className="password-row">
                 <input
@@ -276,7 +266,6 @@ export default function RegisterPage() {
 
           {step === 5 && (
             <>
-              <p className="wizard-step-label">5 / {TOTAL_STEPS}</p>
               <h1 className="wizard-question">약관에 동의해주세요</h1>
               <div className="wizard-terms-list">
                 <div

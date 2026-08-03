@@ -348,7 +348,7 @@ function OnboardingDiagnosisPageInner() {
         }
       ]
     },
-    // ── 심화 진단 (2 cats × 4q = 8q) ──
+    // ── 추가 진단 (2 cats × 4q = 8q) ──
     {
       id: "decision",
       title: "의사결정 & 실행",
@@ -657,7 +657,7 @@ function OnboardingDiagnosisPageInner() {
       await updateDoc(doc(db, "teams", activeTeamId), { progress: teamProgress, gapCount, gapScore });
     }
     let dest = destination;
-    if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
+    if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/workspace")) {
       dest = `${destination}?teamId=${activeTeamId}`;
     }
     router.push(dest);
@@ -841,9 +841,16 @@ function OnboardingDiagnosisPageInner() {
                         saveAnswer(currentQuestion.id, option);
 
                         if (currentQuestion.autoNext) {
+                          const isVeryLastQuestion =
+                            categoryIndex === categories.length - 1 &&
+                            questionIndex === currentCategory.questions.length - 1;
                           autoNextTimeoutRef.current = setTimeout(() => {
                             setPendingSelection(null);
-                            goNext();
+                            if (isVeryLastQuestion) {
+                              handleFinish();
+                            } else {
+                              goNext();
+                            }
                             hoverUnlockTimeoutRef.current = setTimeout(() => {
                               setIsAdvancing(false);
                             }, 140);
@@ -896,19 +903,7 @@ function OnboardingDiagnosisPageInner() {
             </div>
           </div>
 
-          <div className="diag-footer">
-            {categoryIndex === categories.length - 1 &&
-            questionIndex === currentCategory.questions.length - 1 && (
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={handleFinish}
-                disabled={!canProceed()}
-              >
-                완료 →
-              </button>
-            )}
-          </div>
+          <div className="diag-footer" />
 
           {milestone && (
             <div className="milestone-toast">{milestone}</div>
@@ -927,8 +922,8 @@ function OnboardingDiagnosisPageInner() {
             <h2 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "12px" }}>기본 진단이 끝났습니다</h2>
             <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6", marginBottom: "28px" }}>
               {hasTeam
-                ? <>파트너와 결과를 비교하거나,<br /><strong style={{ color: "#0f172a" }}>비전·가치관·돈/보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
-                : <>심화 진단을 계속하거나,<br /><strong style={{ color: "#0f172a" }}>지금 팀을 만들고 파트너를 초대</strong>해서<br />진단 결과를 함께 비교하세요.</>
+                ? <>파트너와 결과를 비교하거나,<br /><strong style={{ color: "#0f172a" }}>비전·가치관·돈/보상</strong>까지 추가 진단을 마저 할 수 있습니다.</>
+                : <>추가 진단을 계속하거나,<br /><strong style={{ color: "#0f172a" }}>지금 팀을 만들고 파트너를 초대</strong>해서<br />진단 결과를 함께 비교하세요.</>
               }
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -938,7 +933,7 @@ function OnboardingDiagnosisPageInner() {
                 onClick={handleContinueAdvanced}
                 style={{ width: "100%", justifyContent: "center" }}
               >
-                심화 진단 계속하기 (Q13~Q20) →
+                추가 진단 계속하기 (Q13~Q20) →
               </button>
               {hasTeam ? (
                 <button
@@ -961,7 +956,7 @@ function OnboardingDiagnosisPageInner() {
               )}
             </div>
             <p style={{ marginTop: "20px", fontSize: "0.8rem", color: "#94a3b8" }}>
-              심화 진단은 나중에 언제든 이어서 완료할 수 있습니다.
+              추가 진단은 나중에 언제든 이어서 완료할 수 있습니다.
             </p>
           </div>
         </div>

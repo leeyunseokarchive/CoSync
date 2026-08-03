@@ -172,7 +172,7 @@ export default function WorkspaceHubPage() {
     if (!user || !foundTeam) return;
     if (isExistingMember) {
       setShowJoinModal(false);
-      router.push("/session");
+      router.push("/workspace");
       return;
     }
     setJoinLoading(true);
@@ -369,7 +369,7 @@ export default function WorkspaceHubPage() {
 
         <div className="recent-row">
           <span>내가 속한 팀</span>
-          <Link href="/session" className="link">
+          <Link href="/workspace" className="link">
             전체보기
           </Link>
         </div>

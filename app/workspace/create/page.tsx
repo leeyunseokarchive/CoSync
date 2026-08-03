@@ -208,7 +208,7 @@ export default function WorkspaceCreatePage() {
     if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
       router.push(`/onboarding/diagnosis?teamId=${teamRef.id}`);
     } else {
-      router.push(`/session?teamId=${teamRef.id}`);
+      router.push(`/workspace?teamId=${teamRef.id}`);
     }
     } catch (e) {
       console.error(e);
@@ -250,7 +250,6 @@ export default function WorkspaceCreatePage() {
 
         {step === 1 && (
           <form onSubmit={e => { e.preventDefault(); handleNameNext(); }}>
-            <p className="wizard-step-label">1 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">팀 이름이 어떻게 되나요?</h1>
             <input
               ref={teamNameRef}
@@ -268,7 +267,6 @@ export default function WorkspaceCreatePage() {
 
         {step === 2 && (
           <>
-            <p className="wizard-step-label">2 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">어떤 분야에서 창업하셨나요?</h1>
             <div className="wizard-choice-grid cols-2">
               {INDUSTRIES.map(opt => (
@@ -309,7 +307,6 @@ export default function WorkspaceCreatePage() {
 
         {step === 3 && (
           <>
-            <p className="wizard-step-label">3 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">팀 구성원이 몇 명인가요?</h1>
             <div className="wizard-choice-grid cols-2">
               {MEMBER_OPTIONS.map(opt => (
@@ -328,7 +325,6 @@ export default function WorkspaceCreatePage() {
 
         {step === 4 && (
           <>
-            <p className="wizard-step-label">4 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">현재 어떤 단계에 있나요?</h1>
             <div className="wizard-choice-grid cols-2">
               {STAGE_OPTIONS.map(opt => (
@@ -348,11 +344,10 @@ export default function WorkspaceCreatePage() {
 
         {step === 5 && (
           <>
-            <p className="wizard-step-label">5 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">팀에서 맡은 역할이 어떻게 되나요?</h1>
-            <div className="select-stack" style={{ marginBottom: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 4 }}>
               <select
-                className="chip-select"
+                className="input wizard-input"
                 value={department}
                 onChange={e => { setDepartment(e.target.value); setRole(""); }}
               >
@@ -366,10 +361,11 @@ export default function WorkspaceCreatePage() {
                 <option value="운영/지원">운영/지원</option>
               </select>
               <select
-                className="chip-select"
+                className="input wizard-input"
                 value={role}
                 onChange={e => setRole(e.target.value)}
                 disabled={!department}
+                style={{ color: !role ? "var(--text-3)" : undefined }}
               >
                 <option value="">직책 선택</option>
                 {rolesForDepartment.map(item => (
@@ -381,23 +377,21 @@ export default function WorkspaceCreatePage() {
               className="btn btn-primary full wizard-btn"
               type="button"
               onClick={() => setStep(6)}
+              disabled={!department}
             >
               다음 →
             </button>
-            <button
-              className="btn btn-ghost full"
-              type="button"
-              style={{ marginTop: 8, fontSize: 13, color: "var(--text-3)" }}
+            <p
+              style={{ textAlign: "center", marginTop: 12, fontSize: 13, color: "var(--text-3)", cursor: "pointer" }}
               onClick={() => setStep(6)}
             >
-              나중에 설정하기
-            </button>
+              건너뛰기
+            </p>
           </>
         )}
 
         {step === 6 && (
           <>
-            <p className="wizard-step-label">6 / {TOTAL_STEPS}</p>
             <h1 className="wizard-question">이대로 팀을 생성할게요</h1>
             <div className="wizard-summary">
               <div className="wizard-summary-row">

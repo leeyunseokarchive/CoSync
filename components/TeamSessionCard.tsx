@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CircleAvatar } from "./Brand";
 import { useTeamMembers } from "./useTeamMembers";
+import { useAuth } from "./AuthContext";
 import type { OnboardingAnswers } from "../lib/gap";
 
 type Team = {
@@ -19,12 +20,15 @@ const hasBasicComplete = (m: { answers?: unknown }) =>
 
 export function TeamSessionCard({ team }: { team: Team }) {
   const { members, loading } = useTeamMembers(team.id);
+  const { user } = useAuth();
   const canViewReport = !loading && members.length >= 2 && members.every(hasBasicComplete);
   const progressValue = Math.max(0, Math.min(100, team.progress ?? 0));
   const progressLabel = `${progressValue}%`;
   const statusLabel = progressValue >= 100 ? "완료" : "진행중";
   const router = useRouter();
   const isSolo = !loading && members.length <= 1;
+  const myMember = !loading && user ? members.find(m => m.id === user.uid) : undefined;
+  const iMyComplete = myMember ? hasBasicComplete(myMember) : false;
 
   const [animated, setAnimated] = useState(false);
   useEffect(() => {
@@ -85,35 +89,48 @@ export function TeamSessionCard({ team }: { team: Team }) {
           ))}
       </div>
       <div className="button-row">
-        <Link className="btn btn-ghost full" href={`/onboarding/diagnosis?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
-          온보딩 질문으로 돌아가기
-        </Link>
         {isSolo ? (
-          <Link
-            className="btn btn-primary full"
-            href={`/team-setting?teamId=${team.id}`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            팀원 초대하기
-          </Link>
+          <>
+            <Link
+              className="btn btn-ghost full"
+              href={`/gap-report?teamId=${team.id}`}
+              onClick={(event) => event.stopPropagation()}
+            >
+              내 결과 먼저 보기
+            </Link>
+            <Link
+              className="btn btn-primary full"
+              href={`/team-setting?teamId=${team.id}`}
+              onClick={(event) => event.stopPropagation()}
+            >
+              팀원 초대하기
+            </Link>
+          </>
         ) : (
-          <Link
-            className={`btn btn-primary full ${canViewReport ? "" : "disabled"}`}
-            href={canViewReport ? `/gap-report?teamId=${team.id}` : "#"}
-            aria-disabled={!canViewReport}
-            onClick={(event) => event.stopPropagation()}
-          >
-            진단 결과 보러가기
-          </Link>
+          <>
+            {iMyComplete ? (
+              <Link className="btn btn-ghost full" href={`/team-setting?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
+                팀원 초대하기
+              </Link>
+            ) : (
+              <Link className="btn btn-ghost full" href={`/onboarding/diagnosis?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
+                내 진단 이어서 하기
+              </Link>
+            )}
+            <Link
+              className={`btn btn-primary full ${canViewReport ? "" : "disabled"}`}
+              href={canViewReport ? `/gap-report?teamId=${team.id}` : "#"}
+              aria-disabled={!canViewReport}
+              onClick={(event) => event.stopPropagation()}
+            >
+              진단 결과 보러가기
+            </Link>
+          </>
         )}
       </div>
-      {!canViewReport && !loading && (
+      {!canViewReport && !loading && members.length >= 2 && (
         <div className="incomplete-warning" style={{ fontSize: "12px", color: "#ef4444", marginTop: "10px", width: "100%", textAlign: "center", fontWeight: "500", wordBreak: "keep-all" }}>
-          {members.length <= 1 ? (
-            "⚠️ 다른 팀원이 가입할 때까지 진단 결과를 보실 수 없습니다."
-          ) : (
-            `⚠️ 진단 미완료 인원: ${incompleteNames}`
-          )}
+          {`⚠️ 진단 미완료 인원: ${incompleteNames}`}
         </div>
       )}
     </div>

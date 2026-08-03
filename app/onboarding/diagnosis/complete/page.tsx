@@ -119,7 +119,7 @@ function DiagnosisCompletePageInner() {
         }
       }
       let dest = destination;
-      if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/session")) {
+      if (activeTeamId && (destination === "/gap-report" || destination === "/workspace" || destination === "/workspace")) {
         dest = `${destination}?teamId=${activeTeamId}`;
       }
       router.push(dest);
@@ -169,8 +169,8 @@ function DiagnosisCompletePageInner() {
 
           <p className="diag-complete-desc">
             {hasTeam
-              ? <>팀원과 결과를 비교하거나,<br /><strong>의사결정·지분&amp;보상</strong>까지 심화 진단을 마저 할 수 있습니다.</>
-              : <>심화 진단을 계속하거나,<br />팀원을 초대해서 진단 결과를 확인하세요.</>
+              ? <>팀원과 결과를 비교하거나,<br /><strong>의사결정·지분&amp;보상</strong>까지 추가 진단을 마저 할 수 있습니다.</>
+              : <>추가 진단을 계속하거나,<br />팀원을 초대해서 진단 결과를 확인하세요.</>
             }
           </p>
 
@@ -180,7 +180,7 @@ function DiagnosisCompletePageInner() {
               type="button"
               onClick={handleContinueAdvanced}
             >
-              심화 진단 계속하기 (Q13~Q20)
+              추가 진단 계속하기 (Q13~Q20)
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -205,7 +205,7 @@ function DiagnosisCompletePageInner() {
             )}
           </div>
 
-          <p className="diag-complete-note">심화 진단은 나중에 언제든 이어서 완료할 수 있습니다.</p>
+          <p className="diag-complete-note">추가 진단은 나중에 언제든 이어서 완료할 수 있습니다.</p>
         </div>
       </div>
     </main>

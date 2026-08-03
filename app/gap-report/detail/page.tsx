@@ -42,7 +42,7 @@ export default function GapReportDetailPage() {
             <Link className="btn btn-ghost" href="/gap-report">
               닫기
             </Link>
-            <Link className="btn btn-primary" href="/session">
+            <Link className="btn btn-primary" href="/workspace">
               이 주제로 합의 시작하기 →
             </Link>
           </div>
