@@ -1,219 +1,231 @@
 import { TopNav } from "../../../components/TopNav";
-import { Footer } from "../../../components/Footer";
-import { MessageCircle, ArrowRight, Target } from "lucide-react";
+import { LayoutGrid, Clock, CheckCircle2, HelpCircle, ArrowLeft, ArrowRight } from "lucide-react";
 
-// ponytail: 사업계획서 스크린샷용 정적 목업 — app/questions/page.tsx 레퍼런스 + gap-report(카테고리 바)·consensus(장 구분/칩) 디자인 차용, 데이터/상태 로직 없음
-const CATEGORIES = [
-  { label: "역할 & 책임", status: "critical" as const, statusLabel: "충돌 1" },
-  { label: "이탈 & 회수", status: "critical" as const, statusLabel: "충돌 1" },
-  { label: "비전 & 가치관", status: "low" as const, statusLabel: "일치" },
-  { label: "조달 & 운용", status: "high" as const, statusLabel: "차이 1" },
-  { label: "의사결정 & 실행", status: "low" as const, statusLabel: "일치" },
-  { label: "지분 & 보상", status: "low" as const, statusLabel: "일치" },
+// ponytail: 사업계획서 스크린샷용 정적 목업 — reference/CoSync UI/Questions/code.html 디자인 재현.
+// 폰트(Pretendard 전역)와 TopNav만 서비스 것으로 교체, Tailwind CDN 대신 동일 스타일 CSS 재현.
+const SIDEBAR = [
+  { ko: "운영 규칙", en: "Operating Rules", active: false },
+  { ko: "의사결정 및 권한", en: "Decision & Authority", active: false },
+  { ko: "역할 및 책임", en: "Role & Responsibility", active: false },
+  { ko: "자금 및 재무", en: "Funding & Finance", active: true },
+  { ko: "투자 회수 및 종료", en: "Exit & Termination", active: false },
 ];
 
-const SECTIONS = [
-  {
-    cat: "역할 & 책임",
-    items: [
-      {
-        label: "회색지대 업무 배정",
-        status: "conflict" as const,
-        topic: "애매한 업무 담당",
-        open: "나 요즘 누가 해야 하는 일인지 애매할 때 좀 불편하더라고. 잠깐 얘기해도 될까?",
-        steps: [
-          { title: "각자 답답했던 순간 꺼내기", qs: ["그 일 네가 해야 한다고 생각했어, 내가 해야 한다고 생각했어?", "그때 왜 그렇게 생각했어?"] },
-          { title: "공통 전제 찾기", qs: ["우리 둘 다 애매한 일은 누군가 챙겨야 한다는 건 동의하지?"] },
-          { title: "기준 정하기", qs: ["앞으로 그런 일 생기면 누가 먼저 깃발 꽂기로 할까?", "결정 기한도 같이 정해놓을까?"] },
-        ],
-        guide: "금액 또는 영향 범위로 기준을 숫자화하세요. 예: 'X만 원 이하 지출이나 담당 영역 안의 결정은 혼자, 그 이상이거나 팀 전체에 영향 가는 건 공유'처럼 기준 하나만 숫자로 합의해도 됩니다.",
-      },
-    ],
-  },
-  {
-    cat: "이탈 & 회수",
-    items: [
-      {
-        label: "이탈 시 지분 정리",
-        status: "conflict" as const,
-        topic: "지분 정리 기준",
-        open: "지분 얘기 꺼내기 어렵지만 이게 제일 중요한 것 같아서.",
-        steps: [
-          { title: "각자 생각하는 기준 꺼내기", qs: ["나가게 됐을 때 지분 어떻게 돼야 한다고 생각해?", "그 기준이 왜 맞다고 봐?"] },
-          { title: "공통 전제 찾기", qs: ["기여한 만큼 인정받아야 한다는 건 둘 다 동의하지?"] },
-          { title: "조건 정하기", qs: ["단계적으로 지분을 확정하는 기간은 어느 정도로 볼까?", "최소 몇 개월은 함께해야 지분 확정이 시작된다고 볼까?"] },
-        ],
-        guide: "단계적 지분 확정 기간(통상 3~4년), 최소 근속 기간(통상 1년), 이탈 시 회수 가격(액면가 vs 시가)을 지금 합의해두면 나중에 훨씬 수월합니다.",
-      },
-    ],
-  },
-  {
-    cat: "조달 & 운용",
-    items: [
-      {
-        label: "돈 쓰는 기준",
-        status: "diff" as const,
-        topic: "단독 결정 한도",
-        open: "돈 쓰는 기준이 서로 다를 수 있을 것 같아서.",
-        steps: [
-          { title: "각자 기준 꺼내기", qs: ["얼마까지는 말 안 하고 써도 된다고 생각해?", "왜 그 금액이야?"] },
-          { title: "공통 전제 찾기", qs: ["어느 선 이상은 같이 보는 게 맞다는 건 동의해?"] },
-          { title: "한도 정하기", qs: ["단독 결정 한도를 얼마로 할까?", "그 이상은 어떤 방식으로 공유하기로 할까?"] },
-        ],
-        guide: "단독 결정 가능 금액 상한선을 숫자로 정하세요. 예: 'X만 원 이하는 혼자 결정, 그 이상은 카톡 공유 후 동의 필요'처럼 금액 기준이 가장 명확하고 실행하기 쉽습니다.",
-      },
-    ],
-  },
+const ROWS = [
+  { item: "아이디어·기술 기여", desc: "핵심 기술 및 특허 제공, 사업 원형 기여도", me: 18, other: 8, rate: "0.20" },
+  { item: "역할 및 책임 (R&R)", desc: "직책의 중요도 및 실무 실행 책임 범위", me: 20, other: 10, rate: "0.25" },
+  { item: "시간 및 몰입도", desc: "실제 투입 시간 및 기회비용 (Full-time 여부)", me: 15, other: 5, rate: "0.20" },
+  { item: "자본 및 유무형 자산", desc: "현금 출자액 및 사무실/장비 지원 기여도", me: 12, other: 4, rate: "0.20" },
+  { item: "네트워크 및 세일즈", desc: "주요 고객 확보 및 투자자 유치 가능성", me: 10, other: 2, rate: "0.15" },
 ];
-
-const EMPTY_CATS = CATEGORIES.filter((c) => c.status === "low").map((c) => c.label);
 
 export default function DeepQuestionsMockup() {
   return (
-    <main className="page questions-page">
+    <div className="qm-page">
       <TopNav
         links={[
-          { label: "갭 리포트", href: "/gap-report" },
-          { label: "심층 질문", href: "#" },
-          { label: "합의 세션", href: "/consensus" },
+          { label: "대시보드", href: "/workspace" },
+          { label: "합의 히스토리", href: "#" },
+          { label: "설정", href: "#" },
         ]}
-        active="심층 질문"
+        active="합의 히스토리"
       />
 
-      <section className="container questions-body">
-        <div className="gap-breadcrumb">진단 &gt; 심층 대화</div>
-
-        <header className="questions-head">
-          <div className="questions-eyebrow"><Target size={16} /> 진단 후 심층 대화</div>
-          <h1 className="questions-title">지금 꼭 맞춰봐야 할 대화</h1>
-          <p className="questions-sub">진단에서 서로 답이 갈린 항목입니다. 카테고리별로 확인하고, 아래 순서대로 대화하면 합의가 쉬워집니다.</p>
-          <div className="questions-stat-row">
-            <span className="pill conflict">충돌 2</span>
-            <span className="pill diff">차이 1</span>
-            <span className="pill match">일치 3</span>
-          </div>
-        </header>
-
-        <div className="questions-layout">
-          <aside className="card questions-sidebar">
-            <div className="sidebar-title">카테고리별 현황</div>
-            <div className="q-cat-list">
-              {CATEGORIES.map((c) => (
-                <div key={c.label} className="cat-bar">
-                  <div className="cat-bar-top">
-                    <span className="cat-bar-label">{c.label}</span>
-                    <span className={`cat-bar-status ${c.status}`}>{c.statusLabel}</span>
-                  </div>
-                  <div className="cat-bar-track">
-                    <div
-                      className={`cat-bar-fill ${c.status}`}
-                      style={{ width: c.status === "low" ? "18%" : c.status === "high" ? "62%" : "88%" }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
-
-          <div className="questions-main">
-            {SECTIONS.map((section) => (
-              <div key={section.cat} className="q-section">
-                <h2 className="q-section-title">{section.cat}</h2>
-                <div className="q-cards">
-                  {section.items.map((item) => (
-                    <article key={item.label} className="q-card">
-                      <div className="q-card-head">
-                        <h3 className="q-card-title">{item.label}</h3>
-                        <span className={`pill ${item.status}`}>{item.status === "conflict" ? "충돌" : "차이"}</span>
-                      </div>
-                      <p className="q-topic">{item.topic}</p>
-                      <div className="q-open">
-                        <MessageCircle size={16} />
-                        <span>“{item.open}”</span>
-                      </div>
-                      <ol className="q-steps">
-                        {item.steps.map((s, i) => (
-                          <li key={i} className="q-step">
-                            <span className="q-step-num">{i + 1}</span>
-                            <div className="q-step-body">
-                              <div className="q-step-title">{s.title}</div>
-                              <ul className="q-step-qs">
-                                {s.qs.map((q, j) => <li key={j}>{q}</li>)}
-                              </ul>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-                      <div className="q-guide"><strong>정하기 팁</strong> {item.guide}</div>
-                    </article>
-                  ))}
-                </div>
-              </div>
+      <div className="qm-shell">
+        <aside className="qm-sidebar">
+          <div className="qm-sidebar-label">Agreement Phase</div>
+          <nav className="qm-sidebar-nav">
+            {SIDEBAR.map((s) => (
+              <button key={s.ko} className={`qm-side-item ${s.active ? "active" : ""}`} type="button">
+                <span className="qm-side-ko">{s.ko}</span>
+                <span className="qm-side-en">{s.en}</span>
+              </button>
             ))}
+          </nav>
+        </aside>
 
-            <div className="q-section">
-              <h2 className="q-section-title muted">답변이 일치하는 카테고리</h2>
-              <div className="q-empty-row">
-                {EMPTY_CATS.map((label) => (
-                  <span key={label} className="pill match">{label} · 대화 불필요</span>
-                ))}
+        <main className="qm-main">
+          <div className="qm-content">
+
+            <div className="qm-premium-card">
+              <div className="qm-card-head">
+                <div className="qm-eyebrow-row">
+                  <span className="qm-eyebrow-bar" />
+                  <span className="qm-eyebrow">Contribution Analysis</span>
+                  <span className="qm-guide-chip"><HelpCircle size={14} /> 가이드라인</span>
+                </div>
+                <h2>정밀한 지분 산정을 위해 항목별 점수와 가중치를 설정하십시오.</h2>
+                <p className="qm-card-sub">
+                  설정된 값은 창업자 간 합의의 법적 근거가 됩니다. 모든 가중치의 합은 <span className="qm-underline">1.00</span>이 되어야 합니다.
+                </p>
+              </div>
+
+              <div className="qm-table-wrap">
+                <table className="qm-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 200 }}>평가 항목</th>
+                      <th>정성적 평가 기준</th>
+                      <th style={{ width: 120, textAlign: "center" }}>나의 점수<br /><span className="qm-th-sub">(0~20)</span></th>
+                      <th style={{ width: 120, textAlign: "center" }}>상대 점수<br /><span className="qm-th-sub">(0~20)</span></th>
+                      <th style={{ width: 120, textAlign: "center" }}>가중치<br /><span className="qm-th-sub">(RATE)</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ROWS.map((r) => (
+                      <tr key={r.item}>
+                        <td className="qm-td-item">{r.item}</td>
+                        <td className="qm-td-desc">{r.desc}</td>
+                        <td><input className="qm-input" defaultValue={r.me} readOnly /></td>
+                        <td><input className="qm-input" defaultValue={r.other} readOnly /></td>
+                        <td><input className="qm-input rate" defaultValue={r.rate} readOnly /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={5}>
+                        <div className="qm-result-row">
+                          <div className="qm-result-label">
+                            <span className="qm-eyebrow small">Result Calculation</span>
+                            <span className="qm-result-title">매트릭스 기반 자동 계산 지분율</span>
+                          </div>
+                          <div className="qm-result-values">
+                            <div className="qm-result-col">
+                              <span className="qm-result-who">나 (본인)</span>
+                              <span className="qm-result-num brand">75<small>%</small> <CheckCircle2 size={18} className="qm-check" /></span>
+                            </div>
+                            <div className="qm-result-divider" />
+                            <div className="qm-result-col">
+                              <span className="qm-result-who">공동창업자</span>
+                              <span className="qm-result-num">25<small>%</small></span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
           </div>
+        </main>
+      </div>
+
+      <footer className="qm-footer">
+        <button className="qm-back-btn" type="button">
+          <ArrowLeft size={18} /> 이전 단계로
+        </button>
+        <div className="qm-footer-right">
+          <div className="qm-progress">
+            <div className="qm-progress-meta">
+              <span className="qm-progress-label">Agreement Progress</span>
+              <span className="qm-progress-pct">80%</span>
+            </div>
+            <div className="qm-progress-bar"><span style={{ width: "80%" }} /></div>
+          </div>
+          <button className="qm-cta" type="button">
+            계속 입력하기 <ArrowRight size={20} />
+          </button>
         </div>
+      </footer>
 
-        <div className="questions-cta">
-          <a href="#" className="btn btn-primary questions-cta-btn">
-            합의 세션으로 <ArrowRight size={18} />
-          </a>
-        </div>
-      </section>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .qm-page {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background:
+            radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.12) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+            #F8FAFC;
+        }
+        .qm-shell { flex: 1; display: flex; max-width: 1600px; margin: 0 auto; width: 100%; }
 
-      <Footer />
+        .qm-sidebar { width: 272px; flex-shrink: 0; padding: 40px 0; display: flex; flex-direction: column; border-right: 1px solid rgba(226, 232, 240, 0.4); }
+        .qm-sidebar-label { padding: 0 32px; margin-bottom: 32px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
+        .qm-sidebar-nav { display: flex; flex-direction: column; }
+        .qm-side-item { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 16px 32px; background: none; border: none; cursor: pointer; text-align: left; transition: transform 0.2s; }
+        .qm-side-item:hover:not(.active) { transform: translateX(4px); }
+        .qm-side-ko { font-size: 15px; font-weight: 700; color: #94a3b8; }
+        .qm-side-en { font-size: 10px; font-weight: 500; color: rgba(148, 163, 184, 0.6); text-transform: uppercase; letter-spacing: 0.08em; }
+        .qm-side-item.active .qm-side-ko { font-weight: 800; color: #0f172a; }
+        .qm-side-item.active .qm-side-en { color: rgba(79, 70, 229, 0.7); }
+        .qm-side-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 32px; background: #4F46E5; border-radius: 0 999px 999px 0; }
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .questions-body { padding: 40px 0 80px; display: flex; flex-direction: column; gap: 20px; }
-        .questions-body .gap-breadcrumb { text-align: center; }
-        .questions-head { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 4px; }
-        .questions-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 0.95rem; font-weight: 700; color: #5858e2; background: #f5f5ff; padding: 6px 14px; border-radius: 999px; }
-        .questions-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; color: #0f172a; }
-        .questions-sub { font-size: 1.05rem; color: #475569; line-height: 1.7; max-width: 560px; }
-        .questions-stat-row { display: flex; gap: 10px; margin-top: 4px; }
+        .qm-main { flex: 1; overflow-y: auto; padding: 32px 64px 120px; }
+        .qm-content { max-width: 1000px; margin: 0 auto; }
 
-        .questions-layout { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: start; margin-top: 12px; }
-        .questions-sidebar { padding: 22px 20px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; background: #f8f9fd; border: 1px solid #eef1f6; box-shadow: none; }
-        .q-cat-list { display: flex; flex-direction: column; gap: 16px; }
+        .qm-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+        .qm-select-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 26px 32px; border-radius: 32px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.5); box-shadow: 0 1px 2px rgba(0,0,0,0.03); text-align: left; cursor: pointer; transition: all 0.2s; }
+        .qm-select-card:hover:not(.selected) { background: rgba(255, 255, 255, 0.9); }
+        .qm-select-card.selected { background: rgba(255, 255, 255, 0.95); border: 2px solid #4F46E5; box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1); }
+        .qm-select-icon { width: 48px; height: 48px; border-radius: 16px; background: #f1f5f9; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; }
+        .qm-select-icon.active { background: rgba(79, 70, 229, 0.1); color: #4F46E5; }
+        .qm-select-card h3 { font-size: 19px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; }
+        .qm-select-card p { font-size: 14px; color: #64748b; margin-top: 8px; line-height: 1.45; font-weight: 500; }
+        .qm-selected-badge { position: absolute; top: 32px; right: 32px; display: inline-flex; align-items: center; gap: 6px; color: #10B981; font-weight: 900; font-size: 11px; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.05); padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(16, 185, 129, 0.1); }
 
-        .q-section { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
-        .q-section-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; padding-left: 12px; border-left: 3px solid #5858e2; }
-        .q-section-title.muted { border-left-color: #cbd5e1; color: #94a3b8; font-size: 1rem; }
-        .q-cards { display: flex; flex-direction: column; gap: 16px; }
-        .q-empty-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .qm-premium-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 50px rgba(79, 70, 229, 0.05); border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
+        .qm-card-head { display: flex; flex-direction: column; gap: 14px; }
+        .qm-eyebrow-row { display: flex; align-items: center; gap: 12px; }
+        .qm-eyebrow-bar { height: 3px; width: 32px; background: #4F46E5; border-radius: 999px; }
+        .qm-eyebrow { color: #4F46E5; font-weight: 900; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; }
+        .qm-eyebrow.small { letter-spacing: 0.25em; }
+        .qm-guide-chip { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 6px 12px; border-radius: 999px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 11px; font-weight: 900; color: #475569; cursor: pointer; }
+        .qm-guide-chip svg { color: #4F46E5; }
+        .qm-card-head h2 { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
+        .qm-card-sub { font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.6; max-width: 42rem; }
+        .qm-underline { color: #4F46E5; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 
-        .q-card { border: 1px solid #e2e8f0; border-radius: 18px; padding: 26px 28px; background: #fff; display: flex; flex-direction: column; gap: 16px; transition: box-shadow 0.2s, border-color 0.2s; }
-        .q-card:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05); border-color: #d8dcf0; }
-        .q-card-head { display: flex; align-items: center; gap: 12px; }
-        .q-card-title { flex: 1; font-size: 1.2rem; font-weight: 800; color: #0f172a; }
-        .q-topic { font-size: 0.98rem; color: #64748b; font-weight: 600; margin-top: -8px; }
-        .q-open { display: flex; align-items: flex-start; gap: 8px; background: #f5f5ff; border-radius: 12px; padding: 14px 18px; color: #4338ca; font-size: 1rem; line-height: 1.6; font-weight: 600; }
-        .q-steps { display: flex; flex-direction: column; gap: 14px; list-style: none; }
-        .q-step { display: flex; gap: 14px; align-items: flex-start; }
-        .q-step-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: #f5f5ff; color: #5858e2; font-weight: 800; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid rgba(91, 91, 231, 0.25); margin-top: 2px; }
-        .q-step-body { display: flex; flex-direction: column; gap: 5px; }
-        .q-step-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
-        .q-step-qs { list-style: disc; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
-        .q-step-qs li { font-size: 0.95rem; color: #334155; line-height: 1.65; }
-        .q-guide { font-size: 0.95rem; color: #334155; line-height: 1.7; background: #f8fafc; border-left: 3px solid #5858e2; border-radius: 8px; padding: 14px 18px; }
-        .q-guide strong { color: #4338ca; display: block; margin-bottom: 4px; }
+        .qm-table-wrap { overflow: hidden; border: 1px solid #f1f5f9; border-radius: 24px; background: rgba(255, 255, 255, 0.4); }
+        .qm-table { width: 100%; border-collapse: collapse; }
+        .qm-table th { padding: 12px 16px; text-align: left; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(248, 250, 252, 0.3); border-bottom: 1px solid #f1f5f9; line-height: 1.5; }
+        .qm-th-sub { font-size: 9px; font-weight: 900; color: rgba(79, 70, 229, 0.6); }
+        .qm-table td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid #f8fafc; }
+        .qm-table tbody tr:last-child td { border-bottom: none; }
+        .qm-td-item { font-weight: 900; color: #1e293b; }
+        .qm-td-desc { color: #64748b; font-weight: 500; line-height: 1.4; }
+        .qm-input { width: 100%; background: rgba(255, 255, 255, 0.8); border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; font-weight: 700; color: #1e293b; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .qm-input.rate { border-color: rgba(79, 70, 229, 0.2); background: rgba(79, 70, 229, 0.03); }
 
-        .questions-cta { text-align: center; padding-top: 8px; }
-        .questions-cta-btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 40px; font-size: 1.1rem; font-weight: 700; border-radius: 14px; }
+        .qm-table tfoot td { background: rgba(79, 70, 229, 0.04); padding: 22px 40px; border-bottom: none; }
+        .qm-result-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+        .qm-result-label { display: flex; flex-direction: column; gap: 6px; }
+        .qm-result-title { font-size: 19px; font-weight: 900; color: #0f172a; }
+        .qm-result-values { display: flex; align-items: center; gap: 56px; }
+        .qm-result-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .qm-result-who { font-size: 13px; font-weight: 700; color: #94a3b8; }
+        .qm-result-num { font-size: 36px; font-weight: 900; color: #334155; letter-spacing: -0.04em; display: inline-flex; align-items: center; gap: 10px; }
+        .qm-result-num small { font-size: 20px; margin-left: 2px; }
+        .qm-result-num.brand { color: #4F46E5; }
+        .qm-check { color: #10B981; }
+        .qm-result-divider { width: 1px; height: 48px; background: rgba(226, 232, 240, 0.6); }
 
-        @media (max-width: 1000px) {
-          .questions-layout { grid-template-columns: 1fr; }
-          .questions-sidebar { position: static; }
+        .qm-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226, 232, 240, 0.5); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.02); z-index: 100; }
+        .qm-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 48px; }
+        .qm-back-btn { display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border-radius: 16px; border: none; background: none; color: #94a3b8; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .qm-back-btn:hover { color: #4F46E5; background: #f8fafc; }
+        .qm-footer-right { display: flex; align-items: center; gap: 56px; }
+        .qm-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .qm-progress-meta { display: flex; align-items: center; gap: 16px; }
+        .qm-progress-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; }
+        .qm-progress-pct { font-size: 14px; font-weight: 900; color: #4F46E5; }
+        .qm-progress-bar { width: 224px; height: 8px; background: rgba(241, 245, 249, 0.8); border: 1px solid rgba(226, 232, 240, 0.3); border-radius: 999px; overflow: hidden; padding: 1px; }
+        .qm-progress-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; box-shadow: 0 0 12px rgba(79, 70, 229, 0.3); }
+        .qm-cta { height: 64px; padding: 0 56px; background: #4F46E5; color: #fff; font-size: 17px; font-weight: 900; border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3); cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: all 0.2s; font-family: inherit; }
+        .qm-cta:hover { background: #4338CA; transform: scale(1.02); }
+        .qm-cta:active { transform: scale(0.98); }
+
+        @media (max-width: 1100px) {
+          .qm-sidebar { display: none; }
+          .qm-main { padding: 32px 24px 140px; }
+          .qm-select-grid { grid-template-columns: 1fr; }
         }
       `}} />
-    </main>
+    </div>
   );
 }
