@@ -32,13 +32,25 @@ export default function InvestmentCriteriaMockup() {
             <p>투자 논의를 시작할 기준을 정해주세요.</p>
             <label className="label">투자 금액</label>
             <div className="invest-input-row">
-              <input className="input select invest-input" defaultValue="₩ 100,000,000" readOnly />
+              <div className="invest-num">
+                <input className="input select invest-input" defaultValue="₩ 100,000,000" readOnly />
+                <div className="invest-num-btns">
+                  <button type="button" tabIndex={-1}>▲</button>
+                  <button type="button" tabIndex={-1}>▼</button>
+                </div>
+              </div>
               <span>이상</span>
             </div>
             <div className="invest-or">또는</div>
             <label className="label">지분 희석률</label>
             <div className="invest-input-row">
-              <input className="input select invest-input narrow" defaultValue="10" readOnly />
+              <div className="invest-num">
+                <input className="input select invest-input narrow" defaultValue="10" readOnly />
+                <div className="invest-num-btns">
+                  <button type="button" tabIndex={-1}>▲</button>
+                  <button type="button" tabIndex={-1}>▼</button>
+                </div>
+              </div>
               <span>% 이상</span>
             </div>
           </div>
@@ -60,7 +72,13 @@ export default function InvestmentCriteriaMockup() {
             <p>의견 차이가 발생했을 때 합의 방식을 정해주세요.</p>
             <label className="label">합의 시도 기간</label>
             <div className="invest-input-row">
-              <input className="input select invest-input narrow" defaultValue="7" readOnly />
+              <div className="invest-num">
+                <input className="input select invest-input narrow" defaultValue="7" readOnly />
+                <div className="invest-num-btns">
+                  <button type="button" tabIndex={-1}>▲</button>
+                  <button type="button" tabIndex={-1}>▼</button>
+                </div>
+              </div>
               <span>일</span>
             </div>
             <label className="label" style={{ marginTop: 14 }}>이후 처리 방식</label>
@@ -79,7 +97,7 @@ export default function InvestmentCriteriaMockup() {
           <textarea
             className="invest-textarea"
             rows={2}
-            defaultValue="투자 계약 체결 전 모든 공동창업자의 동의를 확인한다."
+            defaultValue="ex) 투자 계약 체결 전 모든 공동창업자의 동의를 확인한다."
             readOnly
           />
         </div>
@@ -109,8 +127,12 @@ export default function InvestmentCriteriaMockup() {
         .invest-card h3 { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
         .invest-card > p { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
         .invest-input-row { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569; font-weight: 600; }
-        .invest-input { max-width: 200px; font-weight: 600; color: var(--brand); }
-        .invest-input.narrow { max-width: 90px; text-align: center; }
+        .invest-input { max-width: 200px; font-weight: 600; color: var(--brand); padding-right: 26px; }
+        .invest-input.narrow { max-width: 90px; text-align: center; padding-right: 26px; }
+        .invest-num { position: relative; display: inline-block; }
+        .invest-num-btns { position: absolute; right: 4px; top: 4px; bottom: 4px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .invest-num-btns button { border: none; background: none; padding: 0 2px; font-size: 8px; line-height: 1; color: #9aa2b2; cursor: pointer; }
+        .invest-num-btns button:hover { color: var(--brand); }
         .invest-or { text-align: left; font-size: 12px; font-weight: 700; color: #9aa2b2; margin: 12px 0; }
         .invest-radios { display: flex; flex-direction: column; gap: 8px; }
         .invest-radio { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid #e1e4ed; border-radius: 12px; font-size: 14px; font-weight: 500; color: #475569; cursor: pointer; background: #fff; }
