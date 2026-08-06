@@ -160,7 +160,7 @@ function AgreementDocumentInner() {
               </footer>
 
               <section className="doc-annex">
-                <div className="doc-annex-badge">DRAFT · 변호사 검토 전 법적 효력 없음</div>
+                <div className="doc-annex-badge">DRAFT · 정식 계약서 아님 · 전문가 검토 권고</div>
                 <h2 className="doc-annex-title">[별지] 주주간계약서 조항 초안</h2>
                 <ol className="doc-annex-list">
                   {ANNEX_CLAUSES.map((c, i) => (
