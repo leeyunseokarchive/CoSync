@@ -31,11 +31,10 @@ export function formatKoreanAmount(n: number): string {
   return `${parts.join(" ")} 원`;
 }
 
-// 값을 미리 채우면 팀원 답변이 한 곳으로 쏠리므로, 권장값은 칩 위 표식으로만 알린다.
-function Chips({ items, active, recommended, onPick }: {
+// 칩은 입력 단축키일 뿐이다. 특정 값을 권하는 표식은 붙이지 않는다 — 변호사법 제109조 리스크.
+function Chips({ items, active, onPick }: {
   items: { label: string; value: number }[];
   active: number | undefined;
-  recommended?: number;
   onPick: (v: number) => void;
 }) {
   return (
@@ -49,7 +48,6 @@ function Chips({ items, active, recommended, onPick }: {
           onClick={() => onPick(it.value)}
         >
           {it.label}
-          {recommended === it.value && <span className="cq-chip-tag">권장</span>}
         </button>
       ))}
     </div>
@@ -65,7 +63,7 @@ function AmountInput({ tpl, value, onChange, id }: {
   const korean = formatKoreanAmount(value ?? 0);
   return (
     <div className="cq-field">
-      <Chips items={tpl.presets} active={value} recommended={tpl.defaultValue} onPick={onChange} />
+      <Chips items={tpl.presets} active={value} onPick={onChange} />
       <label className="cq-label" htmlFor={id}>금액 직접 입력</label>
       <div className="cq-amount-row">
         <span className="cq-amount-won" aria-hidden="true">₩</span>
@@ -95,7 +93,6 @@ function DurationInput({ tpl, value, onChange, id }: {
       <Chips
         items={tpl.presets.map((p) => ({ label: `${p}${tpl.unit}`, value: p }))}
         active={v}
-        recommended={tpl.defaultValue}
         onPick={onChange}
       />
       <label className="cq-label" htmlFor={id}>직접 입력</label>
@@ -155,7 +152,6 @@ function PercentInput({ tpl, value, onChange, id }: {
           <button key={m.value} type="button" className="cq-mark" onClick={() => onChange(m.value)}>
             <span className="cq-mark-v">{m.value}%</span>
             {m.label && <span className="cq-mark-l">{m.label}</span>}
-            {tpl.defaultValue === m.value && <span className="cq-chip-tag">권장</span>}
           </button>
         ))}
       </div>

@@ -7,13 +7,15 @@ import {
   CONTRACT_QUESTIONS,
   QUESTION_GROUPS,
   MOCK_MEMBERS,
+  INFO_DISCLAIMER,
   validateAllocation,
   tenureWarning,
   fillPreview,
   type ContractQuestion,
 } from "../../../lib/contractQuestions";
 import {
-  ArrowLeft, ArrowRight, HelpCircle, FileText, ChevronDown, AlertTriangle, Users,
+  ArrowLeft, ArrowRight, FileText, AlertTriangle, Users,
+  BookOpen, HelpingHand, Scale,
 } from "lucide-react";
 
 // ponytail: 질문 템플릿 검토용 정적 목업. Firestore·localStorage 없이 useState 하나로 돈다.
@@ -21,7 +23,6 @@ import {
 export default function ContractQuestionsMockup() {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
-  const [refOpen, setRefOpen] = useState(false);
 
   const q = CONTRACT_QUESTIONS[index];
   const value = answers[q.id];
@@ -31,10 +32,8 @@ export default function ContractQuestionsMockup() {
   const blocked = isBlocked(q, value);
   const warning = q.id === "tenure" ? tenureWarning(Number(value) || 0) : null;
 
-  const go = (delta: number) => {
+  const go = (delta: number) =>
     setIndex((i) => Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i + delta)));
-    setRefOpen(false);
-  };
 
   const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
 
@@ -81,7 +80,6 @@ export default function ContractQuestionsMockup() {
                 <span className="cq-eyebrow">{q.article} · {q.articleTag}</span>
                 {q.proposed && <span className="cq-badge-proposed">제안</span>}
                 {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
-                <span className="cq-guide-chip"><HelpCircle size={14} /> 가이드라인</span>
               </div>
               <h1 className="cq-title">{q.title}</h1>
               <p className="cq-desc">{q.desc}</p>
@@ -109,27 +107,42 @@ export default function ContractQuestionsMockup() {
               ))}
             </section>
 
-            {q.reference && (
-              <section className="cq-ref">
-                <button
-                  type="button"
-                  className="cq-ref-toggle"
-                  aria-expanded={refOpen}
-                  onClick={() => setRefOpen((o) => !o)}
-                >
-                  <ChevronDown size={16} className={refOpen ? "open" : ""} /> 참고 정보
-                </button>
-                {refOpen && (
-                  <div className="cq-ref-body">
-                    {q.reference.advice && <p><strong>참고</strong> {q.reference.advice}</p>}
-                    {q.reference.lowRisk && <p><strong>낮게 정하면</strong> {q.reference.lowRisk}</p>}
-                    {q.reference.highRisk && <p><strong>높게 정하면</strong> {q.reference.highRisk}</p>}
-                  </div>
-                )}
-              </section>
-            )}
           </article>
         </main>
+
+        <aside className="cq-info" aria-label="이 조항에 대한 정보">
+          <div className="cq-info-label">알아두면 좋은 것</div>
+
+          <section className="cq-info-card">
+            <h2 className="cq-info-head"><BookOpen size={15} /> 이 조항은 무엇인가</h2>
+            <p>{q.info.what}</p>
+          </section>
+
+          <section className="cq-info-card">
+            <h2 className="cq-info-head"><HelpingHand size={15} /> 정하지 않으면</h2>
+            <p>{q.info.ifUnset}</p>
+          </section>
+
+          {(q.info.low || q.info.high) && (
+            <section className="cq-info-card">
+              <h2 className="cq-info-head"><Scale size={15} /> 한쪽으로 정하면</h2>
+              {q.info.low && (
+                <div className="cq-info-side">
+                  <span className="cq-info-side-tag low">낮게 / 좁게</span>
+                  <p>{q.info.low}</p>
+                </div>
+              )}
+              {q.info.high && (
+                <div className="cq-info-side">
+                  <span className="cq-info-side-tag high">높게 / 넓게</span>
+                  <p>{q.info.high}</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          <p className="cq-info-disclaimer">{INFO_DISCLAIMER}</p>
+        </aside>
       </div>
 
       <footer className="cq-footer">
@@ -164,7 +177,7 @@ export default function ContractQuestionsMockup() {
             radial-gradient(at 100% 100%, rgba(79,70,229,0.08) 0px, transparent 50%),
             radial-gradient(at 0% 100%, rgba(16,185,129,0.08) 0px, transparent 50%),
             #F8FAFC; }
-        .cq-shell { flex: 1; display: flex; max-width: 1600px; margin: 0 auto; width: 100%; }
+        .cq-shell { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; max-width: 1680px; margin: 0 auto; width: 100%; }
 
         .cq-sidebar { width: 272px; flex-shrink: 0; padding: 40px 0; border-right: 1px solid rgba(226,232,240,0.4); }
         .cq-sidebar-label { padding: 0 32px; margin-bottom: 32px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
@@ -179,8 +192,8 @@ export default function ContractQuestionsMockup() {
         .cq-side-item.active .cq-side-count { color: #4F46E5; }
         .cq-side-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 32px; background: #4F46E5; border-radius: 0 999px 999px 0; }
 
-        .cq-main { flex: 1; padding: 32px 64px 140px; }
-        .cq-card { max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
+        .cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 40px 140px; }
+        .cq-card { max-width: 880px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
           border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(79,70,229,0.05);
           border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
         .cq-card-head { display: flex; flex-direction: column; gap: 14px; }
@@ -189,8 +202,6 @@ export default function ContractQuestionsMockup() {
         .cq-eyebrow { color: #4F46E5; font-weight: 900; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
         .cq-badge-proposed { padding: 4px 10px; border-radius: 999px; border: 1px dashed #F59E0B; background: rgba(245,158,11,0.06); color: #B45309; font-size: 11px; font-weight: 900; }
         .cq-badge-fact { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 800; }
-        .cq-guide-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 11px; font-weight: 900; color: #475569; cursor: pointer; }
-        .cq-guide-chip svg { color: #4F46E5; }
         .cq-title { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
         .cq-desc { font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.7; max-width: 42rem; }
 
@@ -208,7 +219,6 @@ export default function ContractQuestionsMockup() {
         .cq-chip:hover { border-color: #c7d2fe; }
         .cq-chip:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
         .cq-chip.on { border: 2px solid #4F46E5; background: rgba(79,70,229,0.06); color: #4338CA; }
-        .cq-chip-tag { margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: rgba(16,185,129,0.12); color: #047857; font-size: 10px; font-weight: 900; }
         .cq-chips.small .cq-chip { min-height: 36px; padding: 0 12px; font-size: 12px; border-radius: 10px; }
 
         .cq-amount-row { display: flex; align-items: center; gap: 10px; }
@@ -263,12 +273,18 @@ export default function ContractQuestionsMockup() {
         .cq-mark-fill { background: rgba(79,70,229,0.12); color: #3730A3; font-weight: 900; padding: 2px 6px; border-radius: 6px; font-variant-numeric: tabular-nums; }
         .cq-blank { color: #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
 
-        .cq-ref-toggle { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; font: inherit; font-size: 13px; font-weight: 800; color: #4F46E5; cursor: pointer; padding: 8px 0; }
-        .cq-ref-toggle svg { transition: transform 0.2s; }
-        .cq-ref-toggle svg.open { transform: rotate(180deg); }
-        .cq-ref-body { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding: 16px 20px; border-radius: 16px; background: #f8fafc; border-left: 3px solid #4F46E5; }
-        .cq-ref-body p { font-size: 14px; line-height: 1.7; color: #334155; }
-        .cq-ref-body strong { color: #4338CA; margin-right: 6px; }
+        .cq-info { width: 340px; flex-shrink: 0; padding: 32px 32px 140px 0; display: flex; flex-direction: column; gap: 14px; position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; }
+        .cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; }
+        .cq-info-card { background: rgba(255,255,255,0.7); border: 1px solid rgba(226,232,240,0.7); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+        .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
+        .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
+        .cq-info-card p { font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
+        .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+        .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
+        .cq-info-side-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; }
+        .cq-info-side-tag.low { background: rgba(148,163,184,0.14); color: #475569; }
+        .cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
+        .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 0 4px; }
 
         .cq-composite { display: flex; flex-direction: column; gap: 28px; }
         .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
@@ -289,9 +305,19 @@ export default function ContractQuestionsMockup() {
         .cq-cta:hover:not(:disabled) { background: #4338CA; }
         .cq-cta:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
+        /* 정보 칼럼이 좁아지기 전에 본문 아래로 내려보낸다. 읽는 순서는 질문 → 정보 그대로. */
+        @media (max-width: 1320px) {
+          .cq-info { width: 100%; position: static; max-height: none; overflow: visible; padding: 0 40px 140px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+          .cq-info-label { width: 100%; }
+          .cq-info-card { flex: 1 1 280px; }
+          .cq-info-disclaimer { width: 100%; }
+          .cq-main { padding-bottom: 24px; }
+        }
+
         @media (max-width: 1100px) {
           .cq-sidebar { display: none; }
-          .cq-main { padding: 24px 20px 180px; }
+          .cq-info { padding: 0 20px 180px; }
+          .cq-main { padding: 24px 20px 8px; }
           .cq-card { padding: 28px 24px; border-radius: 28px; }
           .cq-title { font-size: 24px; }
           .cq-matrix-row { grid-template-columns: 1fr; }

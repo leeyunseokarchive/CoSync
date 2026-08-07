@@ -9,16 +9,39 @@ import {
   fillPreview,
 } from "./contractQuestions.ts";
 
-test("질문은 15개이고 id가 중복되지 않는다", () => {
-  assert.equal(CONTRACT_QUESTIONS.length, 15);
+test("질문은 13개이고 id가 중복되지 않는다", () => {
+  assert.equal(CONTRACT_QUESTIONS.length, 13);
   const ids = CONTRACT_QUESTIONS.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("확정 8개 / 제안 7개로 나뉜다", () => {
+test("확정 8개 / 제안 5개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
-  assert.equal(proposed.length, 7);
+  assert.deepEqual(
+    proposed.map((q) => q.id),
+    ["identity", "shareType", "noncompete", "vesting", "buybackPrice"]
+  );
   assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 8);
+});
+
+test("모든 질문에 정보 카드 2종(무엇인가·정하지 않으면)이 있다", () => {
+  for (const q of CONTRACT_QUESTIONS) {
+    assert.ok(q.info.what?.length > 20, `조항 설명 없음: ${q.id}`);
+    assert.ok(q.info.ifUnset?.length > 20, `미설정 시 설명 없음: ${q.id}`);
+  }
+});
+
+// 변호사법 제109조 리스크 — 특정 값을 권하거나 업계 평균을 단정하는 문구를 두지 않는다.
+test("권고·통계 단정 표현이 사용자 노출 문자열에 없다", () => {
+  const BANNED = ["권장", "추천", "통상", "업계 평균", "일반적으로 씁니다", "하는 것이 좋", "권고"];
+  for (const q of CONTRACT_QUESTIONS) {
+    const surfaces = [q.title, q.desc, q.info.what, q.info.ifUnset, q.info.low ?? "", q.info.high ?? ""];
+    for (const text of surfaces) {
+      for (const word of BANNED) {
+        assert.ok(!text.includes(word), `${q.id}: 금지 표현 "${word}" — ${text.slice(0, 60)}`);
+      }
+    }
+  }
 });
 
 test("모든 질문의 group이 QUESTION_GROUPS에 존재한다", () => {
