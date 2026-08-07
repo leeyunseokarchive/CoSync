@@ -1,0 +1,110 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  CONTRACT_QUESTIONS,
+  QUESTION_GROUPS,
+  MOCK_MEMBERS,
+  validateAllocation,
+  tenureWarning,
+  fillPreview,
+} from "./contractQuestions.ts";
+
+test("질문은 15개이고 id가 중복되지 않는다", () => {
+  assert.equal(CONTRACT_QUESTIONS.length, 15);
+  const ids = CONTRACT_QUESTIONS.map((q) => q.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+test("확정 8개 / 제안 7개로 나뉜다", () => {
+  const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
+  assert.equal(proposed.length, 7);
+  assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 8);
+});
+
+test("모든 질문의 group이 QUESTION_GROUPS에 존재한다", () => {
+  const groupIds = new Set(QUESTION_GROUPS.map((g) => g.id));
+  for (const q of CONTRACT_QUESTIONS) {
+    assert.ok(groupIds.has(q.group), `알 수 없는 그룹: ${q.id} -> ${q.group}`);
+  }
+});
+
+test("모든 질문은 최소 한 줄의 미리보기 원문을 가진다", () => {
+  for (const q of CONTRACT_QUESTIONS) {
+    assert.ok(q.preview.length >= 1, `미리보기 없음: ${q.id}`);
+    assert.ok(
+      q.preview.some((line) => /\{\d\}/.test(line)),
+      `치환 자리 없음: ${q.id}`
+    );
+  }
+});
+
+test("7종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
+  const used = new Set(CONTRACT_QUESTIONS.map((q) => q.template.type));
+  for (const t of ["amount", "duration", "percent", "choice", "matrix", "fields", "composite"]) {
+    assert.ok(used.has(t as never), `쓰이지 않은 템플릿: ${t}`);
+  }
+});
+
+test("멤버별 입력 질문의 미리보기 줄 수는 팀원 수와 맞는다", () => {
+  for (const q of CONTRACT_QUESTIONS) {
+    if (q.template.type !== "matrix") continue;
+    assert.equal(q.preview.length, MOCK_MEMBERS.length, `줄 수 불일치: ${q.id}`);
+  }
+});
+
+test("지분 합계가 100이면 통과한다", () => {
+  const r = validateAllocation({ a: 50, b: 30, c: 20 });
+  assert.equal(r.total, 100);
+  assert.equal(r.ok, true);
+  assert.equal(r.remaining, 0);
+});
+
+test("지분 합계가 모자라면 남은 양을 알려준다", () => {
+  const r = validateAllocation({ a: 50, b: 30, c: 10 });
+  assert.equal(r.ok, false);
+  assert.equal(r.remaining, 10);
+});
+
+test("지분 합계가 넘치면 remaining이 음수가 된다", () => {
+  const r = validateAllocation({ a: 60, b: 30, c: 20 });
+  assert.equal(r.ok, false);
+  assert.equal(r.remaining, -10);
+});
+
+test("빈 값은 0으로 세어 초기 상태에서 통과하지 않는다", () => {
+  assert.equal(validateAllocation({}).ok, false);
+});
+
+test("계속근무 3년 미만이면 5조② 정합성 경고를 낸다", () => {
+  const w = tenureWarning(2);
+  assert.ok(w);
+  assert.match(w, /3년/);
+});
+
+test("계속근무 3년 이상이면 경고가 없다", () => {
+  assert.equal(tenureWarning(3), null);
+  assert.equal(tenureWarning(5), null);
+});
+
+test("미리보기는 값이 들어간 조각을 filled로 표시한다", () => {
+  const parts = fillPreview("주주들은 {0}일간 협의한다.", ["7"]);
+  assert.deepEqual(parts, [
+    { text: "주주들은 ", filled: false },
+    { text: "7", filled: true },
+    { text: "일간 협의한다.", filled: false },
+  ]);
+});
+
+test("값이 없으면 빈칸 기호를 남기고 filled가 아니다", () => {
+  const parts = fillPreview("주주들은 {0}일간 협의한다.", [null]);
+  assert.equal(parts[1].text, "[  ]");
+  assert.equal(parts[1].filled, false);
+});
+
+test("같은 자리를 여러 번 참조해도 모두 치환된다", () => {
+  const parts = fillPreview("각 {0}원. 손해액이 {0}원을 초과하면", ["1억"]);
+  const filled = parts.filter((p) => p.filled);
+  assert.equal(filled.length, 2);
+  assert.equal(filled[0].text, "1억");
+  assert.equal(filled[1].text, "1억");
+});

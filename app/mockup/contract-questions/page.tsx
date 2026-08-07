@@ -1,0 +1,359 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { TopNav } from "../../../components/TopNav";
+import { QuestionInput, formatKoreanAmount, formatNumber } from "../../../components/ContractQuestionInputs";
+import {
+  CONTRACT_QUESTIONS,
+  QUESTION_GROUPS,
+  MOCK_MEMBERS,
+  validateAllocation,
+  tenureWarning,
+  fillPreview,
+  type ContractQuestion,
+} from "../../../lib/contractQuestions";
+import {
+  ArrowLeft, ArrowRight, HelpCircle, FileText, ChevronDown, AlertTriangle, Users,
+} from "lucide-react";
+
+// ponytail: 질문 템플릿 검토용 정적 목업. Firestore·localStorage 없이 useState 하나로 돈다.
+// 설계: docs/superpowers/specs/2026-08-07-contract-question-templates-design.md
+export default function ContractQuestionsMockup() {
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  const [refOpen, setRefOpen] = useState(false);
+
+  const q = CONTRACT_QUESTIONS[index];
+  const value = answers[q.id];
+  const setValue = (v: unknown) => setAnswers((prev) => ({ ...prev, [q.id]: v }));
+
+  const previewValues = usePreviewValues(q, value);
+  const blocked = isBlocked(q, value);
+  const warning = q.id === "tenure" ? tenureWarning(Number(value) || 0) : null;
+
+  const go = (delta: number) => {
+    setIndex((i) => Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i + delta)));
+    setRefOpen(false);
+  };
+
+  const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
+
+  return (
+    <div className="cq-page">
+      <TopNav
+        links={[
+          { label: "대시보드", href: "/workspace" },
+          { label: "합의 히스토리", href: "#" },
+          { label: "설정", href: "#" },
+        ]}
+        active="합의 히스토리"
+      />
+
+      <div className="cq-shell">
+        <aside className="cq-sidebar">
+          <div className="cq-sidebar-label">Agreement Draft</div>
+          <nav className="cq-sidebar-nav">
+            {QUESTION_GROUPS.map((g) => {
+              const inGroup = CONTRACT_QUESTIONS.filter((x) => x.group === g.id);
+              const done = inGroup.filter((x) => answers[x.id] !== undefined).length;
+              const active = q.group === g.id;
+              return (
+                <div key={g.id} className={`cq-side-item ${active ? "active" : ""}`}>
+                  <span className="cq-side-ko">
+                    {g.ko}
+                    {inGroup.some((x) => x.proposed) && (
+                      <span className="cq-side-dot" title="제안 문항 포함" aria-label="제안 문항 포함" />
+                    )}
+                  </span>
+                  <span className="cq-side-en">{g.en}</span>
+                  <span className="cq-side-count">{done}/{inGroup.length}</span>
+                </div>
+              );
+            })}
+          </nav>
+        </aside>
+
+        <main className="cq-main">
+          <article className="cq-card">
+            <header className="cq-card-head">
+              <div className="cq-eyebrow-row">
+                <span className="cq-eyebrow-bar" />
+                <span className="cq-eyebrow">{q.article} · {q.articleTag}</span>
+                {q.proposed && <span className="cq-badge-proposed">제안</span>}
+                {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
+                <span className="cq-guide-chip"><HelpCircle size={14} /> 가이드라인</span>
+              </div>
+              <h1 className="cq-title">{q.title}</h1>
+              <p className="cq-desc">{q.desc}</p>
+            </header>
+
+            <section className="cq-input-zone">
+              <QuestionInput template={q.template} value={value} onChange={setValue} keyPrefix={q.id} />
+              {warning && (
+                <p className="cq-warning" role="status">
+                  <AlertTriangle size={16} /> {warning}
+                </p>
+              )}
+            </section>
+
+            <section className="cq-preview">
+              <div className="cq-preview-head"><FileText size={16} /> 계약서 반영 미리보기</div>
+              {q.preview.map((line, i) => (
+                <p key={i} className="cq-preview-line">
+                  {fillPreview(line, previewValues).map((part, j) =>
+                    part.filled
+                      ? <mark key={j} className="cq-mark-fill">{part.text}</mark>
+                      : <span key={j} className={part.text === "[  ]" ? "cq-blank" : ""}>{part.text}</span>
+                  )}
+                </p>
+              ))}
+            </section>
+
+            {q.reference && (
+              <section className="cq-ref">
+                <button
+                  type="button"
+                  className="cq-ref-toggle"
+                  aria-expanded={refOpen}
+                  onClick={() => setRefOpen((o) => !o)}
+                >
+                  <ChevronDown size={16} className={refOpen ? "open" : ""} /> 참고 정보
+                </button>
+                {refOpen && (
+                  <div className="cq-ref-body">
+                    {q.reference.advice && <p><strong>참고</strong> {q.reference.advice}</p>}
+                    {q.reference.lowRisk && <p><strong>낮게 정하면</strong> {q.reference.lowRisk}</p>}
+                    {q.reference.highRisk && <p><strong>높게 정하면</strong> {q.reference.highRisk}</p>}
+                  </div>
+                )}
+              </section>
+            )}
+          </article>
+        </main>
+      </div>
+
+      <footer className="cq-footer">
+        <button className="cq-back" type="button" disabled={index === 0} onClick={() => go(-1)}>
+          <ArrowLeft size={18} /> 이전
+        </button>
+        <div className="cq-footer-right">
+          <div className="cq-team"><Users size={14} /> 3명 중 2명 응답</div>
+          <div className="cq-progress">
+            <div className="cq-progress-meta">
+              <span className="cq-progress-label">{index + 1} / {CONTRACT_QUESTIONS.length}</span>
+              <span className="cq-progress-pct">{progress}%</span>
+            </div>
+            <div className="cq-progress-bar"><span style={{ width: `${progress}%` }} /></div>
+          </div>
+          <button
+            className="cq-cta"
+            type="button"
+            disabled={blocked || index === CONTRACT_QUESTIONS.length - 1}
+            onClick={() => go(1)}
+          >
+            다음 <ArrowRight size={20} />
+          </button>
+        </div>
+      </footer>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .cq-page { min-height: 100vh; display: flex; flex-direction: column;
+          background:
+            radial-gradient(at 0% 0%, rgba(79,70,229,0.12) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(16,185,129,0.08) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(79,70,229,0.08) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(16,185,129,0.08) 0px, transparent 50%),
+            #F8FAFC; }
+        .cq-shell { flex: 1; display: flex; max-width: 1600px; margin: 0 auto; width: 100%; }
+
+        .cq-sidebar { width: 272px; flex-shrink: 0; padding: 40px 0; border-right: 1px solid rgba(226,232,240,0.4); }
+        .cq-sidebar-label { padding: 0 32px; margin-bottom: 32px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
+        .cq-sidebar-nav { display: flex; flex-direction: column; }
+        .cq-side-item { position: relative; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ko count" "en count"; align-items: center; gap: 0 8px; padding: 16px 32px; }
+        .cq-side-ko { grid-area: ko; font-size: 15px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px; }
+        .cq-side-en { grid-area: en; font-size: 10px; font-weight: 500; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 0.08em; }
+        .cq-side-count { grid-area: count; font-size: 12px; font-weight: 800; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+        .cq-side-dot { width: 6px; height: 6px; border-radius: 999px; background: #F59E0B; }
+        .cq-side-item.active .cq-side-ko { font-weight: 800; color: #0f172a; }
+        .cq-side-item.active .cq-side-en { color: rgba(79,70,229,0.7); }
+        .cq-side-item.active .cq-side-count { color: #4F46E5; }
+        .cq-side-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 32px; background: #4F46E5; border-radius: 0 999px 999px 0; }
+
+        .cq-main { flex: 1; padding: 32px 64px 140px; }
+        .cq-card { max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
+          border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(79,70,229,0.05);
+          border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
+        .cq-card-head { display: flex; flex-direction: column; gap: 14px; }
+        .cq-eyebrow-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .cq-eyebrow-bar { height: 3px; width: 32px; background: #4F46E5; border-radius: 999px; }
+        .cq-eyebrow { color: #4F46E5; font-weight: 900; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+        .cq-badge-proposed { padding: 4px 10px; border-radius: 999px; border: 1px dashed #F59E0B; background: rgba(245,158,11,0.06); color: #B45309; font-size: 11px; font-weight: 900; }
+        .cq-badge-fact { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 800; }
+        .cq-guide-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 11px; font-weight: 900; color: #475569; cursor: pointer; }
+        .cq-guide-chip svg { color: #4F46E5; }
+        .cq-title { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
+        .cq-desc { font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.7; max-width: 42rem; }
+
+        .cq-input-zone { border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 28px 0; }
+        .cq-field { display: flex; flex-direction: column; gap: 14px; }
+        .cq-field-row { display: flex; flex-direction: column; gap: 8px; }
+        .cq-label { font-size: 13px; font-weight: 800; color: #475569; }
+        .cq-help { font-size: 13px; color: #94a3b8; font-weight: 600; }
+        .cq-input { min-height: 44px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 600; color: #1e293b; }
+        .cq-input:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
+        .cq-num { font-variant-numeric: tabular-nums; }
+
+        .cq-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .cq-chip { position: relative; min-height: 44px; padding: 0 18px; border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; font: inherit; font-size: 14px; font-weight: 700; color: #475569; cursor: pointer; transition: all 0.2s; }
+        .cq-chip:hover { border-color: #c7d2fe; }
+        .cq-chip:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-chip.on { border: 2px solid #4F46E5; background: rgba(79,70,229,0.06); color: #4338CA; }
+        .cq-chip-tag { margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: rgba(16,185,129,0.12); color: #047857; font-size: 10px; font-weight: 900; }
+        .cq-chips.small .cq-chip { min-height: 36px; padding: 0 12px; font-size: 12px; border-radius: 10px; }
+
+        .cq-amount-row { display: flex; align-items: center; gap: 10px; }
+        .cq-amount-won { font-size: 20px; font-weight: 800; color: #94a3b8; }
+        .cq-stepper { display: flex; align-items: center; gap: 10px; }
+        .cq-step-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; font-size: 20px; font-weight: 800; color: #475569; cursor: pointer; }
+        .cq-step-btn:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-step-input { width: 96px; text-align: center; }
+        .cq-unit { font-size: 15px; font-weight: 800; color: #475569; }
+
+        .cq-pct-row { display: flex; align-items: center; gap: 8px; }
+        .cq-pct-num { width: 96px; text-align: center; }
+        .cq-range { width: 100%; accent-color: #4F46E5; height: 44px; }
+        .cq-marks { display: flex; justify-content: space-between; gap: 8px; }
+        .cq-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
+        .cq-mark:hover { background: #f8fafc; }
+        .cq-mark:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-mark-v { font-size: 12px; font-weight: 800; color: #475569; font-variant-numeric: tabular-nums; }
+        .cq-mark-l { font-size: 11px; font-weight: 700; color: #94a3b8; }
+
+        .cq-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+        .cq-choice { position: relative; display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 20px 22px; border-radius: 24px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font: inherit; transition: all 0.2s; }
+        .cq-choice:hover { border-color: #c7d2fe; }
+        .cq-choice:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-choice.on { border: 2px solid #4F46E5; background: rgba(79,70,229,0.04); box-shadow: 0 16px 30px -12px rgba(79,70,229,0.25); }
+        .cq-choice-body { display: flex; flex-direction: column; gap: 6px; }
+        .cq-choice-label { font-size: 16px; font-weight: 900; color: #0f172a; }
+        .cq-choice-desc { font-size: 13px; color: #64748b; font-weight: 500; line-height: 1.5; }
+        .cq-choice-check { position: absolute; top: 18px; right: 18px; color: #10B981; }
+        .cq-avatar { width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; background: rgba(79,70,229,0.1); color: #4F46E5; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; }
+
+        .cq-matrix-row { display: grid; grid-template-columns: 160px 140px 1fr; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
+        .cq-matrix-row.text { grid-template-columns: 160px 1fr; grid-template-areas: "name chips" "name input"; gap: 8px 14px; align-items: start; }
+        .cq-matrix-row.text .cq-matrix-name { grid-area: name; padding-top: 10px; }
+        .cq-matrix-row.text .cq-chips { grid-area: chips; }
+        .cq-matrix-row.text .cq-input { grid-area: input; }
+        .cq-matrix-name { font-size: 15px; font-weight: 800; color: #1e293b; }
+        .cq-matrix-role { font-size: 12px; font-weight: 600; color: #94a3b8; }
+        .cq-bar { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+        .cq-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
+        .cq-total { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 12px 18px; border-radius: 16px; font-size: 14px; font-weight: 800; }
+        .cq-total.ok { background: rgba(16,185,129,0.08); color: #047857; }
+        .cq-total.warn { background: rgba(245,158,11,0.08); color: #B45309; }
+
+        .cq-warning { display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; padding: 14px 18px; border-radius: 16px; background: rgba(245,158,11,0.08); color: #B45309; font-size: 14px; font-weight: 700; line-height: 1.6; }
+        .cq-warning svg { flex-shrink: 0; margin-top: 2px; }
+
+        .cq-preview { background: rgba(248,250,252,0.8); border: 1px solid #f1f5f9; border-radius: 24px; padding: 24px 28px; display: flex; flex-direction: column; gap: 12px; }
+        .cq-preview-head { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
+        .cq-preview-head svg { color: #4F46E5; }
+        .cq-preview-line { font-size: 14px; line-height: 1.9; color: #475569; }
+        .cq-mark-fill { background: rgba(79,70,229,0.12); color: #3730A3; font-weight: 900; padding: 2px 6px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+        .cq-blank { color: #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
+
+        .cq-ref-toggle { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; font: inherit; font-size: 13px; font-weight: 800; color: #4F46E5; cursor: pointer; padding: 8px 0; }
+        .cq-ref-toggle svg { transition: transform 0.2s; }
+        .cq-ref-toggle svg.open { transform: rotate(180deg); }
+        .cq-ref-body { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding: 16px 20px; border-radius: 16px; background: #f8fafc; border-left: 3px solid #4F46E5; }
+        .cq-ref-body p { font-size: 14px; line-height: 1.7; color: #334155; }
+        .cq-ref-body strong { color: #4338CA; margin-right: 6px; }
+
+        .cq-composite { display: flex; flex-direction: column; gap: 28px; }
+        .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+
+        .cq-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226,232,240,0.5); z-index: 100; }
+        .cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .cq-back:hover:not(:disabled) { color: #4F46E5; background: #f8fafc; }
+        .cq-back:disabled { opacity: 0.4; cursor: not-allowed; }
+        .cq-footer-right { display: flex; align-items: center; gap: 32px; }
+        .cq-team { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #94a3b8; }
+        .cq-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .cq-progress-meta { display: flex; align-items: center; gap: 14px; }
+        .cq-progress-label { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; }
+        .cq-progress-pct { font-size: 14px; font-weight: 900; color: #4F46E5; font-variant-numeric: tabular-nums; }
+        .cq-progress-bar { width: 224px; height: 8px; background: rgba(241,245,249,0.8); border-radius: 999px; overflow: hidden; }
+        .cq-progress-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
+        .cq-cta { height: 56px; padding: 0 40px; background: #4F46E5; color: #fff; font: inherit; font-size: 16px; font-weight: 900; border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(79,70,229,0.3); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; }
+        .cq-cta:hover:not(:disabled) { background: #4338CA; }
+        .cq-cta:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+
+        @media (max-width: 1100px) {
+          .cq-sidebar { display: none; }
+          .cq-main { padding: 24px 20px 180px; }
+          .cq-card { padding: 28px 24px; border-radius: 28px; }
+          .cq-title { font-size: 24px; }
+          .cq-matrix-row { grid-template-columns: 1fr; }
+          .cq-matrix-row.text { grid-template-columns: 1fr; grid-template-areas: "name" "chips" "input"; }
+          .cq-matrix-row.text .cq-matrix-name { padding-top: 0; }
+          .cq-footer { height: auto; padding: 12px 20px; flex-wrap: wrap; gap: 12px; }
+          .cq-footer-right { gap: 16px; width: 100%; justify-content: space-between; }
+          .cq-progress-bar { width: 120px; }
+          .cq-cta { padding: 0 24px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cq-chip, .cq-choice, .cq-bar span, .cq-progress-bar span, .cq-cta, .cq-ref-toggle svg { transition: none; }
+        }
+      `}} />
+    </div>
+  );
+}
+
+// 답변 값을 미리보기 {0} {1} 자리에 넣을 문자열 배열로 바꾼다.
+function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[] {
+  return useMemo(() => {
+    const t = q.template;
+    if (value === undefined || value === null || value === "") return [];
+
+    if (t.type === "amount") return [formatKoreanAmount(Number(value))];
+    if (t.type === "duration") return [`${value}${t.unit}`];
+    if (t.type === "percent") return [String(value)];
+    if (t.type === "choice") {
+      const opt = t.options.find((o) => o.id === value);
+      return [opt ? opt.label : null];
+    }
+    if (t.type === "matrix") {
+      const v = value as Record<string, string | number>;
+      return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
+    }
+    if (t.type === "fields") {
+      const v = value as Record<string, string>;
+      return t.fields.map((f) => v[f.key] || null);
+    }
+    // composite: 파트 순서대로 각 파트를 자기 규칙으로 변환해 이어 붙인다.
+    const v = value as Record<string, unknown>;
+    return t.parts.map((p) => {
+      const pv = v[p.key];
+      if (pv === undefined || pv === null || pv === "") return null;
+      if (p.template.type === "amount") return formatNumber(Number(pv));
+      if (p.template.type === "duration") return `${pv}${p.template.unit}`;
+      if (p.template.type === "percent") return String(pv);
+      if (p.template.type === "choice") {
+        const opt = p.template.options.find((o) => o.id === pv);
+        return opt ? opt.label : null;
+      }
+      return String(pv);
+    });
+  }, [q, value]);
+}
+
+// 지분 배분만 다음 진행을 막는다. 합계가 100이 아니면 계약서가 성립하지 않는다.
+function isBlocked(q: ContractQuestion, value: unknown): boolean {
+  if (q.template.type !== "matrix" || q.template.variant !== "allocation") return false;
+  const v = (value ?? {}) as Record<string, number>;
+  const nums: Record<string, number> = {};
+  for (const m of MOCK_MEMBERS) nums[m.id] = Number(v[m.id]) || 0;
+  return !validateAllocation(nums).ok;
+}
