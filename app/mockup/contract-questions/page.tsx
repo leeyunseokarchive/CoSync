@@ -136,8 +136,6 @@ export default function ContractQuestionsMockup() {
 
             <section className="cq-input-zone">
               <QuestionInput template={q.template} value={value} onChange={setValue} keyPrefix={q.id} />
-              {/* 경고가 떠도 아래 미리보기가 밀리지 않도록 자리를 미리 비워둔다. */}
-
             </section>
 
             <section className="cq-exception">
