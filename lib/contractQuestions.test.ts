@@ -51,13 +51,29 @@ test("모든 질문의 group이 QUESTION_GROUPS에 존재한다", () => {
   }
 });
 
-test("모든 질문은 최소 한 줄의 미리보기 원문을 가진다", () => {
+// 미리보기 블록 안의 모든 문자열을 한 줄씩 뽑는다. 표는 셀 단위로 편다.
+function previewStrings(q: (typeof CONTRACT_QUESTIONS)[number]): string[] {
+  return q.preview.blocks.flatMap((b) =>
+    b.kind === "table" ? [...b.head, ...b.rows.flat()] : b.kind === "ellipsis" ? [] : [b.text]
+  );
+}
+
+test("모든 질문은 조문 제목과 치환 자리를 가진다", () => {
   for (const q of CONTRACT_QUESTIONS) {
-    assert.ok(q.preview.length >= 1, `미리보기 없음: ${q.id}`);
+    assert.ok(q.preview.article.startsWith("제") || q.preview.article.startsWith("계약"), `조문 제목 이상: ${q.id}`);
+    assert.ok(q.preview.blocks.length >= 1, `미리보기 블록 없음: ${q.id}`);
     assert.ok(
-      q.preview.some((line) => /\{\d\}/.test(line)),
+      previewStrings(q).some((line) => /\{\d\}/.test(line)),
       `치환 자리 없음: ${q.id}`
     );
+  }
+});
+
+test("미리보기에 마크다운 표 기호가 남아있지 않다", () => {
+  for (const q of CONTRACT_QUESTIONS) {
+    for (const line of previewStrings(q)) {
+      assert.ok(!line.includes("|"), `마크다운 표 잔존: ${q.id} — ${line.slice(0, 40)}`);
+    }
   }
 });
 
@@ -68,10 +84,13 @@ test("7종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
   }
 });
 
-test("멤버별 입력 질문의 미리보기 줄 수는 팀원 수와 맞는다", () => {
+test("멤버별 입력 질문은 팀원 수만큼의 표 행을 가진다", () => {
   for (const q of CONTRACT_QUESTIONS) {
     if (q.template.type !== "matrix") continue;
-    assert.equal(q.preview.length, MOCK_MEMBERS.length, `줄 수 불일치: ${q.id}`);
+    const table = q.preview.blocks.find((b) => b.kind === "table");
+    assert.ok(table && table.kind === "table", `표 블록 없음: ${q.id}`);
+    const memberRows = table.rows.filter((r) => MOCK_MEMBERS.some((m) => r[0] === m.name));
+    assert.equal(memberRows.length, MOCK_MEMBERS.length, `행 수 불일치: ${q.id}`);
   }
 });
 
