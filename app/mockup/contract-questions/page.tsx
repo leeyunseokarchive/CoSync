@@ -16,7 +16,7 @@ import {
 } from "../../../lib/contractQuestions";
 import {
   ArrowLeft, ArrowRight, FileText, AlertTriangle, Users, Check,
-  BookOpen, HelpingHand, Scale,
+  BookOpen, HelpingHand, Scale, Plus, Trash2,
 } from "lucide-react";
 
 // ponytail: 질문 템플릿 검토용 정적 목업. Firestore·localStorage 없이 useState 하나로 돈다.
@@ -24,10 +24,15 @@ import {
 export default function ContractQuestionsMockup() {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  // 문항마다 붙일 수 있는 자유 서술 예외. 접어두고 버튼으로 연다.
+  const [exceptions, setExceptions] = useState<Record<string, string>>({});
+  const [exceptionOpen, setExceptionOpen] = useState(false);
 
   const q = CONTRACT_QUESTIONS[index];
   const value = answers[q.id];
   const setValue = (v: unknown) => setAnswers((prev) => ({ ...prev, [q.id]: v }));
+  const exception = exceptions[q.id] ?? "";
+  const showException = exceptionOpen || exception.length > 0;
 
   const previewValues = usePreviewValues(q, value);
   const blocked = isBlocked(q, value);
@@ -38,7 +43,17 @@ export default function ContractQuestionsMockup() {
   // 지분 배분이 미완이어도 사이드바 이동은 막지 않는다. 되돌아와 채우면 된다.
   const jumpTo = (i: number) => {
     setIndex(Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i)));
+    setExceptionOpen(false);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const removeException = () => {
+    setExceptions((prev) => {
+      const next = { ...prev };
+      delete next[q.id];
+      return next;
+    });
+    setExceptionOpen(false);
   };
   const go = (delta: number) => jumpTo(index + delta);
 
@@ -92,6 +107,9 @@ export default function ContractQuestionsMockup() {
                               {answered ? <Check size={11} strokeWidth={3.5} /> : idx + 1}
                             </span>
                             <span className="cq-side-q-text">{item.article}</span>
+                            {exceptions[item.id]?.trim() && (
+                              <span className="cq-side-exc" title="예외 조항 있음" aria-label="예외 조항 있음" />
+                            )}
                           </button>
                         </li>
                       );
@@ -130,6 +148,41 @@ export default function ContractQuestionsMockup() {
               )}
             </section>
 
+            <section className="cq-exception">
+              {!showException ? (
+                <button
+                  type="button"
+                  className="cq-exception-add"
+                  aria-expanded={false}
+                  onClick={() => setExceptionOpen(true)}
+                >
+                  <Plus size={15} /> 예외 조항 추가
+                  <span className="cq-exception-hint">이 조항에 붙일 단서가 있다면</span>
+                </button>
+              ) : (
+                <div className="cq-exception-box">
+                  <div className="cq-exception-top">
+                    <label className="cq-label" htmlFor={`${q.id}-exception`}>예외 조항</label>
+                    <button type="button" className="cq-exception-del" onClick={removeException}>
+                      <Trash2 size={14} /> 삭제
+                    </button>
+                  </div>
+                  <textarea
+                    id={`${q.id}-exception`}
+                    className="cq-textarea"
+                    rows={3}
+                    autoFocus={exception.length === 0}
+                    placeholder="예) 다만, 긴급하여 사전 합의를 거칠 수 없는 경우에는 집행 후 지체 없이 다른 주주들에게 통지하는 것으로 갈음한다."
+                    value={exception}
+                    onChange={(e) => setExceptions((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                  />
+                  <p className="cq-help">
+                    적은 내용은 아래 조문 끝에 단서로 붙습니다. 다른 팀원도 각자 예외를 적을 수 있고, 합의 단계에서 함께 검토합니다.
+                  </p>
+                </div>
+              )}
+            </section>
+
             <section className="cq-preview">
               <div className="cq-preview-head"><FileText size={16} /> 계약서 반영 미리보기</div>
               <div className="cq-paper">
@@ -137,6 +190,12 @@ export default function ContractQuestionsMockup() {
                 {q.preview.blocks.map((block, i) => (
                   <PreviewBlockView key={i} block={block} values={previewValues} />
                 ))}
+                {exception.trim() && (
+                  <p className="cq-paper-para cq-paper-exception">
+                    <span className="cq-paper-exception-tag">예외</span>
+                    {exception.trim()}
+                  </p>
+                )}
               </div>
             </section>
 
@@ -237,6 +296,7 @@ export default function ContractQuestionsMockup() {
         .cq-side-mark.done { background: #10B981; border-color: #10B981; color: #fff; }
         .cq-side-q.current .cq-side-mark:not(.done) { border-color: #4F46E5; color: #4F46E5; }
         .cq-side-q-text { font-size: 12px; font-weight: 600; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #10B981; }
         .cq-side-q.current .cq-side-q-text { color: #3730A3; font-weight: 800; }
 
         .cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 40px 140px; }
@@ -315,6 +375,24 @@ export default function ContractQuestionsMockup() {
         .cq-warning-slot { min-height: 64px; padding-top: 16px; }
         .cq-warning { display: flex; align-items: flex-start; gap: 8px; padding: 12px 18px; border-radius: 16px; background: rgba(245,158,11,0.08); color: #B45309; font-size: 14px; font-weight: 700; line-height: 1.6; }
         .cq-warning svg { flex-shrink: 0; margin-top: 2px; }
+
+        /* 예외 조항 — 평소엔 접어두고 버튼만 보인다. 문항마다 폼을 펼쳐두면 화면이 무거워진다. */
+        .cq-exception-add { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 16px; border: 1px dashed #cbd5e1; background: none; font: inherit; font-size: 13px; font-weight: 800; color: #64748b; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+        .cq-exception-add:hover { border-color: #a5b4fc; color: #4338CA; background: rgba(79,70,229,0.03); }
+        .cq-exception-add:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-exception-add svg { color: #94a3b8; }
+        .cq-exception-add:hover svg { color: #4F46E5; }
+        .cq-exception-hint { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+        .cq-exception-box { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; border-radius: 20px; border: 1px solid #e2e8f0; background: rgba(248,250,252,0.7); }
+        .cq-exception-top { display: flex; align-items: center; justify-content: space-between; }
+        .cq-exception-del { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 10px; border-radius: 10px; border: none; background: none; font: inherit; font-size: 12px; font-weight: 700; color: #94a3b8; cursor: pointer; }
+        .cq-exception-del:hover { color: #b91c1c; background: rgba(185,28,28,0.06); }
+        .cq-exception-del:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        .cq-textarea { width: 100%; min-height: 88px; resize: vertical; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 14px; font-weight: 500; line-height: 1.7; color: #1e293b; }
+        .cq-textarea:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
+        .cq-textarea::placeholder { color: #cbd5e1; }
+        .cq-paper-exception { position: relative; margin-top: 4px; padding: 14px 16px; border-radius: 10px; background: rgba(16,185,129,0.06); border-left: 3px solid #10B981; }
+        .cq-paper-exception-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #047857; font-size: 10px; font-weight: 900; vertical-align: 2px; }
 
         .cq-preview { background: rgba(241,245,249,0.5); border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
         .cq-preview-head { display: inline-flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
