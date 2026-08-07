@@ -109,9 +109,6 @@ function DurationInput({ tpl, value, onChange, id }: {
         <button type="button" className="cq-step-btn" aria-label="1 늘리기" onClick={() => onChange(v + 1)}>+</button>
         <span className="cq-unit">{tpl.unit}</span>
       </div>
-      {tpl.baseValue !== undefined && (
-        <p className="cq-help">베이스 계약서 기본값: {tpl.baseValue}{tpl.unit}</p>
-      )}
     </div>
   );
 }

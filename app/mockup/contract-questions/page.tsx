@@ -137,15 +137,7 @@ export default function ContractQuestionsMockup() {
             <section className="cq-input-zone">
               <QuestionInput template={q.template} value={value} onChange={setValue} keyPrefix={q.id} />
               {/* 경고가 떠도 아래 미리보기가 밀리지 않도록 자리를 미리 비워둔다. */}
-              {canWarn && (
-                <div className="cq-warning-slot" role="status" aria-live="polite">
-                  {warning && (
-                    <p className="cq-warning">
-                      <AlertTriangle size={16} /> {warning}
-                    </p>
-                  )}
-                </div>
-              )}
+
             </section>
 
             <section className="cq-exception">
@@ -261,7 +253,8 @@ export default function ContractQuestionsMockup() {
         </div>
       </footer>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .cq-page { min-height: 100vh; display: flex; flex-direction: column;
           background:
             radial-gradient(at 0% 0%, rgba(79,70,229,0.12) 0px, transparent 50%),
