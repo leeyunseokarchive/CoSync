@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
-import type { QuestionTemplate } from "../lib/contractQuestions";
+import type { ChoiceValue, QuestionTemplate } from "../lib/contractQuestions";
 import { MOCK_MEMBERS, validateAllocation } from "../lib/contractQuestions";
 
 export function formatNumber(n: number): string {
@@ -156,33 +156,70 @@ function PercentInput({ tpl, value, onChange, id }: {
   );
 }
 
+// sub가 붙은 선택지(종류주식)를 고르면 값이 { id, sub } 객체가 되고 하위 내용을 복수로 고른다.
+// 그 외 선택지는 지금처럼 문자열 하나만 넘긴다.
 function ChoiceInput({ tpl, value, onChange }: {
   tpl: Extract<QuestionTemplate, { type: "choice" }>;
-  value: string | undefined;
-  onChange: (v: string) => void;
+  value: ChoiceValue | undefined;
+  onChange: (v: ChoiceValue) => void;
 }) {
+  const picked = typeof value === "object" && value ? value.id : (value as string | undefined);
+  const sub = typeof value === "object" && value ? value.sub : [];
+  const active = tpl.options.find((o) => o.id === picked);
+
   return (
-    <div className="cq-choice-grid" role="radiogroup">
-      {tpl.options.map((o) => {
-        const on = value === o.id;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            className={`cq-choice ${on ? "on" : ""} ${tpl.variant === "person" ? "person" : ""}`}
-            onClick={() => onChange(o.id)}
-          >
-            {tpl.variant === "person" && <span className="cq-avatar" aria-hidden="true">{o.label.slice(0, 1)}</span>}
-            <span className="cq-choice-body">
-              <span className="cq-choice-label">{o.label}</span>
-              <span className="cq-choice-desc">{o.desc}</span>
-            </span>
-            {on && <Check size={18} className="cq-choice-check" aria-hidden="true" />}
-          </button>
-        );
-      })}
+    <div className="cq-field">
+      <div className="cq-choice-grid" role="radiogroup">
+        {tpl.options.map((o) => {
+          const on = picked === o.id;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              className={`cq-choice ${on ? "on" : ""} ${tpl.variant === "person" ? "person" : ""}`}
+              onClick={() => onChange(o.sub ? { id: o.id, sub: on ? sub : [] } : o.id)}
+            >
+              {tpl.variant === "person" && <span className="cq-avatar" aria-hidden="true">{o.label.slice(0, 1)}</span>}
+              <span className="cq-choice-body">
+                <span className="cq-choice-label">{o.label}</span>
+                <span className="cq-choice-desc">{o.desc}</span>
+              </span>
+              {on && <Check size={18} className="cq-choice-check" aria-hidden="true" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {active?.sub && (
+        <>
+          <div className="cq-part-label">{active.sub.label}</div>
+          <div className="cq-choice-grid" role="group" aria-label={active.sub.label}>
+            {active.sub.options.map((s) => {
+              const on = sub.includes(s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={on}
+                  className={`cq-choice ${on ? "on" : ""}`}
+                  onClick={() =>
+                    onChange({ id: active.id, sub: on ? sub.filter((x) => x !== s.id) : [...sub, s.id] })
+                  }
+                >
+                  <span className="cq-choice-body">
+                    <span className="cq-choice-label">{s.label}</span>
+                    <span className="cq-choice-desc">{s.desc}</span>
+                  </span>
+                  {on && <Check size={18} className="cq-choice-check" aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -331,7 +368,7 @@ export function QuestionInput({ template, value, onChange, keyPrefix }: {
     case "percent":
       return <PercentInput tpl={template} value={value as number} onChange={onChange} id={keyPrefix} />;
     case "choice":
-      return <ChoiceInput tpl={template} value={value as string} onChange={onChange} />;
+      return <ChoiceInput tpl={template} value={value as ChoiceValue} onChange={onChange as (v: ChoiceValue) => void} />;
     case "matrix":
       return (
         <MatrixInput

@@ -4,17 +4,21 @@ import React, { useMemo, useState } from "react";
 import { TopNav } from "../../../components/TopNav";
 import { QuestionInput, formatKoreanAmount, formatNumber } from "../../../components/ContractQuestionInputs";
 import { ResultFigure } from "../../../components/ResultFigure";
+import { Gloss } from "../../../components/Gloss";
 import {
   CONTRACT_QUESTIONS,
   QUESTION_GROUPS,
   MOCK_MEMBERS,
   INFO_DISCLAIMER,
+  PENALTY_CLAUSES,
   validateAllocation,
   fillPreview,
+  choiceLabel,
   type ContractQuestion,
+  type PenaltyClause,
   type PreviewBlock,
 } from "../../../lib/contractQuestions";
-import { resultsFor, RESULT_QUESTION_IDS, type ResultBlock } from "../../../lib/contractResults";
+import { resultsFor, RESULT_QUESTION_IDS, won } from "../../../lib/contractResults";
 import {
   ArrowLeft, ArrowRight, FileText, Users, Check,
   BookOpen, HelpingHand, Scale, Plus, Trash2, ChevronDown, Sparkles,
@@ -42,6 +46,8 @@ export default function ContractResultsMockup() {
   const [answers, setAnswers] = useState<Record<string, unknown>>(PREFILL);
   const [exceptions, setExceptions] = useState<Record<string, string>>({});
   const [exceptionOpen, setExceptionOpen] = useState(false);
+  // 제8조 값은 문항끼리 공유한다. 체크박스를 켠 조항만 자기 값을 따로 갖는다.
+  const [penaltyOverrides, setPenaltyOverrides] = useState<Record<string, { base?: number; rate?: number }>>({});
 
   const q = CONTRACT_QUESTIONS[index];
   const value = answers[q.id];
@@ -55,6 +61,29 @@ export default function ContractResultsMockup() {
   // 결과는 내가 답한 값만으로 만든다. 팀원 답은 이 단계에서 볼 수 없다.
   const results = resultsFor(q.id, answers);
   const hasResultZone = RESULT_QUESTION_IDS.has(q.id);
+
+  // 제8조가 이 조항을 가리키면, 그 항을 이 페이지에서 바로 정하고 조문으로도 확인한다.
+  const penaltyClauses = PENALTY_CLAUSES[q.id];
+  const shared = (answers.penalty ?? {}) as { base?: number; rate?: number };
+  const override = penaltyOverrides[q.id];
+  const penalty = { base: override?.base ?? shared.base, rate: override?.rate ?? shared.rate };
+  const penaltyValues = [
+    penalty.base ? formatNumber(penalty.base) : null,
+    penalty.rate ? String(penalty.rate) : null,
+  ];
+
+  const setPenalty = (key: "base" | "rate", v: number) => {
+    if (override) setPenaltyOverrides((prev) => ({ ...prev, [q.id]: { ...prev[q.id], [key]: v } }));
+    else setAnswers((prev) => ({ ...prev, penalty: { ...(prev.penalty as object), [key]: v } }));
+  };
+  // 켜는 순간 지금 보이는 값에서 갈라져 나온다. 끄면 다시 공유 값으로 돌아간다.
+  const toggleOverride = () =>
+    setPenaltyOverrides((prev) => {
+      const next = { ...prev };
+      if (next[q.id]) delete next[q.id];
+      else next[q.id] = { ...penalty };
+      return next;
+    });
 
   const jumpTo = (i: number) => {
     setIndex(Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i)));
@@ -146,7 +175,7 @@ export default function ContractResultsMockup() {
                 {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
               </div>
               <h1 className="cq-title">{q.title}</h1>
-              <p className="cq-desc">{q.desc}</p>
+              <p className="cq-desc"><Gloss text={q.desc} /></p>
             </header>
 
             <section className="cq-input-zone">
@@ -170,8 +199,121 @@ export default function ContractResultsMockup() {
                     <p className="cr-empty-text">값을 정하면 그 값이 만드는 결과가 여기에 보여요.</p>
                   </div>
                 ) : (
-                  results.map((r) => <ResultCard key={r.id} result={r} />)
+                  // 카드를 여러 장 쌓지 않는다. 그림은 이 문항의 결과 하나만 그리고,
+                  // 다른 답과 겹쳐서 생기는 결과는 어느 조항에서 왔는지 달아 한 줄씩 잇는다.
+                  <div className="cr-card">
+                    <div className="cr-figure"><ResultFigure figure={results[0].figure} /></div>
+                    <p className="cr-plain"><Gloss text={results[0].plain} /></p>
+                    {results.length > 1 && (
+                      <ul className="cr-rows">
+                        {results.slice(1).map((r) => (
+                          <li key={r.id} className="cr-row">
+                            <span className="cr-from">
+                              <span className="cr-from-with">함께 반영</span>
+                              {(r.from ?? []).map((id) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  className="cr-from-tag"
+                                  title={CONTRACT_QUESTIONS.find((x) => x.id === id)?.title}
+                                  onClick={() => jumpTo(CONTRACT_QUESTIONS.findIndex((x) => x.id === id))}
+                                >
+                                  {CONTRACT_QUESTIONS.find((x) => x.id === id)?.article ?? id}
+                                </button>
+                              ))}
+                            </span>
+                            <p className="cr-row-text"><Gloss text={r.plain} /></p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
+              </section>
+            )}
+
+            {/* 제8조를 맨 뒤에서 한 번에 묻지 않고, 그 제재가 걸린 조항 옆에서 정한다. */}
+            {penaltyClauses && (
+              <section className="cq-penalty" aria-label="이 조항을 어기면">
+                <div className="cq-penalty-head"><Scale size={15} /> 이 조항을 어기면</div>
+                <ul className="cq-penalty-lines">
+                  {penaltyClauses.map((c) => (
+                    <li key={c.article}>
+                      <span className="cq-penalty-tag">{c.article}</span>
+                      {penaltyLine(c, penalty)}
+                    </li>
+                  ))}
+                </ul>
+
+                {penaltyUses(penaltyClauses).has("base") && (
+                  <div className="cq-field-row">
+                    <label className="cq-label" htmlFor={`${q.id}-pen-base`}>위약벌 기준 금액</label>
+                    <div className="cq-amount-row">
+                      <span className="cq-amount-won" aria-hidden="true">₩</span>
+                      <input
+                        id={`${q.id}-pen-base`}
+                        className="cq-input cq-num"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={penalty.base ? formatNumber(penalty.base) : ""}
+                        onChange={(e) => setPenalty("base", Number(e.target.value.replace(/[^0-9]/g, "")))}
+                      />
+                    </div>
+                    <p className="cq-help">{formatKoreanAmount(penalty.base ?? 0) || "금액을 입력하면 한글로 확인해 드립니다."}</p>
+                  </div>
+                )}
+
+                {penaltyUses(penaltyClauses).has("rate") && (
+                  <div className="cq-field-row">
+                    <label className="cq-label" htmlFor={`${q.id}-pen-rate`}>처분 금액 대비 비율</label>
+                    <div className="cq-pct-row">
+                      <input
+                        id={`${q.id}-pen-rate`}
+                        className="cq-input cq-num cq-pct-num"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={penalty.rate || ""}
+                        onChange={(e) => setPenalty("rate", Math.min(100, Number(e.target.value.replace(/[^0-9]/g, ""))))}
+                      />
+                      <span className="cq-unit">%</span>
+                    </div>
+                  </div>
+                )}
+
+                <label className="cq-penalty-check">
+                  <input type="checkbox" checked={!!override} onChange={toggleOverride} />
+                  <span>이 조항만 다른 값으로 정하기</span>
+                </label>
+                <p className="cq-help">
+                  {override
+                    ? "이 조항에만 적용됩니다. 체크를 끄면 제8조 공통 값으로 돌아갑니다."
+                    : "제8조 전체에 함께 적용되는 값입니다. 다른 조항에서 고쳐도 같이 바뀝니다."}
+                </p>
+              </section>
+            )}
+
+            {/* 제8조 문항은 공통 값을 정하는 자리이자, 따로 정한 조항을 모아 보는 자리다. */}
+            {q.id === "penalty" && Object.keys(penaltyOverrides).length > 0 && (
+              <section className="cq-penalty" aria-label="따로 정한 조항">
+                <div className="cq-penalty-head"><Scale size={15} /> 따로 정한 조항</div>
+                <ul className="cq-penalty-lines">
+                  {Object.entries(penaltyOverrides).map(([id, ov]) => {
+                    const target = CONTRACT_QUESTIONS.find((x) => x.id === id);
+                    return (
+                      <li key={id}>
+                        <button
+                          type="button"
+                          className="cq-penalty-jump"
+                          onClick={() => jumpTo(CONTRACT_QUESTIONS.findIndex((x) => x.id === id))}
+                        >
+                          {target?.article}
+                        </button>
+                        {ov.base !== undefined && ` 위약벌 ${won(ov.base)}`}
+                        {ov.rate !== undefined && ` 처분 금액의 ${ov.rate}%`}
+                      </li>
+                    );
+                  })}
+                </ul>
               </section>
             )}
 
@@ -223,6 +365,16 @@ export default function ContractResultsMockup() {
                     {exception.trim()}
                   </p>
                 )}
+                {penaltyClauses && (
+                  <>
+                    <h2 className="cq-paper-article next">제8조 (손해배상 및 위약벌)</h2>
+                    {penaltyClauses.map((c) => (
+                      <p key={c.article} className="cq-paper-para">
+                        {c.article.replace("제8조 ", "")} <Filled text={c.text} values={penaltyValues} />
+                      </p>
+                    ))}
+                  </>
+                )}
               </div>
             </section>
 
@@ -232,33 +384,45 @@ export default function ContractResultsMockup() {
         <aside className="cq-info" aria-label="이 조항에 대한 정보">
           <div className="cq-info-label">알아두면 좋은 것</div>
 
-          <section className="cq-info-card">
-            <h2 className="cq-info-head"><BookOpen size={15} /> 이 조항은 무엇인가</h2>
-            <p>{q.info.what}</p>
-          </section>
+          {/* 한 페이지에 글이 너무 많아진다. 제목만 두고 필요한 사람만 펼친다. */}
+          <details className="cq-info-card">
+            <summary className="cq-info-head">
+              <BookOpen size={15} /> 이 조항은 무엇인가
+              <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+            </summary>
+            <div className="cq-info-body"><p><Gloss text={q.info.what} /></p></div>
+          </details>
 
-          <section className="cq-info-card">
-            <h2 className="cq-info-head"><HelpingHand size={15} /> 정하지 않으면</h2>
-            <p>{q.info.ifUnset}</p>
-          </section>
+          <details className="cq-info-card">
+            <summary className="cq-info-head">
+              <HelpingHand size={15} /> 정하지 않으면
+              <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+            </summary>
+            <div className="cq-info-body"><p><Gloss text={q.info.ifUnset} /></p></div>
+          </details>
 
           {/* 답을 넣으면 이 카드의 내용이 가운데 결과 카드로 대체된다. 같은 걸 두 번 읽히지 않는다. */}
           {value === undefined && (q.info.low || q.info.high) && (
-            <section className="cq-info-card">
-              <h2 className="cq-info-head"><Scale size={15} /> 한쪽으로 정하면</h2>
-              {q.info.low && (
-                <div className="cq-info-side">
-                  <span className="cq-info-side-tag low">낮게 / 좁게</span>
-                  <p>{q.info.low}</p>
-                </div>
-              )}
-              {q.info.high && (
-                <div className="cq-info-side">
-                  <span className="cq-info-side-tag high">높게 / 넓게</span>
-                  <p>{q.info.high}</p>
-                </div>
-              )}
-            </section>
+            <details className="cq-info-card">
+              <summary className="cq-info-head">
+                <Scale size={15} /> 한쪽으로 정하면
+                <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+              </summary>
+              <div className="cq-info-body">
+                {q.info.low && (
+                  <div className="cq-info-side">
+                    <span className="cq-info-side-tag low">낮게 / 좁게</span>
+                    <p><Gloss text={q.info.low} /></p>
+                  </div>
+                )}
+                {q.info.high && (
+                  <div className="cq-info-side">
+                    <span className="cq-info-side-tag high">높게 / 넓게</span>
+                    <p><Gloss text={q.info.high} /></p>
+                  </div>
+                )}
+              </div>
+            </details>
           )}
 
           <p className="cq-info-disclaimer">{INFO_DISCLAIMER}</p>
@@ -294,20 +458,19 @@ export default function ContractResultsMockup() {
   );
 }
 
-// 결과 하나. 도형과 쉬운 말이 먼저 오고, 조문 근거는 접어 둔다.
-function ResultCard({ result }: { result: ResultBlock }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`cr-card ${result.combined ? "combined" : ""}`}>
-      {result.combined && <span className="cr-badge">내 다른 답과 함께</span>}
-      <div className="cr-figure"><ResultFigure figure={result.figure} /></div>
-      <p className="cr-plain">{result.plain}</p>
-      <button type="button" className="cr-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <ChevronDown size={14} className={open ? "up" : ""} /> 조문으로 보기
-      </button>
-      {open && <p className="cr-formal">{result.formal}</p>}
-    </div>
-  );
+// 제8조의 한 항이 이 조항에 무엇을 거는지 한 줄로 읽어 준다.
+function penaltyLine(c: PenaltyClause, p: { base?: number; rate?: number }): string {
+  return c.uses
+    .map((u) =>
+      u === "base"
+        ? p.base ? `${won(p.base)}` : "금액 미정"
+        : p.rate ? `처분 금액의 ${p.rate}%` : "비율 미정"
+    )
+    .join(c.uses.length > 1 ? " 또는 " : "");
+}
+
+function penaltyUses(clauses: PenaltyClause[]): Set<"base" | "rate"> {
+  return new Set(clauses.flatMap((c) => c.uses));
 }
 
 // 조문 한 조각을 그리고, 답변이 들어간 자리를 하이라이트한다.
@@ -365,10 +528,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
     if (t.type === "amount") return [formatKoreanAmount(Number(value))];
     if (t.type === "duration") return [`${value}${t.unit}`];
     if (t.type === "percent") return [String(value)];
-    if (t.type === "choice") {
-      const opt = t.options.find((o) => o.id === value);
-      return [opt ? opt.label : null];
-    }
+    if (t.type === "choice") return [choiceLabel(t, value)];
     if (t.type === "matrix") {
       const v = value as Record<string, string | number>;
       return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
@@ -384,10 +544,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
       if (p.template.type === "amount") return formatNumber(Number(pv));
       if (p.template.type === "duration") return `${pv}${p.template.unit}`;
       if (p.template.type === "percent") return String(pv);
-      if (p.template.type === "choice") {
-        const opt = p.template.options.find((o) => o.id === pv);
-        return opt ? opt.label : null;
-      }
+      if (p.template.type === "choice") return choiceLabel(p.template, pv);
       return String(pv);
     });
   }, [q, value]);
@@ -412,11 +569,12 @@ const CSS = `
     #F8FAFC; }
 .cq-shell { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; max-width: 1680px; margin: 0 auto; width: 100%; }
 
-.cq-sidebar { width: 272px; flex-shrink: 0; padding: 40px 0 140px; border-right: 1px solid rgba(226,232,240,0.4); position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; }
-.cq-sidebar-label { padding: 0 32px; margin-bottom: 28px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
+/* 본문과 같이 움직인다. 따로 스크롤하지 않고, 본문 카드처럼 흰 면 위에 얹는다. */
+.cq-sidebar { width: 272px; flex-shrink: 0; margin: 32px 0 140px 32px; padding: 24px 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; align-self: flex-start; overflow: hidden; }
+.cq-sidebar-label { padding: 0 20px; margin-bottom: 20px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
 .cq-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
 .cq-side-group { position: relative; padding-bottom: 8px; }
-.cq-side-head { width: 100%; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ko count" "en count"; align-items: center; gap: 0 8px; padding: 12px 28px 8px 32px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; border-radius: 0 12px 12px 0; }
+.cq-side-head { width: 100%; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ko count" "en count"; align-items: center; gap: 0 8px; padding: 12px 16px 8px 20px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; border-radius: 0 12px 12px 0; }
 .cq-side-head:hover { background: rgba(79,70,229,0.04); }
 .cq-side-head:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-side-ko { grid-area: ko; font-size: 14px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px; }
@@ -429,7 +587,7 @@ const CSS = `
 .cq-side-group.active::before { content: ""; position: absolute; left: 0; top: 14px; width: 4px; height: 26px; background: #4F46E5; border-radius: 0 999px 999px 0; }
 
 .cq-side-list { list-style: none; display: flex; flex-direction: column; }
-.cq-side-q { width: 100%; display: flex; align-items: center; gap: 9px; padding: 7px 16px 7px 32px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; border-radius: 0 12px 12px 0; }
+.cq-side-q { width: 100%; display: flex; align-items: center; gap: 9px; padding: 7px 14px 7px 20px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; border-radius: 0 12px 12px 0; }
 .cq-side-q:hover { background: rgba(79,70,229,0.05); }
 .cq-side-q:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-side-q.current { background: rgba(79,70,229,0.09); }
@@ -440,7 +598,7 @@ const CSS = `
 .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #10B981; }
 .cq-side-q.current .cq-side-q-text { color: #3730A3; font-weight: 800; }
 
-.cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 40px 140px; }
+.cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 28px 140px; }
 .cq-card { max-width: 880px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
   border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(79,70,229,0.05);
   border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
@@ -506,7 +664,7 @@ const CSS = `
 .cq-matrix-row.text .cq-input { grid-area: input; }
 .cq-matrix-name { font-size: 15px; font-weight: 800; color: #1e293b; }
 .cq-matrix-role { font-size: 12px; font-weight: 600; color: #94a3b8; }
-.cq-bar { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+.cq-bar { height: 14px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
 .cq-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
 .cq-total { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; margin-top: 8px; padding: 12px 18px; border-radius: 16px; font-size: 14px; font-weight: 800; min-height: 44px; }
 .cq-total.ok { background: rgba(16,185,129,0.08); color: #047857; }
@@ -530,6 +688,19 @@ const CSS = `
 .cq-paper-exception { position: relative; margin-top: 4px; padding: 14px 16px; border-radius: 10px; background: rgba(16,185,129,0.06); border-left: 3px solid #10B981; }
 .cq-paper-exception-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #047857; font-size: 10px; font-weight: 900; vertical-align: 2px; }
 
+/* 제재 — 조문 미리보기와 같은 결의 구획. 카드를 하나 더 얹지 않는다. */
+.cq-penalty { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f8fafc; }
+.cq-penalty-head { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
+.cq-penalty-head svg { color: #4F46E5; }
+.cq-penalty-lines { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.cq-penalty-lines li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; font-weight: 700; color: #1e293b; }
+.cq-penalty-tag { padding: 3px 9px; border-radius: 999px; background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 900; }
+.cq-penalty-check { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; font-size: 13px; font-weight: 700; color: #475569; cursor: pointer; }
+.cq-penalty-check input { width: 18px; height: 18px; accent-color: #4F46E5; cursor: pointer; }
+.cq-penalty-jump { border: none; background: none; font: inherit; font-size: 14px; font-weight: 800; color: #4338CA; text-decoration: underline; padding: 0; cursor: pointer; }
+.cq-penalty-jump:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+.cq-paper-article.next { margin-top: 18px; }
+
 .cq-preview { background: rgba(241,245,249,0.5); border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .cq-preview-head { display: inline-flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
 .cq-preview-head svg { color: #4F46E5; }
@@ -551,11 +722,19 @@ const CSS = `
 .cq-mark-fill { background: rgba(79,70,229,0.12); color: #3730A3; font-weight: 800; padding: 1px 5px; border-radius: 4px; font-variant-numeric: tabular-nums; }
 .cq-blank { display: inline-block; min-width: 3.2em; border-bottom: 1px solid #cbd5e1; vertical-align: baseline; }
 
-.cq-info { width: 340px; flex-shrink: 0; padding: 32px 32px 140px 0; display: flex; flex-direction: column; gap: 14px; position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; }
-.cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; }
-.cq-info-card { background: rgba(255,255,255,0.7); border: 1px solid rgba(226,232,240,0.7); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+/* 사이드바와 같다. 본문과 함께 움직이고, 카드는 제목만 두고 접어 둔다. */
+.cq-info { width: 340px; flex-shrink: 0; padding: 32px 32px 140px 0; display: flex; flex-direction: column; gap: 10px; align-self: flex-start; }
+.cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; margin-bottom: 4px; }
+.cq-info-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; }
+.cq-info-card:hover { border-color: #cbd5e1; }
+.cq-info-card > summary { list-style: none; cursor: pointer; padding: 13px 16px; min-height: 44px; }
+.cq-info-card > summary::-webkit-details-marker { display: none; }
+.cq-info-card > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
 .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
+.cq-info-head .cq-info-chev { margin-left: auto; color: #cbd5e1; transition: transform 0.15s; }
+.cq-info-card[open] .cq-info-chev { transform: rotate(180deg); }
+.cq-info-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
 .cq-info-card p { font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
 .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
 .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
@@ -588,34 +767,43 @@ const CSS = `
 .cr-zone-head { display: inline-flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
 .cr-zone-head svg { color: #4F46E5; }
 
-.cr-card { position: relative; background: #fff; border: 1px solid #eef1f6; border-radius: 28px; padding: 22px 26px 18px;
-  box-shadow: 0 10px 30px -18px rgba(15,23,42,0.28); display: flex; flex-direction: column; gap: 12px; }
-.cr-card.combined { border-color: rgba(79,70,229,0.28); background: linear-gradient(180deg, rgba(79,70,229,0.045), rgba(255,255,255,0.6)); }
-.cr-badge { position: absolute; top: -10px; left: 24px; padding: 4px 11px; border-radius: 999px;
-  background: linear-gradient(180deg, #8B7CF6, #4F46E5); color: #fff; font-size: 10px; font-weight: 900;
-  box-shadow: 0 6px 14px -6px rgba(79,70,229,0.7); }
+/* 카드는 본문의 다른 카드와 같은 규칙을 따른다 — 1px 테두리, 24px 라운드, 그림자 없음. */
+.cr-card { position: relative; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 22px 24px 18px;
+  display: flex; flex-direction: column; gap: 12px; }
 .cr-figure { padding: 6px 0 2px; }
 .cr-svg { width: 100%; height: auto; display: block; }
 .cr-plain { font-size: 16px; line-height: 1.7; font-weight: 800; color: #0f172a; word-break: keep-all; letter-spacing: -0.01em; }
-.cr-more { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 12px 0 8px; border: none; background: none; font: inherit; font-size: 12px; font-weight: 700; color: #94a3b8; cursor: pointer; border-radius: 10px; }
-.cr-more:hover { color: #4F46E5; background: rgba(79,70,229,0.05); }
-.cr-more:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
-.cr-more svg { transition: transform 0.15s; }
-.cr-more svg.up { transform: rotate(180deg); }
-.cr-formal { font-size: 13px; line-height: 1.85; color: #475569; font-weight: 500; padding: 14px 16px; border-radius: 14px; background: #f8fafc; word-break: keep-all; }
+/* 다른 답과 겹쳐 생기는 결과. 카드를 새로 만들지 않고 한 줄씩 잇는다. */
+.cr-rows { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 2px; padding-top: 14px; border-top: 1px solid #f1f5f9; }
+.cr-row { display: flex; flex-direction: column; gap: 6px; }
+.cr-from { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.cr-from-tag { padding: 3px 9px; border-radius: 999px; border: 1px solid #c7d2fe; background: #EEF2FF; color: #4338CA; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
+.cr-from-tag:hover { background: #E0E7FF; }
+.cr-from-tag:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+.cr-from-with { font-size: 11px; font-weight: 800; color: #94a3b8; }
+.cr-row-text { font-size: 14.5px; line-height: 1.7; font-weight: 700; color: #1e293b; word-break: keep-all; }
+
+/* 어려운 말 뜻풀이. 마우스와 키보드 둘 다로 열린다 — hover 전용은 만들지 않는다. */
+.cq-term { position: relative; border-bottom: 1px dashed #cbd5e1; cursor: help; }
+.cq-term-pop { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60; width: max-content; max-width: 240px;
+  padding: 10px 12px; border-radius: 10px; background: #1e293b; color: #fff;
+  font-size: 12px; font-weight: 500; line-height: 1.6; letter-spacing: 0; text-align: left; word-break: keep-all;
+  opacity: 0; visibility: hidden; transition: opacity 0.12s; pointer-events: none; }
+.cq-term:hover .cq-term-pop, .cq-term:focus-visible .cq-term-pop { opacity: 1; visibility: visible; }
+.cq-term:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; border-radius: 3px; }
+.cq-info .cq-term-pop { left: auto; right: 0; }
 
 /* 값을 모르는 항목은 크기를 지어내지 않고 점선 블록으로 둔다. */
 .cr-mag { display: flex; flex-wrap: wrap; gap: 12px; padding: 2px 0; }
-.cr-mag-box { flex: 1 1 150px; display: flex; flex-direction: column; gap: 5px; padding: 18px 20px; border-radius: 20px;
-  background: linear-gradient(180deg, #EEF0FE, #DFE3FC); border: 2px solid transparent;
-  box-shadow: 0 8px 18px -12px rgba(79,70,229,0.6); }
-.cr-mag-box.outline { background: none; border-color: #e2e8f0; border-style: dashed; box-shadow: none; }
+.cr-mag-box { flex: 1 1 150px; display: flex; flex-direction: column; gap: 5px; padding: 16px 18px; border-radius: 16px;
+  background: #EEF2FF; border: 1px solid #c7d2fe; }
+.cr-mag-box.outline { background: #fff; border-color: #e2e8f0; border-style: dashed; }
 .cr-mag-text { font-size: 19px; font-weight: 900; color: #3730A3; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .cr-mag-box.outline .cr-mag-text { color: #64748b; }
-.cr-mag-label { font-size: 12px; font-weight: 700; color: #8189b8; }
+.cr-mag-label { font-size: 12px; font-weight: 700; color: #6366F1; }
 .cr-mag-box.outline .cr-mag-label { color: #94a3b8; }
 
-.cr-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 190px; border: 1px dashed #e2e8f0; border-radius: 28px; background: rgba(248,250,252,0.6); }
+.cr-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 190px; border: 1px dashed #e2e8f0; border-radius: 24px; background: #f8fafc; }
 .cr-empty-art { width: 100%; max-width: 420px; opacity: 0.85; }
 .cr-empty-art svg { width: 100%; height: auto; }
 .cr-empty-text { font-size: 13px; font-weight: 700; color: #cbd5e1; }
@@ -646,6 +834,6 @@ const CSS = `
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cq-chip, .cq-choice, .cq-bar span, .cq-progress-bar span, .cq-cta, .cr-more svg { transition: none; }
+  .cq-chip, .cq-choice, .cq-bar span, .cq-progress-bar span, .cq-cta, .cq-info-chev, .cq-term-pop { transition: none; }
 }
 `;

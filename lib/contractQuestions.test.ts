@@ -4,9 +4,12 @@ import {
   CONTRACT_QUESTIONS,
   QUESTION_GROUPS,
   MOCK_MEMBERS,
+  PENALTY_CLAUSES,
   validateAllocation,
   tenureWarning,
   fillPreview,
+  choiceLabel,
+  type QuestionTemplate,
 } from "./contractQuestions.ts";
 
 test("질문은 13개이고 id가 중복되지 않는다", () => {
@@ -19,7 +22,7 @@ test("확정 8개 / 제안 5개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
   assert.deepEqual(
     proposed.map((q) => q.id),
-    ["identity", "shareType", "noncompete", "vesting", "buybackPrice"]
+    ["identity", "shareType", "vesting", "noncompete", "buybackPrice"]
   );
   assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 8);
 });
@@ -91,6 +94,25 @@ test("멤버별 입력 질문은 팀원 수만큼의 표 행을 가진다", () =
     assert.ok(table && table.kind === "table", `표 블록 없음: ${q.id}`);
     const memberRows = table.rows.filter((r) => MOCK_MEMBERS.some((m) => r[0] === m.name));
     assert.equal(memberRows.length, MOCK_MEMBERS.length, `행 수 불일치: ${q.id}`);
+  }
+});
+
+test("종류주식은 고른 내용을 괄호로 덧붙여 조문에 들어간다", () => {
+  const t = CONTRACT_QUESTIONS.find((q) => q.id === "shareType")!
+    .template as Extract<QuestionTemplate, { type: "choice" }>;
+  assert.equal(choiceLabel(t, "common"), "보통주식");
+  assert.equal(choiceLabel(t, { id: "preferred", sub: [] }), "종류주식");
+  assert.equal(choiceLabel(t, { id: "preferred", sub: ["redeemable", "convertible"] }), "종류주식 (상환주식·전환주식)");
+  assert.equal(choiceLabel(t, "없는값"), null);
+});
+
+test("제재 연결은 실제 문항을 가리키고, 쓰는 값만 자리표시자로 갖는다", () => {
+  for (const [qid, clauses] of Object.entries(PENALTY_CLAUSES)) {
+    assert.ok(CONTRACT_QUESTIONS.some((q) => q.id === qid), `없는 문항: ${qid}`);
+    for (const c of clauses) {
+      assert.equal(c.text.includes("{0}"), c.uses.includes("base"), `${c.article}: 기준 금액 자리 불일치`);
+      assert.equal(c.text.includes("{1}"), c.uses.includes("rate"), `${c.article}: 비율 자리 불일치`);
+    }
   }
 });
 

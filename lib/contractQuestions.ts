@@ -3,11 +3,22 @@
 // 빈칸 목록 근거: reference/계약서 샘플/최종 계약서 필수 내용 정리.md D절
 // 설계: docs/superpowers/specs/2026-08-07-contract-question-templates-design.md
 
+// 고르면 하위 내용을 복수로 고르게 하는 선택지. 종류주식처럼 한 단계 더 들어가는 항목에만 sub를 붙인다.
+export type ChoiceOption = {
+  id: string;
+  label: string;
+  desc: string;
+  sub?: { label: string; options: { id: string; label: string; desc: string }[] };
+};
+
+// sub가 있는 선택지를 고르면 값이 객체가 된다. 그 외에는 지금처럼 문자열이다.
+export type ChoiceValue = string | { id: string; sub: string[] };
+
 export type QuestionTemplate =
   | { type: "amount"; presets: { label: string; value: number }[] }
   | { type: "duration"; unit: "일" | "개월" | "년"; presets: number[]; baseValue?: number }
   | { type: "percent"; marks: { value: number; label: string }[] }
-  | { type: "choice"; variant?: "person"; options: { id: string; label: string; desc: string }[] }
+  | { type: "choice"; variant?: "person"; options: ChoiceOption[] }
   | { type: "matrix"; variant: "text" | "allocation"; chips?: string[] }
   | { type: "fields"; fields: { key: string; label: string; placeholder: string; kind?: "text" | "date" | "number" }[] }
   | { type: "composite"; parts: { key: string; label: string; template: QuestionTemplate }[] };
@@ -53,7 +64,8 @@ export type ContractQuestion = {
 export const QUESTION_GROUPS = [
   { id: "basics", ko: "계약 기본", en: "Contract Basics" },
   { id: "decision", ko: "의사결정", en: "Decision & Deadlock" },
-  { id: "equity", ko: "역할·지분", en: "Roles & Equity" },
+  { id: "roles", ko: "역할", en: "Roles" },
+  { id: "equity", ko: "지분", en: "Equity & Vesting" },
   { id: "tenure", ko: "근무·이탈", en: "Tenure & Exit" },
   { id: "transfer", ko: "처분·제재", en: "Transfer & Penalty" },
 ];
@@ -81,6 +93,16 @@ export function tenureWarning(years: number): string | null {
   return "제5조 ②항은 3년 기준으로 작성되어 있습니다. 3년 미만으로 정하면 두 항의 기준이 달라집니다.";
 }
 
+// 선택지 답을 조문에 넣을 한 줄로 만든다. sub를 고른 종류주식은 괄호로 내용을 덧붙인다.
+export function choiceLabel(t: Extract<QuestionTemplate, { type: "choice" }>, v: unknown): string | null {
+  const id = typeof v === "string" ? v : typeof v === "object" && v ? (v as { id?: string }).id : undefined;
+  const opt = t.options.find((o) => o.id === id);
+  if (!opt) return null;
+  const picked = (typeof v === "object" && v ? (v as { sub?: string[] }).sub : undefined) ?? [];
+  const subs = opt.sub ? opt.sub.options.filter((s) => picked.includes(s.id)).map((s) => s.label) : [];
+  return subs.length ? `${opt.label} (${subs.join("·")})` : opt.label;
+}
+
 // "{0}" 자리를 값으로 치환하고, 하이라이트할 조각을 filled로 표시한다.
 // 값이 없으면 빈칸 기호를 남긴다.
 export function fillPreview(template: string, values: (string | null)[]) {
@@ -97,6 +119,36 @@ export function fillPreview(template: string, values: (string | null)[]) {
   if (last < template.length) parts.push({ text: template.slice(last), filled: false });
   return parts;
 }
+
+// 제8조의 제재는 여러 항에 흩어져 각각 다른 조항을 가리킨다. 제8조 하나를 맨 뒤에서 물으면
+// "3조가 뭐였더라"로 되돌아가게 되므로, 해당 조항 문항 페이지에 그 조항의 제재만 붙여 둔다.
+// {0}=기준 금액, {1}=처분 금액 대비 비율. 값은 penalty 문항과 공유하되 조항별로 따로 정할 수 있다.
+export type PenaltyClause = { article: string; text: string; uses: ("base" | "rate")[] };
+
+const PENALTY_45: PenaltyClause[] = [
+  {
+    article: "제8조 ②",
+    uses: ["rate"],
+    text: "이 계약의 어느 당사자가 제4조 및 제5조를 위반하는 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 주식 처분 금액의 {1}%에 해당하는 금액을 지급하여야 한다.",
+  },
+  {
+    article: "제8조 ③",
+    uses: ["base"],
+    text: "이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각 {0}원을 지급하여야 한다. 단, 손해액이 {0}원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다.",
+  },
+];
+
+export const PENALTY_CLAUSES: Record<string, PenaltyClause[]> = {
+  noncompete: PENALTY_45,
+  tenure: PENALTY_45,
+  lockup: [
+    {
+      article: "제8조 ⑤",
+      uses: ["rate", "base"],
+      text: "이 계약의 어느 당사자가 제6조 또는 제7조를 위반하여 처분행위를 한 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 처분 금액의 {1}%에 해당하는 금액 또는 각 {0}원 중 큰 금액을 지급하여야 하며, 해당 처분행위로써 다른 주주들에게 대항할 수 없다.",
+    },
+  ],
+};
 
 export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   {
@@ -147,7 +199,20 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       type: "choice",
       options: [
         { id: "common", label: "보통주식", desc: "의결권과 배당에 특별한 조건이 붙지 않는 주식입니다." },
-        { id: "preferred", label: "종류주식", desc: "우선배당, 의결권 제한, 상환·전환 등 조건이 붙은 주식입니다." },
+        {
+          id: "preferred",
+          label: "종류주식",
+          desc: "배당·의결권·상환·전환에 관해 내용이 다른 주식입니다. 어떤 내용인지 아래에서 고릅니다.",
+          sub: {
+            label: "종류주식의 내용 (여러 개 고를 수 있습니다)",
+            options: [
+              { id: "dividend", label: "이익배당·잔여재산분배 우선", desc: "상법 제344조의2. 배당이나 잔여재산을 먼저 받습니다." },
+              { id: "voteLimited", label: "의결권 배제·제한", desc: "상법 제344조의3. 의결권이 없거나 일부 안건에만 있습니다." },
+              { id: "redeemable", label: "상환주식", desc: "상법 제345조. 회사가 이익으로 되사서 소각할 수 있습니다." },
+              { id: "convertible", label: "전환주식", desc: "상법 제346조. 정해진 조건으로 다른 종류의 주식으로 바뀝니다." },
+            ],
+          },
+        },
       ],
     },
     preview: {
@@ -167,7 +232,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ],
     },
     info: {
-      what: "상법은 이익 배당, 의결권 행사, 상환, 전환에 관해 내용이 다른 여러 종류의 주식을 발행할 수 있게 합니다(상법 제344조). 보통주식은 이런 조건이 붙지 않은 기본형이고, 종류주식은 정관에 그 내용과 수를 정해두어야 발행할 수 있습니다.",
+      what: "상법은 이익 배당, 의결권 행사, 상환, 전환에 관해 내용이 다른 여러 종류의 주식을 발행할 수 있게 합니다(상법 제344조). 보통주식은 이런 조건이 붙지 않은 기본형이고, 종류주식은 정관에 그 내용과 수를 정해두어야 발행할 수 있습니다. 종류주식의 내용은 이익배당·잔여재산분배 우선(제344조의2), 의결권 배제·제한(제344조의3), 상환(제345조), 전환(제346조)으로 나뉘고, 둘 이상을 겹쳐 발행할 수도 있습니다. 투자 유치에 쓰이는 상환전환우선주(RCPS)가 우선·상환·전환을 겹친 형태입니다.",
       ifUnset: "주식의 종류를 적지 않으면 지분 표가 무엇을 배분한 것인지 불명확해집니다. 종류주식은 정관 근거가 있어야 하므로, 정관에 없는 종류를 계약서에만 적으면 실제로 발행할 수 없습니다.",
     },
   },
@@ -261,7 +326,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   },
   {
     id: "roles",
-    group: "equity",
+    group: "roles",
     article: "제3의 2조",
     articleTag: "ROLES",
     proposed: false,
@@ -327,6 +392,57 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     },
   },
   {
+    id: "vesting",
+    group: "equity",
+    article: "제5조 (강화)",
+    articleTag: "VESTING",
+    proposed: true,
+    consensus: true,
+    title: "지분을 시간에 따라 단계적으로 확정하나요?",
+    desc: "베스팅은 근무 기간에 비례해 지분을 확정하는 방식, 클리프는 그 전에 나가면 한 주도 확정되지 않는 최소 기간입니다.",
+    template: {
+      type: "composite",
+      parts: [
+        {
+          key: "apply",
+          label: "베스팅 적용 여부",
+          template: {
+            type: "choice",
+            options: [
+              { id: "yes", label: "적용한다", desc: "근무 기간에 비례해 지분이 단계적으로 확정됩니다." },
+              { id: "no", label: "적용하지 않는다", desc: "제5조 ②항의 액면가 매수권만으로 이탈 상황을 처리합니다." },
+            ],
+          },
+        },
+        {
+          key: "vestingYears",
+          label: "베스팅 기간",
+          template: { type: "duration", unit: "년", presets: [2, 3, 4, 5] },
+        },
+        {
+          key: "cliffYears",
+          label: "클리프 기간",
+          template: { type: "duration", unit: "년", presets: [1, 2] },
+        },
+      ],
+    },
+    preview: {
+      article: "제5조 (계속근무)",
+      blocks: [
+        { kind: "ellipsis" },
+        { kind: "para", text: "② 제1항에도 불구하고 주주가 3년 이내에 회사에서 퇴사하는 경우, 다른 주주는 퇴사하는 주주가 보유하고 있는 주식 전부 또는 일부를 퇴사일 당시의 각 지분율에 따라 퇴사하는 주주로부터 액면가로 매수할 수 있는 권리를 가진다." },
+        { kind: "para", text: "③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다." },
+        { kind: "para", text: "④ 주주가 보유한 주식은 본 계약 체결일로부터 {1}에 걸쳐 매월 균등하게 확정되며, 최초 {2}이 경과하기 전에 퇴사하는 경우 확정된 주식이 없는 것으로 본다. (베스팅 {0})" },
+      ],
+    },
+    info: {
+      what: "지분을 처음에 전부 확정하지 않고 시간이 지남에 따라 나누어 확정하는 구조입니다. 클리프는 그 앞에 두는 관문으로, 클리프를 넘기기 전에 떠나면 확정된 몫이 없습니다. 이 계약의 제5조 ②항도 3년 내 퇴사 시 액면가 매수권을 두어 비슷한 효과를 내지만, 확정 시점이 단계적으로 나뉘지는 않습니다.",
+      ifUnset: "베스팅이 없으면 설립 시 배분한 지분이 근무 기간과 무관하게 그대로 유지됩니다. 짧게 일하고 떠난 사람도 처음 받은 비율을 그대로 보유하게 되며, 이후 투자 유치 과정에서 투자자가 이 구조를 확인하고 조정을 요구하는 경우가 있습니다.",
+      low: "베스팅 기간이 짧으면 지분이 빨리 확정되어 각자의 몫이 일찍 안정됩니다. 대신 조기 이탈에 대비하는 효과는 줄어듭니다.",
+      high: "기간이 길면 오래 남을수록 확정 몫이 커지는 구조가 됩니다. 대신 그 기간 동안 각자가 실제로 얼마를 가진 것인지 계산이 계속 바뀝니다.",
+    },
+  },
+  {
     id: "noncompete",
     group: "tenure",
     article: "제4조 ②",
@@ -374,57 +490,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ifUnset: "기간이 비면 언제 나가는 것이 위반인지 판단할 수 없어, 제8조가 제5조 위반에 걸어둔 제재도 작동할 대상을 잃습니다.",
       low: "이 계약서 제5조 ②항은 \"3년 이내 퇴사\" 시 다른 주주가 액면가로 매수할 수 있다고 이미 적혀 있습니다. ①항을 3년보다 짧게 정하면 두 항의 기준 연수가 서로 달라지므로, ②항도 함께 손볼지 확인해야 합니다.",
       high: "기간이 길면 그동안 다른 주주 전원의 동의 없이는 퇴사가 계약 위반이 됩니다. 다만 근로관계 자체를 강제할 수는 없으므로, 실제로는 남으라고 강제하기보다 위반에 따른 금전적 책임이 남는 형태로 작동합니다.",
-    },
-  },
-  {
-    id: "vesting",
-    group: "tenure",
-    article: "제5조 (강화)",
-    articleTag: "VESTING",
-    proposed: true,
-    consensus: true,
-    title: "지분을 시간에 따라 단계적으로 확정하나요?",
-    desc: "베스팅은 근무 기간에 비례해 지분을 확정하는 방식, 클리프는 그 전에 나가면 한 주도 확정되지 않는 최소 기간입니다.",
-    template: {
-      type: "composite",
-      parts: [
-        {
-          key: "apply",
-          label: "베스팅 적용 여부",
-          template: {
-            type: "choice",
-            options: [
-              { id: "yes", label: "적용한다", desc: "근무 기간에 비례해 지분이 단계적으로 확정됩니다." },
-              { id: "no", label: "적용하지 않는다", desc: "제5조 ②항의 액면가 매수권만으로 이탈 상황을 처리합니다." },
-            ],
-          },
-        },
-        {
-          key: "vestingYears",
-          label: "베스팅 기간",
-          template: { type: "duration", unit: "년", presets: [2, 3, 4, 5] },
-        },
-        {
-          key: "cliffYears",
-          label: "클리프 기간",
-          template: { type: "duration", unit: "년", presets: [1, 2] },
-        },
-      ],
-    },
-    preview: {
-      article: "제5조 (계속근무)",
-      blocks: [
-        { kind: "ellipsis" },
-        { kind: "para", text: "② 제1항에도 불구하고 주주가 3년 이내에 회사에서 퇴사하는 경우, 다른 주주는 퇴사하는 주주가 보유하고 있는 주식 전부 또는 일부를 퇴사일 당시의 각 지분율에 따라 퇴사하는 주주로부터 액면가로 매수할 수 있는 권리를 가진다." },
-        { kind: "para", text: "③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다." },
-        { kind: "para", text: "④ 주주가 보유한 주식은 본 계약 체결일로부터 {1}에 걸쳐 매월 균등하게 확정되며, 최초 {2}이 경과하기 전에 퇴사하는 경우 확정된 주식이 없는 것으로 본다. (베스팅 {0})" },
-      ],
-    },
-    info: {
-      what: "지분을 처음에 전부 확정하지 않고 시간이 지남에 따라 나누어 확정하는 구조입니다. 클리프는 그 앞에 두는 관문으로, 클리프를 넘기기 전에 떠나면 확정된 몫이 없습니다. 이 계약의 제5조 ②항도 3년 내 퇴사 시 액면가 매수권을 두어 비슷한 효과를 내지만, 확정 시점이 단계적으로 나뉘지는 않습니다.",
-      ifUnset: "베스팅이 없으면 설립 시 배분한 지분이 근무 기간과 무관하게 그대로 유지됩니다. 짧게 일하고 떠난 사람도 처음 받은 비율을 그대로 보유하게 되며, 이후 투자 유치 과정에서 투자자가 이 구조를 확인하고 조정을 요구하는 경우가 있습니다.",
-      low: "베스팅 기간이 짧으면 지분이 빨리 확정되어 각자의 몫이 일찍 안정됩니다. 대신 조기 이탈에 대비하는 효과는 줄어듭니다.",
-      high: "기간이 길면 오래 남을수록 확정 몫이 커지는 구조가 됩니다. 대신 그 기간 동안 각자가 실제로 얼마를 가진 것인지 계산이 계속 바뀝니다.",
     },
   },
   {

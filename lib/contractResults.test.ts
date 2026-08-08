@@ -34,7 +34,7 @@ test("단독 결과 10개가 각각 자기 문항에서 나온다", () => {
   for (const qid of Object.keys(FULL)) {
     const blocks = only(qid, qid);
     assert.equal(blocks.length, 1, `단독 결과가 1개가 아님: ${qid}`);
-    assert.equal(blocks[0].combined, undefined, `단독인데 조합으로 표시됨: ${qid}`);
+    assert.equal(blocks[0].from, undefined, `단독인데 조합으로 표시됨: ${qid}`);
   }
 });
 

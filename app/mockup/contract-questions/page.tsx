@@ -11,6 +11,7 @@ import {
   validateAllocation,
   tenureWarning,
   fillPreview,
+  choiceLabel,
   type ContractQuestion,
   type PreviewBlock,
 } from "../../../lib/contractQuestions";
@@ -529,10 +530,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
     if (t.type === "amount") return [formatKoreanAmount(Number(value))];
     if (t.type === "duration") return [`${value}${t.unit}`];
     if (t.type === "percent") return [String(value)];
-    if (t.type === "choice") {
-      const opt = t.options.find((o) => o.id === value);
-      return [opt ? opt.label : null];
-    }
+    if (t.type === "choice") return [choiceLabel(t, value)];
     if (t.type === "matrix") {
       const v = value as Record<string, string | number>;
       return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
@@ -549,10 +547,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
       if (p.template.type === "amount") return formatNumber(Number(pv));
       if (p.template.type === "duration") return `${pv}${p.template.unit}`;
       if (p.template.type === "percent") return String(pv);
-      if (p.template.type === "choice") {
-        const opt = p.template.options.find((o) => o.id === pv);
-        return opt ? opt.label : null;
-      }
+      if (p.template.type === "choice") return choiceLabel(p.template, pv);
       return String(pv);
     });
   }, [q, value]);

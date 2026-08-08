@@ -4,63 +4,32 @@ import React from "react";
 import type { Figure } from "../lib/contractResults";
 
 // 도형 4종. 규칙마다 SVG를 그리지 않고, 형태에 값을 넣는다.
-// 차트가 아니라 일러스트로 읽히도록 그라디언트·상단 하이라이트·부드러운 그림자를 쓴다.
+// 기존 화면과 같은 평면 스타일로 그린다 — 그라디언트·그림자·하이라이트 없이 면과 선만 쓴다.
+const IND = "#4F46E5";        // 본체
+const IND_MID = "#C7D2FE";    // 보조 막대
+const IND_LIGHT = "#E0E7FF";  // 3번째 이후
+const IND_INK = "#3730A3";    // 연한 면 위 글자
+const TRACK = "#F1F5F9";      // 트랙
+const AMBER = "#F59E0B";
 const AMBER_INK = "#B45309";
+const AMBER_SOFT = "#FEF3C7";
+const LINE = "#E2E8F0";
 const SLATE = "#94a3b8";
 const INK = "#334155";
 
-// 그라디언트 id 는 문서 전역이다. 모든 도형이 같은 정의를 쓰므로 중복돼도 결과가 같다.
-function Defs() {
-  return (
-    <defs>
-      <linearGradient id="rf-ind" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#8B7CF6" />
-        <stop offset="1" stopColor="#4F46E5" />
-      </linearGradient>
-      <linearGradient id="rf-ind2" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#B9BEFA" />
-        <stop offset="1" stopColor="#8189EE" />
-      </linearGradient>
-      <linearGradient id="rf-ind3" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#DCE0FD" />
-        <stop offset="1" stopColor="#BEC4F8" />
-      </linearGradient>
-      <linearGradient id="rf-amber" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#FFE3B0" />
-        <stop offset="1" stopColor="#FDC978" />
-      </linearGradient>
-      <linearGradient id="rf-track" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#EDF1F6" />
-        <stop offset="1" stopColor="#F8FAFC" />
-      </linearGradient>
-      <filter id="rf-lift" x="-30%" y="-40%" width="160%" height="200%">
-        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#4338CA" floodOpacity="0.26" />
-      </filter>
-      <filter id="rf-lift-soft" x="-30%" y="-40%" width="160%" height="200%">
-        <feDropShadow dx="0" dy="3" stdDeviation="3.5" floodColor="#0f172a" floodOpacity="0.12" />
-      </filter>
-    </defs>
-  );
-}
-
-// 입체감은 두 겹으로 만든다. 그라디언트 본체 위에 흰 하이라이트를 얇게 얹는다.
-function Solid({ x, y, w, h, r, fill, soft }: { x: number; y: number; w: number; h: number; r: number; fill: string; soft?: boolean }) {
-  const width = Math.max(r * 2, w);
-  return (
-    <g filter={soft ? "url(#rf-lift-soft)" : "url(#rf-lift)"}>
-      <rect x={x} y={y} width={width} height={h} rx={r} fill={fill} />
-      <rect x={x + 3} y={y + 2.5} width={Math.max(0, width - 6)} height={h * 0.3} rx={h * 0.15} fill="#fff" opacity="0.3" />
-    </g>
-  );
-}
-
-// 값 옆에 붙는 알약 라벨. 텍스트만 두면 그림 위에서 묻힌다.
+// 값 옆에 붙는 알약 라벨. 면은 채우고 테두리 1px — 카드 테두리와 같은 굵기다.
 function Pill({ x, y, text, tone }: { x: number; y: number; text: string; tone: "ind" | "amber" }) {
   const w = text.length * 7.6 + 18;
+  const amber = tone === "amber";
   return (
-    <g filter="url(#rf-lift-soft)">
-      <rect x={x} y={y} width={w} height={21} rx={10.5} fill={tone === "amber" ? "url(#rf-amber)" : "#fff"} />
-      <text x={x + w / 2} y={y + 14.5} textAnchor="middle" fontSize="11" fontWeight="900" fill={tone === "amber" ? AMBER_INK : "#4338CA"}>
+    <g>
+      <rect
+        x={x} y={y} width={w} height={22} rx={11}
+        fill={amber ? AMBER_SOFT : "#fff"}
+        stroke={amber ? AMBER : LINE}
+        strokeWidth="1"
+      />
+      <text x={x + w / 2} y={y + 15} textAnchor="middle" fontSize="11" fontWeight="800" fill={amber ? AMBER_INK : IND_INK}>
         {text}
       </text>
     </g>
@@ -82,8 +51,8 @@ function TimelineFigure({ figure }: { figure: Extract<Figure, { shape: "timeline
   const R = 500;
   const x = (v: number) => L + (v / max) * (R - L);
 
-  const rowH = 38;
-  const top = gap ? 34 : 14;
+  const rowH = 40;
+  const top = gap ? 36 : 14;
   const h = top + bars.length * rowH + 34;
 
   const step = niceStep(max);
@@ -92,13 +61,17 @@ function TimelineFigure({ figure }: { figure: Extract<Figure, { shape: "timeline
 
   return (
     <svg viewBox={`0 0 520 ${h}`} className="cr-svg" role="img">
-      <Defs />
-
       {gap && (
         <>
-          <rect x={x(gap.from)} y={top - 8} width={Math.max(8, x(gap.to) - x(gap.from))} height={bars.length * rowH + 8}
-            fill="url(#rf-amber)" opacity="0.34" rx="14" />
-          <Pill x={Math.min(R - gap.label.length * 7.6 - 18, (x(gap.from) + x(gap.to)) / 2 - (gap.label.length * 7.6 + 18) / 2)} y={2} text={gap.label} tone="amber" />
+          <rect
+            x={x(gap.from)} y={top - 8}
+            width={Math.max(8, x(gap.to) - x(gap.from))} height={bars.length * rowH + 6}
+            rx="12" fill={AMBER_SOFT} stroke={AMBER} strokeWidth="1" strokeDasharray="4 4"
+          />
+          <Pill
+            x={Math.min(R - gap.label.length * 7.6 - 18, (x(gap.from) + x(gap.to)) / 2 - (gap.label.length * 7.6 + 18) / 2)}
+            y={2} text={gap.label} tone="amber"
+          />
         </>
       )}
 
@@ -107,10 +80,10 @@ function TimelineFigure({ figure }: { figure: Extract<Figure, { shape: "timeline
         const bw = Math.max(10, x(b.to) - x(b.from));
         return (
           <g key={i}>
-            <text x={L - 14} y={y + 19} textAnchor="end" fontSize="12" fontWeight="800" fill={INK}>{b.label}</text>
-            <rect x={L} y={y + 4} width={R - L} height={22} rx="11" fill="url(#rf-track)" />
-            <Solid x={x(b.from)} y={y + 4} w={bw} h={22} r={11} fill={b.soft ? "url(#rf-ind2)" : "url(#rf-ind)"} soft={b.soft} />
-            <text x={x(b.to) - 10} y={y + 19} textAnchor="end" fontSize="12" fontWeight="900" fill="#fff">
+            <text x={L - 14} y={y + 21} textAnchor="end" fontSize="12" fontWeight="800" fill={INK}>{b.label}</text>
+            <rect x={L} y={y + 4} width={R - L} height={26} rx="13" fill={TRACK} />
+            <rect x={x(b.from)} y={y + 4} width={bw} height={26} rx="13" fill={b.soft ? IND_MID : IND} />
+            <text x={x(b.to) - 12} y={y + 21} textAnchor="end" fontSize="12" fontWeight="800" fill={b.soft ? IND_INK : "#fff"}>
               {trim(b.to - b.from)}{unit}
             </text>
           </g>
@@ -119,7 +92,7 @@ function TimelineFigure({ figure }: { figure: Extract<Figure, { shape: "timeline
 
       {ticks.map((t) => (
         <g key={t}>
-          <circle cx={x(t)} cy={h - 24} r="2.5" fill="#dbe2ea" />
+          <circle cx={x(t)} cy={h - 24} r="2" fill={LINE} />
           <text x={x(t)} y={h - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={SLATE}>
             {trim(t)}{unit}
           </text>
@@ -135,15 +108,14 @@ function ThresholdFigure({ figure }: { figure: Extract<Figure, { shape: "thresho
   const L = 24;
   const R = 496;
   const x = (v: number) => L + (v / 100) * (R - L);
-  const h = 118;
-  const shades = ["url(#rf-ind)", "url(#rf-ind2)", "url(#rf-ind3)"];
+  const h = 120;
+  const shades = [IND, IND_MID, IND_LIGHT];
 
   let acc = 0;
   const lw = lineLabel.length * 7.6 + 18;
   return (
     <svg viewBox={`0 0 520 ${h}`} className="cr-svg" role="img">
-      <Defs />
-      <rect x={L} y={44} width={R - L} height={34} rx="14" fill="url(#rf-track)" />
+      <rect x={L} y={44} width={R - L} height={38} rx="16" fill={TRACK} />
 
       {blocks.map((b, i) => {
         const start = acc;
@@ -151,9 +123,9 @@ function ThresholdFigure({ figure }: { figure: Extract<Figure, { shape: "thresho
         const w = Math.max(0, x(acc) - x(start) - 4);
         return (
           <g key={b.label}>
-            <Solid x={x(start) + 2} y={44} w={w} h={34} r={14} fill={shades[i % 3]} soft={i > 0} />
+            <rect x={x(start) + 2} y={44} width={w} height={38} rx="16" fill={shades[i % 3]} />
             {w > 60 && (
-              <text x={x(start) + 2 + w / 2} y={66} textAnchor="middle" fontSize="12" fontWeight="900" fill={i === 0 ? "#fff" : "#312E81"}>
+              <text x={x(start) + 2 + w / 2} y={68} textAnchor="middle" fontSize="12" fontWeight="800" fill={i === 0 ? "#fff" : IND_INK}>
                 {b.label} {b.value}%
               </text>
             )}
@@ -161,12 +133,12 @@ function ThresholdFigure({ figure }: { figure: Extract<Figure, { shape: "thresho
         );
       })}
 
-      <line x1={x(line)} y1={36} x2={x(line)} y2={86} stroke="#F59E0B" strokeWidth="3" strokeDasharray="5 4" strokeLinecap="round" />
-      <circle cx={x(line)} cy={86} r="5" fill="#F59E0B" />
-      <Pill x={Math.max(L, Math.min(R - lw, x(line) - lw / 2))} y={8} text={lineLabel} tone="amber" />
+      <line x1={x(line)} y1={36} x2={x(line)} y2={90} stroke={AMBER} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
+      <circle cx={x(line)} cy={90} r="3.5" fill={AMBER} />
+      <Pill x={Math.max(L, Math.min(R - lw, x(line) - lw / 2))} y={6} text={lineLabel} tone="amber" />
 
       {[0, 25, 50, 75, 100].map((t) => (
-        <text key={t} x={x(t)} y={107} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={SLATE}>{t}%</text>
+        <text key={t} x={x(t)} y={110} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={SLATE}>{t}%</text>
       ))}
     </svg>
   );
@@ -191,13 +163,9 @@ function BalanceFigure({ figure }: { figure: Extract<Figure, { shape: "balance" 
   const { left, right } = figure;
   return (
     <svg viewBox="0 0 520 142" className="cr-svg" role="img">
-      <Defs />
-      <ellipse cx="260" cy="128" rx="86" ry="7" fill="#0f172a" opacity="0.07" />
-      <g filter="url(#rf-lift-soft)">
-        <rect x="70" y="34" width="380" height="9" rx="4.5" fill="url(#rf-track)" />
-        <rect x="252" y="40" width="16" height="72" rx="8" fill="url(#rf-track)" />
-        <ellipse cx="260" cy="114" rx="42" ry="9" fill="url(#rf-track)" />
-      </g>
+      <rect x="70" y="34" width="380" height="8" rx="4" fill={TRACK} />
+      <rect x="253" y="40" width="14" height="72" rx="7" fill={TRACK} />
+      <rect x="200" y="108" width="120" height="8" rx="4" fill={TRACK} />
       <Pan cx={148} value={left.value} label={left.label} accent />
       <Pan cx={372} value={right.value} label={right.label} />
     </svg>
@@ -207,12 +175,12 @@ function BalanceFigure({ figure }: { figure: Extract<Figure, { shape: "balance" 
 function Pan({ cx, value, label, accent }: { cx: number; value: number; label: string; accent?: boolean }) {
   return (
     <g>
-      <rect x={cx - 3} y="38" width="6" height="16" rx="3" fill="#dbe2ea" />
-      <Solid x={cx - 60} y={52} w={120} h={42} r={16} fill={accent ? "url(#rf-ind)" : "url(#rf-ind3)"} soft={!accent} />
-      <text x={cx} y="79" textAnchor="middle" fontSize="17" fontWeight="900" fill={accent ? "#fff" : "#312E81"}>
+      <rect x={cx - 2} y="38" width="4" height="16" rx="2" fill={LINE} />
+      <rect x={cx - 60} y={52} width={120} height={44} rx="16" fill={accent ? IND : IND_LIGHT} />
+      <text x={cx} y="80" textAnchor="middle" fontSize="17" fontWeight="800" fill={accent ? "#fff" : IND_INK}>
         {value}%
       </text>
-      <text x={cx} y="115" textAnchor="middle" fontSize="11.5" fontWeight="800" fill={accent ? "#4338CA" : SLATE}>
+      <text x={cx} y="116" textAnchor="middle" fontSize="11.5" fontWeight="700" fill={accent ? IND_INK : SLATE}>
         {label}
       </text>
     </g>

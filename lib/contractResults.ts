@@ -18,7 +18,7 @@ export type ResultBlock = {
   plain: string;     // 쉬운 말 한 줄
   formal: string;    // 조문 근거를 포함한 정식 문장 — 접어 둔다
   figure: Figure;
-  combined?: boolean; // 다른 문항 답이 함께 쓰인 결과
+  from?: string[];   // 함께 쓰인 다른 문항 id — 어느 조항의 영향인지 화면에 붙인다
 };
 
 // ── 값 꺼내기 ────────────────────────────────────────────────
@@ -133,7 +133,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     const others = equity.reduce((s, e) => s + e.value, 0) - mine;
     out.push({
       id: "deadlock-equity",
-      combined: true,
+      from: ["equity"],
       plain: `지분은 ${mine} 대 ${others}인데, 마지막엔 ${ga(decider)} 정해요.`,
       formal: `제2조 ③항의 최종 결정권은 지분율이 아니라 지정된 사람에게 있습니다. ${decider}(${mine}%)과 나머지 주주 합계(${others}%)의 비율과 관계없이 협의 기간 경과 후 결정 권한이 ${decider}에게 귀속됩니다.`,
       figure: {
@@ -151,8 +151,8 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       id: "equity",
       plain:
         top.value > 50
-          ? `${ga(top.name)} ${top.value}%로 절반을 넘어요. 보통결의는 혼자서도 통과시킬 수 있어요.`
-          : `절반을 넘는 사람이 없어요. 보통결의 하나 통과시키려면 최소 두 사람이 뭉쳐야 해요.`,
+          ? `${ga(top.name)} ${top.value}%로 혼자 절반을 넘어요. 표를 세어 정하는 안건은 혼자서도 통과시킬 수 있어요.`
+          : `혼자서 절반을 넘는 사람이 없어요. 안건 하나를 통과시키려면 적어도 두 사람이 뜻을 모아야 해요.`,
       formal: `상법 제368조의 보통결의는 출석 주주 의결권의 과반수와 발행주식총수의 4분의 1 이상을, 제434조의 특별결의는 출석 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상을 요구합니다. 현재 배분에서 최대 지분은 ${top.name} ${top.value}%입니다.`,
       figure: {
         shape: "threshold",
@@ -179,7 +179,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "noncompete" && noncompete && buyback === "par") {
     out.push({
       id: "noncompete-buyback",
-      combined: true,
+      from: ["buybackPrice"],
       plain: `내 주식은 액면가로 정리되고, 그러고도 ${noncompete}년 동안 같은 일을 못 해요.`,
       formal: `제5조 ②항에 따라 사유를 불문하고 액면가로 매수되며, 제4조 ②항에 따라 그 후 ${noncompete}년간 경업이 금지됩니다. 두 조항이 함께 적용되면 회사 가치 상승분을 받지 못한 상태로 경업 제한 기간이 시작됩니다.`,
       figure: {
@@ -210,7 +210,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "tenure" && tenure && vestingYears && vestingYears > tenure) {
     out.push({
       id: "tenure-vesting",
-      combined: true,
+      from: ["vesting"],
       plain: `${tenure}년을 채우고 나가도, 지분은 ${vestingYears - tenure}년을 더 있어야 다 내 것이 돼요.`,
       formal: `제5조 ①항의 계속근무 의무는 ${tenure}년, 베스팅 기간은 ${vestingYears}년입니다. 근무 의무가 종료된 시점에도 ${vestingYears - tenure}년분의 지분이 미확정 상태로 남습니다.`,
       figure: {
@@ -227,7 +227,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "tenure" && tenure && lockup && lockup > tenure) {
     out.push({
       id: "tenure-lockup",
-      combined: true,
+      from: ["lockup"],
       plain: `${tenure}년 뒤엔 나갈 수 있는데, 주식은 ${lockup - tenure}년을 더 못 팔아요.`,
       formal: `제5조 ①항의 계속근무 의무는 ${tenure}년, 제6조의 처분 제한은 ${lockup}년입니다. 근무 의무가 끝난 뒤에도 ${lockup - tenure}년 동안은 제7의 2조 공동매도요구권 외에는 주식을 처분할 통로가 없습니다.`,
       figure: {
@@ -298,7 +298,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "lockup" && lockup && dragAlong) {
     out.push({
       id: "lockup-drag",
-      combined: true,
+      from: ["dragAlong"],
       plain: `${lockup}년 동안은 못 파는데, ${dragAlong}%가 팔자고 하면 그때는 팔아야 해요.`,
       formal: `제6조가 ${lockup}년간 처분을 제한하는 동안, 제7의 2조 공동매도요구권은 지분 ${dragAlong}% 이상의 찬성으로 발동됩니다. 처분 제한 기간 중 주식이 이전되는 유일한 통로입니다.`,
       figure: {
@@ -341,7 +341,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     const rest = equity.filter((e) => !crew.includes(e.name)).map((e) => e.name);
     out.push({
       id: "drag-equity",
-      combined: true,
+      from: ["equity"],
       plain:
         sum >= dragAlong
           ? `${crew.length > 1 ? `${crew.join("·")} 몫을 합치면` : `${crew[0]} 혼자`} ${sum}%예요. ${rest.length ? `${ga(rest.join("·"))} 반대해도 팔아야 해요.` : "전원이 모여야 해요."}`
@@ -379,7 +379,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     const lo = sorted[sorted.length - 1];
     out.push({
       id: "penalty-equity",
-      combined: true,
+      from: ["equity"],
       plain: `내 지분이 ${lo.value}%든 ${hi.value}%든 똑같이 ${won(penaltyBase)}을 물어요.`,
       formal: `제8조의 위약벌은 정액으로 정해지므로 지분율에 비례하지 않습니다. 현재 배분에서 ${hi.name}(${hi.value}%)과 ${lo.name}(${lo.value}%)에게 동일한 ${won(penaltyBase)}이 적용됩니다.`,
       figure: {
