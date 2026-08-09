@@ -74,7 +74,7 @@ export function won(n: number): string {
 // "값을 넣으면 나온다"는 잘못된 안내가 된다.
 export const RESULT_QUESTION_IDS = new Set([
   "decisionAmount", "deadlock", "equity", "noncompete",
-  "tenure", "vesting", "buybackPrice", "lockup", "dragAlong", "penalty",
+  "tenure", "vesting", "buybackPrice", "lockup", "dragAlong",
 ]);
 
 // ── 규칙 ─────────────────────────────────────────────────────
@@ -95,20 +95,18 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const buyback = str(A.buybackPrice);
   const lockup = num(A.lockup);
   const dragAlong = num(A.dragAlong);
-  const penaltyBase = num(part(A.penalty, "base"));
-  const penaltyRate = num(part(A.penalty, "rate"));
 
   // ── 제2조 ①7호 · 전원 합의 금액 ──
   if (qid === "decisionAmount" && decisionAmount) {
     out.push({
       id: "decisionAmount",
-      plain: `${won(decisionAmount)}이 넘는 투자만 다 같이 정해요. 그보다 작으면 각자 알아서 집행할 수 있어요.`,
+      plain: `${won(decisionAmount)}이 넘는 투자는 주주 전원이 동의해야 해요. 그보다 작으면 따로 동의를 받지 않고 집행할 수 있어요.`,
       formal: `제2조 ①항 7호의 기준 금액이 ${won(decisionAmount)}으로 정해집니다. 이 금액 이하의 투자·처분은 주주 전원의 사전 서면 합의 없이 집행할 수 있습니다.`,
       figure: {
         shape: "magnitude",
         bars: [
-          { label: "각자 집행 가능", value: 1, text: `${won(decisionAmount)}까지` },
-          { label: "전원 합의 필요", value: 1, text: `${won(decisionAmount)} 초과`, outline: true },
+          { label: "전원 동의 없이 집행", value: 1, text: `${won(decisionAmount)}까지` },
+          { label: "전원 동의 필요", value: 1, text: `${won(decisionAmount)} 초과`, outline: true },
         ],
       },
     });
@@ -147,12 +145,16 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   // ── 전문·제3의 3조 · 지분 배분 ──
   if (qid === "equity" && equity) {
     const top = [...equity].sort((a, b) => b.value - a.value)[0];
+    // 문턱은 두 개다 — 50% 넘으면 보통결의(이사 선임·배당), 66.7% 넘으면 특별결의(정관 변경·합병).
+    // "절반을 넘는 사람이 없다"만 말하면 그래서 뭐가 달라지는지가 빠진다. 무엇을 못 하는지까지 적는다.
     out.push({
       id: "equity",
       plain:
-        top.value > 50
-          ? `${ga(top.name)} ${top.value}%로 혼자 절반을 넘어요. 표를 세어 정하는 안건은 혼자서도 통과시킬 수 있어요.`
-          : `혼자서 절반을 넘는 사람이 없어요. 안건 하나를 통과시키려면 적어도 두 사람이 뜻을 모아야 해요.`,
+        top.value > 66.7
+          ? `${ga(top.name)} ${top.value}%예요. 이사 뽑기·배당은 물론이고 정관 변경·회사 매각까지 혼자 결정할 수 있어요. 나머지 두 사람이 반대해도 막을 수 없어요.`
+          : top.value > 50
+          ? `${ga(top.name)} ${top.value}%예요. 이사 뽑기·배당 같은 보통 안건은 나머지가 반대해도 혼자 통과시킬 수 있어요. 다만 정관 변경·회사 매각은 66.7%가 필요해서 혼자서는 못 해요.`
+          : `가장 많이 가진 ${ga(top.name)} ${top.value}%라, 혼자 통과시킬 수 있는 안건이 하나도 없어요. 이사 뽑기·배당도 50%를 넘겨야 하니, 최소 두 사람이 찬성해야 결정이 돼요.`,
       formal: `상법 제368조의 보통결의는 출석 주주 의결권의 과반수와 발행주식총수의 4분의 1 이상을, 제434조의 특별결의는 출석 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상을 요구합니다. 현재 배분에서 최대 지분은 ${top.name} ${top.value}%입니다.`,
       figure: {
         shape: "threshold",
@@ -352,39 +354,6 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
         blocks: sorted.map((e) => ({ label: e.name, value: e.value })),
         line: dragAlong,
         lineLabel: `발동 ${dragAlong}%`,
-      },
-    });
-  }
-
-  // ── 제8조 · 위약벌 ──
-  if (qid === "penalty" && penaltyBase) {
-    out.push({
-      id: "penalty",
-      plain: penaltyRate
-        ? `계약을 어기면 ${won(penaltyBase)}, 거기에 판 금액의 ${penaltyRate}%까지 더 물어야 해요.`
-        : `계약을 어기면 ${won(penaltyBase)}을 물어야 해요.`,
-      formal: `제8조 ①·②·③·⑤항의 기준 금액이 ${won(penaltyBase)}${penaltyRate ? `, 처분 금액 대비 비율이 ${penaltyRate}%` : ""}로 채워집니다. 민법 제398조 ②항은 손해배상예정액이 부당히 과다하면 법원이 적당히 감액할 수 있다고 정합니다.`,
-      figure: {
-        shape: "magnitude",
-        bars: [
-          { label: "위약벌", value: 1, text: won(penaltyBase) },
-          ...(penaltyRate ? [{ label: "처분 금액 비례", value: 1, text: `처분액 × ${penaltyRate}%`, outline: true }] : []),
-        ],
-      },
-    });
-  }
-  if (qid === "penalty" && penaltyBase && equity) {
-    const sorted = [...equity].sort((a, b) => b.value - a.value);
-    const hi = sorted[0];
-    const lo = sorted[sorted.length - 1];
-    out.push({
-      id: "penalty-equity",
-      from: ["equity"],
-      plain: `내 지분이 ${lo.value}%든 ${hi.value}%든 똑같이 ${won(penaltyBase)}을 물어요.`,
-      formal: `제8조의 위약벌은 정액으로 정해지므로 지분율에 비례하지 않습니다. 현재 배분에서 ${hi.name}(${hi.value}%)과 ${lo.name}(${lo.value}%)에게 동일한 ${won(penaltyBase)}이 적용됩니다.`,
-      figure: {
-        shape: "magnitude",
-        bars: equity.map((e) => ({ label: `${e.name} · 지분 ${e.value}%`, value: 1, text: won(penaltyBase) })),
       },
     });
   }

@@ -4,11 +4,12 @@
 // 설계: docs/superpowers/specs/2026-08-07-contract-question-templates-design.md
 
 // 고르면 하위 내용을 복수로 고르게 하는 선택지. 종류주식처럼 한 단계 더 들어가는 항목에만 sub를 붙인다.
+// formal은 조문에 들어갈 법률 용어다. 화면은 쉬운 말(label)로 두고 계약서만 정식 명칭으로 채운다.
 export type ChoiceOption = {
   id: string;
   label: string;
   desc: string;
-  sub?: { label: string; options: { id: string; label: string; desc: string }[] };
+  sub?: { label: string; options: { id: string; label: string; desc: string; formal?: string }[] };
 };
 
 // sub가 있는 선택지를 고르면 값이 객체가 된다. 그 외에는 지금처럼 문자열이다.
@@ -52,6 +53,7 @@ export type ContractQuestion = {
   group: string;
   article: string;      // 화면 표시용 조문 번호
   articleTag: string;   // eyebrow 영문 태그
+  topic: string;        // 조문 번호 대신 화면에 세우는 우리말 주제목 (ex. 지분 배분)
   proposed: boolean;    // true면 `제안` 배지 — 사용자 확정 전 후보 문항
   consensus: boolean;   // false면 합의 대상 아닌 사실정보
   title: string;
@@ -61,13 +63,27 @@ export type ContractQuestion = {
   info: QuestionInfo;
 };
 
+// 그룹 이름은 조문 번호가 아니라 사람들이 쓰는 말로 둔다.
 export const QUESTION_GROUPS = [
   { id: "basics", ko: "계약 기본", en: "Contract Basics" },
-  { id: "decision", ko: "의사결정", en: "Decision & Deadlock" },
-  { id: "roles", ko: "역할", en: "Roles" },
-  { id: "equity", ko: "지분", en: "Equity & Vesting" },
-  { id: "tenure", ko: "근무·이탈", en: "Tenure & Exit" },
-  { id: "transfer", ko: "처분·제재", en: "Transfer & Penalty" },
+  { id: "decision", ko: "의사 결정 구조", en: "Decision & Deadlock" },
+  { id: "roles", ko: "업무 분담과 역할", en: "Roles" },
+  { id: "equity", ko: "지분 구조", en: "Equity & Vesting" },
+  { id: "tenure", ko: "근무와 퇴사", en: "Tenure & Exit" },
+  { id: "transfer", ko: "지분 양도 제한", en: "Transfer & Penalty" },
+];
+
+// 제2조 ①항이 전원 동의를 요구하는 7가지. 조문 문구는 원문 그대로 두고,
+// plain 에 초보자용 한 줄을 붙여 같은 배열을 조문 미리보기와 안내 드롭다운이 함께 쓴다.
+// {0} = 제2조 ① 7호의 기준 금액.
+export const CONSENT_ITEMS: { plain: string; text: string }[] = [
+  { plain: "회사 규칙(정관) 고치기", text: "정관의 변경" },
+  { plain: "주식을 새로 찍거나 스톡옵션 주기 — 지분이 묽어지는 일", text: "주식 및 주식관련 사채의 발행, 주식매수선택권 부여 등 자본금의 증감을 가져올 수 있는 행위" },
+  { plain: "번 돈을 나눠 갖기(배당)", text: "배당의 결정" },
+  { plain: "하던 사업을 바꾸거나 새 사업 시작하기", text: "주된 사업의 변경, 신규 사업의 진출" },
+  { plain: "사업 접기, 회사를 팔거나 합치기", text: "사업의 중단 또는 포기, 사업양수도, 합병, 분할, 분할합병, 주식의 포괄적 교환 또는 이전, 영업의 양도·양수, 위탁경영 기타 회사조직의 근본적인 변경" },
+  { plain: "창업자·경영진이나 그 가족과 회사가 거래하기", text: "회사와 주요 경영진 및 이들의 특수관계인과의 거래 또는 계약" },
+  { plain: "{0}을 넘는 돈을 투자하기", text: "회사가 {0}을 초과하여 투자하는 행위" },
 ];
 
 export const MOCK_MEMBERS = [
@@ -99,7 +115,7 @@ export function choiceLabel(t: Extract<QuestionTemplate, { type: "choice" }>, v:
   const opt = t.options.find((o) => o.id === id);
   if (!opt) return null;
   const picked = (typeof v === "object" && v ? (v as { sub?: string[] }).sub : undefined) ?? [];
-  const subs = opt.sub ? opt.sub.options.filter((s) => picked.includes(s.id)).map((s) => s.label) : [];
+  const subs = opt.sub ? opt.sub.options.filter((s) => picked.includes(s.id)).map((s) => s.formal ?? s.label) : [];
   return subs.length ? `${opt.label} (${subs.join("·")})` : opt.label;
 }
 
@@ -123,32 +139,64 @@ export function fillPreview(template: string, values: (string | null)[]) {
 // 제8조의 제재는 여러 항에 흩어져 각각 다른 조항을 가리킨다. 제8조 하나를 맨 뒤에서 물으면
 // "3조가 뭐였더라"로 되돌아가게 되므로, 해당 조항 문항 페이지에 그 조항의 제재만 붙여 둔다.
 // {0}=기준 금액, {1}=처분 금액 대비 비율. 값은 penalty 문항과 공유하되 조항별로 따로 정할 수 있다.
-export type PenaltyClause = { article: string; text: string; uses: ("base" | "rate")[] };
+export type PenaltyClause = { article: string; kind: string; text: string; uses: ("base" | "rate")[] };
 
-const PENALTY_45: PenaltyClause[] = [
+// 제3조(지식재산 이전) 위반에 걸리는 항.
+const PENALTY_3: PenaltyClause[] = [
   {
-    article: "제8조 ②",
-    uses: ["rate"],
-    text: "이 계약의 어느 당사자가 제4조 및 제5조를 위반하는 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 주식 처분 금액의 {1}%에 해당하는 금액을 지급하여야 한다.",
+    article: "제8조 ①",
+    kind: "위약벌",
+    uses: ["base"],
+    text: "이 계약의 어느 당사자가 제3조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들(이하 '다른 주주들'이라고 한다)에게 손해배상과 별도로 위약벌로서 각 {0}원을 지급하여야 한다.",
   },
   {
     article: "제8조 ③",
+    kind: "손해배상예정액",
     uses: ["base"],
     text: "이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각 {0}원을 지급하여야 한다. 단, 손해액이 {0}원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다.",
   },
 ];
 
+const PENALTY_45: PenaltyClause[] = [
+  {
+    article: "제8조 ②",
+    kind: "위약벌 · 처분 금액 비례",
+    uses: ["rate"],
+    text: "이 계약의 어느 당사자가 제4조 및 제5조를 위반하는 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 주식 처분 금액의 {1}%에 해당하는 금액을 지급하여야 한다.",
+  },
+  {
+    article: "제8조 ③",
+    kind: "손해배상예정액",
+    uses: ["base"],
+    text: "이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각 {0}원을 지급하여야 한다. 단, 손해액이 {0}원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다.",
+  },
+];
+
+// 제8조가 걸리는 조항마다 그 자리에 붙인다. 제8조를 맨 뒤에서 따로 묻지 않아도 되도록
+// ①(제3조) ②③(제4·5조) ⑤(제6·7조)가 전부 어느 문항엔가 실린다.
 export const PENALTY_CLAUSES: Record<string, PenaltyClause[]> = {
+  ipTransfer: PENALTY_3,
   noncompete: PENALTY_45,
   tenure: PENALTY_45,
+  vesting: PENALTY_45,
+  buybackPrice: PENALTY_45,
   lockup: [
     {
       article: "제8조 ⑤",
+      kind: "위약벌 · 둘 중 큰 금액",
       uses: ["rate", "base"],
       text: "이 계약의 어느 당사자가 제6조 또는 제7조를 위반하여 처분행위를 한 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 처분 금액의 {1}%에 해당하는 금액 또는 각 {0}원 중 큰 금액을 지급하여야 하며, 해당 처분행위로써 다른 주주들에게 대항할 수 없다.",
     },
   ],
 };
+
+// 제8조 ④는 값이 없는 일반 항이라 어느 조항에도 붙지 않는다. 제재 카드마다 한 줄로 남긴다.
+export const PENALTY_NOTE =
+  "위약벌을 물더라도 실제로 생긴 손해에 대한 배상은 따로 청구할 수 있습니다(제8조 ④).";
+
+// 제8조 문항을 따로 두지 않으므로, 그 문항이 갖고 있던 설명은 제재 카드 안으로 옮긴다.
+export const PENALTY_WHAT =
+  "위약벌은 계약을 어긴 데 대한 제재금으로, 실제 손해를 배상하는 것과는 별개로 청구됩니다. 손해배상예정액은 성격이 달라서, 미리 정해둔 액수가 곧 배상액이 되고 실제 손해를 따로 증명할 필요가 없습니다(민법 제398조 ②항). 제8조는 이 두 가지를 함께 두고 있습니다. 같은 조는 손해배상예정액이 부당히 과다하면 법원이 적당히 감액할 수 있다고도 정합니다.";
 
 export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   {
@@ -156,6 +204,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "basics",
     article: "전문 · 서명란",
     articleTag: "PARTIES",
+    topic: "계약 당사자",
     proposed: true,
     consensus: false,
     title: "본인의 신원 정보를 입력해 주세요",
@@ -191,25 +240,26 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "basics",
     article: "전문 · 제3의 3조",
     articleTag: "SHARE TYPE",
+    topic: "주식의 종류",
     proposed: true,
     consensus: true,
     title: "어떤 종류의 주식을 발행하나요?",
-    desc: "전문과 제3의 3조의 지분 표에 들어갑니다.",
+    desc: "전문과 제3의 3조의 지분 표에 들어갑니다. 창업 멤버끼리 나누는 주식은 보통 보통주식입니다.",
     template: {
       type: "choice",
       options: [
-        { id: "common", label: "보통주식", desc: "의결권과 배당에 특별한 조건이 붙지 않는 주식입니다." },
+        { id: "common", label: "보통주식", desc: "기본형 주식입니다. 한 주에 한 표, 배당도 지분만큼. 특별한 조건이 붙지 않습니다." },
         {
           id: "preferred",
           label: "종류주식",
-          desc: "배당·의결권·상환·전환에 관해 내용이 다른 주식입니다. 어떤 내용인지 아래에서 고릅니다.",
+          desc: "일부 주주에게 특별한 조건을 붙인 주식입니다. 어떤 조건인지 아래에서 고릅니다. 정관에 미리 적어둬야 발행할 수 있습니다.",
           sub: {
-            label: "종류주식의 내용 (여러 개 고를 수 있습니다)",
+            label: "어떤 조건을 붙이나요? (여러 개 고를 수 있습니다)",
             options: [
-              { id: "dividend", label: "이익배당·잔여재산분배 우선", desc: "상법 제344조의2. 배당이나 잔여재산을 먼저 받습니다." },
-              { id: "voteLimited", label: "의결권 배제·제한", desc: "상법 제344조의3. 의결권이 없거나 일부 안건에만 있습니다." },
-              { id: "redeemable", label: "상환주식", desc: "상법 제345조. 회사가 이익으로 되사서 소각할 수 있습니다." },
-              { id: "convertible", label: "전환주식", desc: "상법 제346조. 정해진 조건으로 다른 종류의 주식으로 바뀝니다." },
+              { id: "dividend", label: "돈을 먼저 받는 주식", formal: "이익배당·잔여재산분배 우선", desc: "배당을 나눌 때, 회사를 정리하고 남은 돈을 나눌 때 이 주식이 먼저 받습니다. 상법 제344조의2 (우선주)" },
+              { id: "voteLimited", label: "투표권이 없거나 적은 주식", formal: "의결권 배제·제한", desc: "돈은 받지만 회의에서 표를 못 던지거나 일부 안건에만 던집니다. 상법 제344조의3 (의결권 배제·제한주)" },
+              { id: "redeemable", label: "회사가 되사 갈 수 있는 주식", formal: "상환주식", desc: "나중에 회사가 번 돈으로 이 주식을 되사서 없앨 수 있습니다. 상법 제345조 (상환주식)" },
+              { id: "convertible", label: "나중에 보통주로 바꾸는 주식", formal: "전환주식", desc: "정해둔 조건이 되면 주주가 이 주식을 다른 종류(주로 보통주)로 바꿉니다. 상법 제346조 (전환주식)" },
             ],
           },
         },
@@ -237,14 +287,51 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     },
   },
   {
+    id: "ipTransfer",
+    group: "basics",
+    article: "제3조",
+    articleTag: "IP TRANSFER",
+    topic: "기술·지식재산 이전",
+    proposed: true,
+    consensus: true,
+    title: "지금 각자 가진 기술과 자료 중, 무엇을 회사로 넘기나요?",
+    desc: "설립 전에 각자 만들어 둔 코드·디자인·상표·데이터 가운데 회사로 넘길 것을 적습니다. 여기 적은 것은 회사가 세워지는 순간 회사 소유가 됩니다.",
+    template: {
+      type: "matrix",
+      variant: "text",
+      chips: ["소스코드", "디자인·시안", "상표·브랜드", "도메인·계정", "고객 데이터", "특허·출원", "넘길 것 없음"],
+    },
+    preview: {
+      article: "제3조 (회사 설립 후 지식재산 등의 이전)",
+      blocks: [
+        { kind: "para", text: "이 계약 당사자인 주주들이 회사를 설립하여 영위할 사업과 관련하여 주주들 또는 주주들을 구성원으로 하는 조합에 권리가 있었던 관련 비즈니스, 기술 및 지식재산권 등은 회사의 설립과 동시에 회사에 그 권리가 이전된다." },
+        { kind: "para", text: "② 제1항에 따라 이전되는 대상은 다음과 같다. (신설)" },
+        {
+          kind: "table",
+          head: ["이름", "회사로 이전하는 비즈니스·기술·지식재산권"],
+          rows: [
+            ["김민준", "{0}"],
+            ["이서연", "{1}"],
+            ["박도윤", "{2}"],
+          ],
+        },
+      ],
+    },
+    info: {
+      what: "창업 전에 각자 만들어 둔 코드, 디자인, 상표, 데이터의 권리를 회사로 옮기는 조항입니다. 저작권법상 저작물의 권리는 원칙적으로 만든 사람에게 생기므로, 회사로 옮기는 절차를 밟지 않으면 회사가 쓰는 결과물의 권리자가 개인으로 남습니다. 제8조 ①·③항은 이 조항 위반에 위약벌과 손해배상예정액을 걸어 둡니다.",
+      ifUnset: "이전 대상이 적혀 있지 않으면 어디까지가 회사 것인지 다투게 됩니다. 만든 사람이 팀을 떠날 때 결과물의 권리를 함께 가지고 나가는 상황이 생기고, 투자·인수 심사에서 권리 귀속이 불분명한 자산은 문제로 잡힙니다.",
+    },
+  },
+  {
     id: "decisionAmount",
     group: "decision",
     article: "제2조 ① 7호",
     articleTag: "SPEND THRESHOLD",
+    topic: "큰 투자의 기준 금액",
     proposed: false,
     consensus: true,
-    title: "얼마를 넘는 투자부터 전원 합의가 필요한가요?",
-    desc: "이 금액을 넘는 투자는 주주 전원이 합의해야 진행할 수 있습니다.",
+    title: "얼마를 넘는 투자부터 전원 동의가 필요한가요?",
+    desc: "이 금액을 넘는 투자는 주주 전원이 동의해야 진행할 수 있습니다.",
     template: {
       type: "amount",
       presets: [
@@ -258,20 +345,14 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       article: "제2조 (주요 의사결정 합의·협의 사항)",
       blocks: [
         { kind: "para", text: "① 주주들은 다음 각 호의 사항에 관하여는 주주들 전원의 합의로 결정하고, 주주총회 또는 이사회 결의가 필요한 경우 주주들의 합의에 따라 의결권을 행사하여야 한다." },
-        { kind: "para", indent: true, text: "1. 정관의 변경" },
-        { kind: "para", indent: true, text: "2. 주식 및 주식관련 사채의 발행, 주식매수선택권 부여 등 자본금의 증감을 가져올 수 있는 행위" },
-        { kind: "para", indent: true, text: "3. 배당의 결정" },
-        { kind: "para", indent: true, text: "4. 주된 사업의 변경, 신규 사업의 진출" },
-        { kind: "para", indent: true, text: "5. 사업의 중단 또는 포기, 사업양수도, 합병, 분할, 분할합병, 주식의 포괄적 교환 또는 이전, 영업의 양도·양수, 위탁경영 기타 회사조직의 근본적인 변경" },
-        { kind: "para", indent: true, text: "6. 회사와 주요 경영진 및 이들의 특수관계인과의 거래 또는 계약" },
-        { kind: "para", indent: true, text: "7. 회사가 {0}을 초과하여 투자하는 행위" },
+        ...CONSENT_ITEMS.map((c, i) => ({ kind: "para" as const, indent: true, text: `${i + 1}. ${c.text}` })),
         { kind: "ellipsis" },
       ],
     },
     info: {
-      what: "제2조 ①항은 전원 합의가 필요한 사항을 열거합니다. 7호는 그중 금액으로 선을 긋는 항목으로, 이 선을 넘는 투자는 대표나 담당자가 단독으로 집행할 수 없습니다.",
-      ifUnset: "금액 기준이 비면 어떤 투자가 전원 합의 대상인지 판단할 근거가 사라집니다. 그러면 집행 후에 \"이건 합의 사항이었다\"는 다툼이 사후적으로 생깁니다.",
-      low: "선이 낮을수록 전원 합의를 거쳐야 하는 건이 많아집니다. 일상적인 지출까지 절차를 밟게 되어 집행 속도가 느려집니다.",
+      what: "제2조 ①항은 전원 동의가 필요한 사항 7가지를 열거합니다. 7호는 그중 금액으로 선을 긋는 항목으로, 이 선을 넘는 투자는 대표나 담당자가 단독으로 집행할 수 없습니다.",
+      ifUnset: "금액 기준이 비면 어떤 투자가 전원 동의 대상인지 판단할 근거가 사라집니다. 그러면 집행 후에 \"이건 전원 동의 사항이었다\"는 다툼이 사후적으로 생깁니다.",
+      low: "선이 낮을수록 전원 동의를 거쳐야 하는 건이 많아집니다. 일상적인 지출까지 절차를 밟게 되어 집행 속도가 느려집니다.",
       high: "선이 높을수록 단독 집행 범위가 넓어집니다. 회사 규모에 비해 큰 금액이 다른 주주의 관여 없이 나갈 수 있습니다.",
     },
   },
@@ -280,10 +361,11 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "decision",
     article: "제2조 ③ (신설)",
     articleTag: "DEADLOCK",
+    topic: "결정이 막혔을 때",
     proposed: false,
     consensus: true,
-    title: "합의가 안 되면 며칠 협의하고, 누가 결정하나요?",
-    desc: "협의 기간이 지나도 합의가 안 될 때 결정을 끝낼 사람을 정합니다.",
+    title: "전원 동의가 안 되면 며칠 더 이야기하고, 누가 결정하나요?",
+    desc: "아래 7가지는 주주 전원이 동의해야 정할 수 있습니다. 한 명이라도 반대해 결정이 멈췄을 때, 며칠을 더 이야기하고 그래도 안 되면 누가 끝을 낼지 정합니다.",
     template: {
       type: "composite",
       parts: [
@@ -318,8 +400,8 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ],
     },
     info: {
-      what: "제2조 ①항은 전원 합의를 요구하므로 한 명이 반대하면 결정이 성립하지 않습니다. 이 항은 그 상태가 무한히 이어지지 않도록, 정해진 기간이 지나면 지정된 사람의 판단으로 결론을 내도록 하는 장치입니다.",
-      ifUnset: "해소 절차가 없으면 전원 합의가 될 때까지 안건이 계류됩니다. 제2조 ①항 2호는 주식·사채 발행을 포함하므로, 투자 유치 안건이 여기서 막히면 자금 조달 자체가 진행되지 않습니다. 제10조는 계약 변경도 전원 서면 합의로만 가능하게 하므로 이 구조를 나중에 바꾸기도 어렵습니다.",
+      what: "제2조 ①항은 전원 동의를 요구하므로 한 명이 반대하면 결정이 성립하지 않습니다. 이 항은 그 상태가 무한히 이어지지 않도록, 정해진 기간이 지나면 지정된 사람의 판단으로 결론을 내도록 하는 장치입니다.",
+      ifUnset: "해소 절차가 없으면 전원이 동의할 때까지 안건이 계류됩니다. 제2조 ①항 2호는 주식·사채 발행을 포함하므로, 투자 유치 안건이 여기서 막히면 자금 조달 자체가 진행되지 않습니다. 제10조는 계약 변경도 전원 서면 합의로만 가능하게 하므로 이 구조를 나중에 바꾸기도 어렵습니다.",
       low: "협의 기간이 짧으면 결론은 빨리 나지만, 반대하는 쪽이 근거를 정리해 설득할 시간이 부족합니다.",
       high: "협의 기간이 길면 논의는 충분해지지만, 그 기간 동안 해당 안건과 연결된 실행이 멈춥니다.",
     },
@@ -329,10 +411,11 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "roles",
     article: "제3의 2조",
     articleTag: "ROLES",
+    topic: "역할 분담",
     proposed: false,
     consensus: true,
-    title: "각자 무엇을 맡나요?",
-    desc: "본인 역할뿐 아니라 다른 팀원에게 기대하는 역할도 적어 주세요. 기대가 어긋나는 지점이 여기서 드러납니다.",
+    title: "각자 담당하는 역할과 업무는 무엇인가요?",
+    desc: "본인이 담당하는 역할뿐 아니라 다른 팀원에게 기대하는 역할도 적어 주세요. 기대가 어긋나는 지점이 여기서 드러납니다.",
     template: {
       type: "matrix",
       variant: "text",
@@ -354,7 +437,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ],
     },
     info: {
-      what: "회사 설립 시까지 각 동업자가 담당할 역할과 업무를 표로 남기는 조항입니다. 제5조의 계속근무 의무와 제8조의 위약벌은 이 표에 적힌 역할을 기준으로 이행 여부를 따집니다.",
+      what: "회사 설립 시까지 각 동업자가 담당하는 역할과 업무를 표로 남기는 조항입니다. 제5조의 계속근무 의무와 제8조의 위약벌은 이 표에 적힌 역할을 기준으로 이행 여부를 따집니다.",
       ifUnset: "역할이 비어 있으면 무엇을 하지 않았을 때 의무 위반인지 판단할 기준이 없습니다. 담당자가 정해지지 않은 업무는 서로 상대가 할 일이라고 생각한 채 남겨지기 쉽습니다.",
     },
   },
@@ -363,6 +446,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "equity",
     article: "전문 · 제3의 3조",
     articleTag: "EQUITY SPLIT",
+    topic: "지분 배분",
     proposed: false,
     consensus: true,
     title: "지분을 어떻게 나누나요?",
@@ -387,7 +471,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     info: {
       what: "설립 시 각자가 갖는 주식 비율입니다. 이 비율은 의결권, 배당, 그리고 이 계약의 여러 조항이 참조하는 기준이 됩니다. 제7의 2조의 공동매도요구권 발동 여부도 이 비율로 판단합니다.",
       ifUnset: "지분 비율이 정해지지 않으면 회사 설립 등기 자체를 진행할 수 없습니다.",
-      low: "상법상 주주총회 특별결의는 출석 주주 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상을 요구합니다(상법 제434조). 정관 변경, 합병 등이 여기 해당하므로 각자의 비율이 이 문턱과 어떤 관계인지 확인해 두면 나중에 계산이 쉬워집니다.",
+      low: "지분율에는 법이 정해 둔 문턱이 몇 개 있습니다. 66.7%는 정관 변경·합병 같은 특별결의를 통과시킬 수 있는 선(상법 제434조), 50.1%는 이사 선임·배당 같은 보통결의를 통과시킬 수 있는 선(제368조), 33.4%는 상대가 특별결의를 밀어붙이는 것을 막을 수 있는 선, 3%는 임시주주총회 소집·회계장부 열람·이사 해임 청구 같은 소수주주권을 쓸 수 있는 선입니다. 각자의 비율이 이 문턱들과 어떤 관계인지 확인해 두면 나중에 계산이 쉬워집니다.",
       high: "한 사람이 과반을 넘으면 보통결의를 단독으로 통과시킬 수 있고, 정확히 반씩 나누면 어느 쪽도 단독으로 통과시킬 수 없습니다. 어느 구조든 제2조 ③항의 데드락 해소 조항과 함께 읽어야 실제 결정 흐름이 보입니다.",
     },
   },
@@ -396,6 +480,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "equity",
     article: "제5조 (강화)",
     articleTag: "VESTING",
+    topic: "지분 확정 (베스팅·클리프)",
     proposed: true,
     consensus: true,
     title: "지분을 시간에 따라 단계적으로 확정하나요?",
@@ -447,6 +532,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "tenure",
     article: "제4조 ②",
     articleTag: "NON-COMPETE",
+    topic: "퇴사 후 경업 금지",
     proposed: true,
     consensus: true,
     title: "퇴사 후 몇 년간 경업을 금지하나요?",
@@ -472,6 +558,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "tenure",
     article: "제5조 ①",
     articleTag: "TENURE",
+    topic: "최소 근무 기간",
     proposed: false,
     consensus: true,
     title: "최소 몇 년간 근무 의무를 지나요?",
@@ -497,6 +584,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "tenure",
     article: "제5조 ② · 제9조 ③",
     articleTag: "BUYBACK",
+    topic: "퇴사자 주식 회수 가격",
     proposed: true,
     consensus: true,
     title: "퇴사하는 사람의 주식을 얼마에 되사나요?",
@@ -530,6 +618,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "transfer",
     article: "제6조",
     articleTag: "LOCK-UP",
+    topic: "주식 매각 제한 기간",
     proposed: false,
     consensus: true,
     title: "몇 년간 주식을 팔 수 없나요?",
@@ -553,6 +642,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     group: "transfer",
     article: "제7의 2조 ① (신설)",
     articleTag: "DRAG-ALONG",
+    topic: "다 같이 팔기 (드래그얼롱)",
     proposed: false,
     consensus: true,
     title: "몇 % 이상이 동의하면 전원이 함께 팔아야 하나요?",
@@ -580,63 +670,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ifUnset: "이 조항이 없으면 제6조의 처분 제한이 그대로 적용되어, 처분 제한 기간 중에는 주주 전원의 서면 동의가 있어야 매각이 가능합니다. 한 명이 동의하지 않으면 나머지 전원이 원해도 매각이 진행되지 않습니다.",
       low: "발동 비율이 낮으면 적은 지분으로도 전원 매각을 요구할 수 있습니다. 매각을 원하지 않는 주주가 같은 조건으로 팔아야 하는 상황이 더 자주 생깁니다.",
       high: "비율이 높으면 그 문턱을 넘기 어려워 실제로 발동되는 경우가 줄어듭니다. 비율을 100%로 두면 제6조의 전원 동의 요건과 실질적으로 같아집니다.",
-    },
-  },
-  {
-    id: "penalty",
-    group: "transfer",
-    article: "제8조",
-    articleTag: "PENALTY",
-    proposed: false,
-    consensus: true,
-    title: "계약을 어기면 얼마를 무나요?",
-    desc: "기준 금액과 비율 두 값을 정하면 제8조의 네 항에 모두 반영됩니다.",
-    template: {
-      type: "composite",
-      parts: [
-        {
-          key: "base",
-          label: "위약벌 기준 금액",
-          template: {
-            type: "amount",
-            presets: [
-              { label: "1천만 원", value: 10000000 },
-              { label: "5천만 원", value: 50000000 },
-              { label: "1억 원", value: 100000000 },
-              { label: "5억 원", value: 500000000 },
-            ],
-          },
-        },
-        {
-          key: "rate",
-          label: "처분 금액 대비 비율",
-          template: {
-            type: "percent",
-            marks: [
-              { value: 10, label: "" },
-              { value: 30, label: "" },
-              { value: 50, label: "절반" },
-              { value: 100, label: "전액" },
-            ],
-          },
-        },
-      ],
-    },
-    preview: {
-      article: "제8조 (손해배상 및 위약벌)",
-      blocks: [
-        { kind: "para", text: "① 이 계약의 어느 당사자가 제3조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들(이하 '다른 주주들'이라고 한다)에게 손해배상과 별도로 위약벌로서 각 {0}원을 지급하여야 한다." },
-        { kind: "para", text: "② 이 계약의 어느 당사자가 제4조 및 제5조를 위반하는 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 주식 처분 금액의 {1}%에 해당하는 금액을 지급하여야 한다." },
-        { kind: "para", text: "③ 이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각 {0}원을 지급하여야 한다. 단, 손해액이 {0}원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다." },
-        { kind: "para", text: "④ 본 조에 의한 위약벌의 청구는 손해배상의 청구에 영향을 미치지 아니한다." },
-        { kind: "para", text: "⑤ 이 계약의 어느 당사자가 제6조 또는 제7조를 위반하여 처분행위를 한 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 처분 금액의 {1}%에 해당하는 금액 또는 각 {0}원 중 큰 금액을 지급하여야 하며, 해당 처분행위로써 다른 주주들에게 대항할 수 없다." },
-      ],
-    },
-    info: {
-      what: "위약벌은 계약을 어긴 데 대한 제재금으로, 실제 손해를 배상하는 것과는 별개로 청구됩니다. 손해배상예정액은 성격이 달라서, 미리 정해둔 액수가 곧 배상액이 되고 실제 손해를 따로 증명할 필요가 없습니다(민법 제398조 ②항). 제8조는 이 두 가지를 함께 두고 있습니다.",
-      ifUnset: "금액이 비면 위반이 있어도 이 조항을 근거로 청구할 액수가 없습니다. 그러면 실제 손해를 입증해 배상을 구하는 일반 원칙으로 돌아가는데, 경업이나 처분 제한 위반은 손해액을 숫자로 증명하기 어려운 경우가 많습니다.",
-      low: "금액이 낮으면 위반했을 때 부담이 작아, 조항이 실제 행동을 억제하는 힘도 그만큼 약해집니다.",
-      high: "민법 제398조 ②항은 손해배상예정액이 부당히 과다하면 법원이 적당히 감액할 수 있다고 정합니다. 위약벌에 대해서도 법원이 공서양속에 반할 정도로 과다한 부분은 무효로 본 사례가 있습니다. 금액을 높게 잡을수록 이 판단을 받을 가능성을 함께 고려하게 됩니다.",
     },
   },
 ];

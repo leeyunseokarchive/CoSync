@@ -1,0 +1,230 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "CoSync 홈으로 이동" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - strong [ref=e8]: CoSync
+          - navigation "주 메뉴" [ref=e9]:
+            - link "대시보드" [ref=e10] [cursor=pointer]:
+              - /url: /workspace
+            - link "합의 히스토리" [ref=e11] [cursor=pointer]:
+              - /url: "#"
+            - link "설정" [ref=e12] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e14]:
+          - link "로그인" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "회원가입" [ref=e16] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=e17]:
+      - complementary [ref=e18]:
+        - generic [ref=e19]: Agreement Draft
+        - navigation "질문 목록" [ref=e20]:
+          - generic [ref=e21]:
+            - button "계약 기본 제안 문항 포함 Contract Basics 0/2" [ref=e22] [cursor=pointer]:
+              - generic [ref=e23]:
+                - text: 계약 기본
+                - generic "제안 문항 포함" [ref=e24]
+              - generic [ref=e25]: Contract Basics
+              - generic [ref=e26]: 0/2
+            - list [ref=e27]:
+              - listitem [ref=e28]:
+                - button "계약 당사자" [ref=e29] [cursor=pointer]:
+                  - generic [ref=e30]: "1"
+              - listitem [ref=e32]:
+                - button "주식의 종류" [ref=e33] [cursor=pointer]:
+                  - generic [ref=e34]: "2"
+          - generic [ref=e36]:
+            - button "의사 결정 구조 Decision & Deadlock 2/2" [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]: 의사 결정 구조
+              - generic [ref=e39]: Decision & Deadlock
+              - generic [ref=e40]: 2/2
+            - list [ref=e41]:
+              - listitem [ref=e42]:
+                - button "큰 투자의 기준 금액" [ref=e43] [cursor=pointer]
+              - listitem [ref=e48]:
+                - button "결정이 막혔을 때" [ref=e49] [cursor=pointer]
+          - generic [ref=e54]:
+            - button "업무 분담과 역할 Roles 0/1" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56]: 업무 분담과 역할
+              - generic [ref=e57]: Roles
+              - generic [ref=e58]: 0/1
+            - list [ref=e59]:
+              - listitem [ref=e60]:
+                - button "역할 분담" [ref=e61] [cursor=pointer]:
+                  - generic [ref=e62]: "5"
+          - generic [ref=e64]:
+            - button "지분 구조 제안 문항 포함 Equity & Vesting 2/2" [ref=e65] [cursor=pointer]:
+              - generic [ref=e66]:
+                - text: 지분 구조
+                - generic "제안 문항 포함" [ref=e67]
+              - generic [ref=e68]: Equity & Vesting
+              - generic [ref=e69]: 2/2
+            - list [ref=e70]:
+              - listitem [ref=e71]:
+                - button "지분 배분" [ref=e72] [cursor=pointer]
+              - listitem [ref=e77]:
+                - button "지분 확정 (베스팅·클리프)" [ref=e78] [cursor=pointer]
+          - generic [ref=e83]:
+            - button "근무와 퇴사 제안 문항 포함 Tenure & Exit 3/3" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]:
+                - text: 근무와 퇴사
+                - generic "제안 문항 포함" [ref=e86]
+              - generic [ref=e87]: Tenure & Exit
+              - generic [ref=e88]: 3/3
+            - list [ref=e89]:
+              - listitem [ref=e90]:
+                - button "퇴사 후 경업 금지" [ref=e91] [cursor=pointer]
+              - listitem [ref=e96]:
+                - button "최소 근무 기간" [ref=e97] [cursor=pointer]
+              - listitem [ref=e102]:
+                - button "퇴사자 주식 회수 가격" [ref=e103] [cursor=pointer]
+          - generic [ref=e108]:
+            - button "지분 양도 제한 Transfer & Penalty 3/3" [ref=e109] [cursor=pointer]:
+              - generic [ref=e110]: 지분 양도 제한
+              - generic [ref=e111]: Transfer & Penalty
+              - generic [ref=e112]: 3/3
+            - list [ref=e113]:
+              - listitem [ref=e114]:
+                - button "주식 매각 제한 기간" [ref=e115] [cursor=pointer]
+              - listitem [ref=e120]:
+                - button "다 같이 팔기 (드래그얼롱)" [ref=e121] [cursor=pointer]
+              - listitem [ref=e126]:
+                - button "계약 위반 시 물어야 할 돈" [ref=e127] [cursor=pointer]
+      - main [ref=e132]:
+        - article [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e137]: 결정이 막혔을 때
+              - generic [ref=e138]: 제2조 ③ (신설)
+            - heading "전원 동의가 안 되면 며칠 더 이야기하고, 누가 결정하나요?" [level=1] [ref=e214]
+            - paragraph [ref=e142]: 아래 7가지는 주주 전원이 동의해야 정할 수 있습니다. 한 명이라도 반대해 결정이 멈췄을 때, 며칠을 더 이야기하고 그래도 안 되면 누가 끝을 낼지 정합니다.
+            - group [ref=e215]:
+              - generic "전원 동의가 필요한 7가지 (제2조 ①)" [active] [ref=e216] [cursor=pointer]
+              - list [ref=e312]:
+                - listitem [ref=e313]:
+                  - generic [ref=e314]: "1"
+                  - generic [ref=e315]:
+                    - generic [ref=e316]: 회사 규칙(정관) 고치기
+                    - generic [ref=e317]: 정관의 변경
+                - listitem [ref=e318]:
+                  - generic [ref=e319]: "2"
+                  - generic [ref=e320]:
+                    - generic [ref=e321]: 주식을 새로 찍거나 스톡옵션 주기 — 지분이 묽어지는 일
+                    - generic [ref=e322]: 주식 및 주식관련 사채의 발행, 주식매수선택권 부여 등 자본금의 증감을 가져올 수 있는 행위
+                - listitem [ref=e323]:
+                  - generic [ref=e324]: "3"
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: 번 돈을 나눠 갖기(배당)
+                    - generic [ref=e327]: 배당의 결정
+                - listitem [ref=e328]:
+                  - generic [ref=e329]: "4"
+                  - generic [ref=e330]:
+                    - generic [ref=e331]: 하던 사업을 바꾸거나 새 사업 시작하기
+                    - generic [ref=e332]: 주된 사업의 변경, 신규 사업의 진출
+                - listitem [ref=e333]:
+                  - generic [ref=e334]: "5"
+                  - generic [ref=e335]:
+                    - generic [ref=e336]: 사업 접기, 회사를 팔거나 합치기
+                    - generic [ref=e337]: 사업의 중단 또는 포기, 사업양수도, 합병, 분할, 분할합병, 주식의 포괄적 교환 또는 이전, 영업의 양도·양수, 위탁경영 기타 회사조직의 근본적인 변경
+                - listitem [ref=e338]:
+                  - generic [ref=e339]: "6"
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: 창업자·경영진이나 그 가족과 회사가 거래하기
+                    - generic [ref=e342]: 회사와 주요 경영진 및 이들의 특수관계인과의 거래 또는 계약
+                - listitem [ref=e343]:
+                  - generic [ref=e344]: "7"
+                  - generic [ref=e345]:
+                    - generic [ref=e346]: 1억 원을 넘는 돈을 투자하기
+                    - generic [ref=e347]: 회사가 1억 원을 초과하여 투자하는 행위
+          - generic [ref=e222]:
+            - generic [ref=e223]:
+              - generic [ref=e224]: 협의 기간
+              - generic [ref=e225]:
+                - generic [ref=e226]:
+                  - button "3일" [ref=e227] [cursor=pointer]
+                  - button "7일" [pressed] [ref=e228] [cursor=pointer]
+                  - button "14일" [ref=e229] [cursor=pointer]
+                  - button "30일" [ref=e230] [cursor=pointer]
+                - generic [ref=e231]: 직접 입력
+                - generic [ref=e232]:
+                  - button "1 줄이기" [ref=e233] [cursor=pointer]: −
+                  - textbox "직접 입력" [ref=e234]:
+                    - /placeholder: "0"
+                    - text: "7"
+                  - button "1 늘리기" [ref=e235] [cursor=pointer]: +
+                  - generic [ref=e236]: 일
+            - generic [ref=e237]:
+              - generic [ref=e238]: 최종 결정권자
+              - radiogroup [ref=e240]:
+                - radio "김민준 나 (본인)" [checked] [ref=e241] [cursor=pointer]:
+                  - generic [ref=e242]: 김
+                  - generic [ref=e243]:
+                    - generic [ref=e244]: 김민준
+                    - generic [ref=e245]: 나 (본인)
+                - radio "이서연 공동창업자" [ref=e248] [cursor=pointer]:
+                  - generic [ref=e249]: 이
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: 이서연
+                    - generic [ref=e252]: 공동창업자
+                - radio "박도윤 공동창업자" [ref=e253] [cursor=pointer]:
+                  - generic [ref=e254]: 박
+                  - generic [ref=e255]:
+                    - generic [ref=e256]: 박도윤
+                    - generic [ref=e257]: 공동창업자
+          - region "이렇게 됩니다" [ref=e258]:
+            - generic [ref=e263]:
+              - img [ref=e265]:
+                - generic [ref=e267]: 김민준 결정
+                - generic [ref=e270]:
+                  - generic [ref=e271]: 협의 기간
+                  - generic [ref=e274]: 7일
+                - generic [ref=e275]: 0일
+                - generic [ref=e278]: 2일
+                - generic [ref=e281]: 4일
+                - generic [ref=e284]: 6일
+                - generic [ref=e287]: 8일
+                - generic [ref=e290]: 10일
+              - paragraph [ref=e293]: 7일 동안 이야기해 보고, 그래도 안 정해지면 김민준이 정해요.
+              - list [ref=e294]:
+                - listitem [ref=e295]:
+                  - generic [ref=e296]:
+                    - generic [ref=e297]: 함께 반영
+                    - button "전문 · 제3의 3조" [ref=e298] [cursor=pointer]
+                  - paragraph [ref=e299]: 지분은 50 대 50인데, 마지막엔 김민준이 정해요.
+          - button "예외 조항 추가 이 조항에 붙일 단서가 있다면" [ref=e155] [cursor=pointer]:
+            - text: 예외 조항 추가
+            - generic [ref=e157]: 이 조항에 붙일 단서가 있다면
+          - generic [ref=e158]:
+            - generic [ref=e159]: 계약서 반영 미리보기
+            - generic [ref=e163]:
+              - heading "제2조 (주요 의사결정 합의·협의 사항)" [level=2] [ref=e300]
+              - paragraph [ref=e165]: ① 주주들은 다음 각 호의 사항에 관하여는 주주들 전원의 합의로 결정하고, 주주총회 또는 이사회 결의가 필요한 경우 주주들의 합의에 따라 의결권을 행사하여야 한다.
+              - paragraph [ref=e166]: ⋯ 이하 생략 ⋯
+              - paragraph [ref=e167]: ② 주주들은 다음 각 호의 사항에 관하여는 다른 주주에게 사전에 통지하고 이를 협의하여야 한다.
+              - paragraph [ref=e170]: ⋯ 이하 생략 ⋯
+              - paragraph [ref=e172]:
+                - text: ③ 제1항 각 호의 사항에 관하여 주주 전원의 합의가 이루어지지 아니하는 경우, 주주들은
+                - mark [ref=e301]: 7일
+                - text: 간 성실히 협의한다. 위 협의 기간 내에도 합의에 이르지 못한 경우, 해당 사항은
+                - mark [ref=e302]: 김민준
+                - text: 의 의사에 따라 결정하는 것으로 하고, 주주들은 그 결정에 따라 주주총회 또는 이사회에서 의결권을 행사하여야 한다.
+      - complementary "이 조항에 대한 정보" [ref=e176]:
+        - generic [ref=e177]: 알아두면 좋은 것
+        - group [ref=e178]:
+          - generic "이 조항은 무엇인가" [ref=e179] [cursor=pointer]
+        - group [ref=e184]:
+          - generic "정하지 않으면" [ref=e185] [cursor=pointer]
+        - paragraph [ref=e192]: 일반적인 법률 정보이며 특정 사안에 대한 법률 자문이 아닙니다. 구체적인 판단이 필요하면 변호사와 상담하세요.
+    - contentinfo [ref=e193]:
+      - button "이전" [ref=e194] [cursor=pointer]
+      - generic [ref=e197]:
+        - generic [ref=e198]: 3명 중 2명 응답
+        - generic [ref=e205]:
+          - generic [ref=e206]: 4 / 13
+          - generic [ref=e207]: 31%
+        - button "다음" [ref=e210] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e308] [cursor=pointer]
+  - alert [ref=e213]

@@ -1,0 +1,222 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "CoSync 홈으로 이동" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - strong [ref=e8]: CoSync
+          - navigation "주 메뉴" [ref=e9]:
+            - link "대시보드" [ref=e10] [cursor=pointer]:
+              - /url: /workspace
+            - link "합의 히스토리" [ref=e11] [cursor=pointer]:
+              - /url: "#"
+            - link "설정" [ref=e12] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e14]:
+          - link "로그인" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "회원가입" [ref=e16] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=e17]:
+      - complementary [ref=e18]:
+        - generic [ref=e19]: Agreement Draft
+        - navigation "질문 목록" [ref=e20]:
+          - generic [ref=e21]:
+            - button "계약 기본 제안 문항 포함 Contract Basics 1/3" [ref=e22] [cursor=pointer]:
+              - generic [ref=e23]:
+                - text: 계약 기본
+                - generic "제안 문항 포함" [ref=e24]
+              - generic [ref=e25]: Contract Basics
+              - generic [ref=e26]: 1/3
+            - list [ref=e27]:
+              - listitem [ref=e28]:
+                - button "계약 당사자" [ref=e29] [cursor=pointer]:
+                  - generic [ref=e30]: "1"
+              - listitem [ref=e32]:
+                - button "주식의 종류" [ref=e33] [cursor=pointer]:
+                  - generic [ref=e34]: "2"
+              - listitem [ref=e36]:
+                - button "기술·지식재산 이전" [active] [ref=e37] [cursor=pointer]
+          - generic [ref=e42]:
+            - button "의사 결정 구조 Decision & Deadlock 2/2" [ref=e43] [cursor=pointer]:
+              - generic [ref=e44]: 의사 결정 구조
+              - generic [ref=e45]: Decision & Deadlock
+              - generic [ref=e46]: 2/2
+            - list [ref=e47]:
+              - listitem [ref=e48]:
+                - button "큰 투자의 기준 금액" [ref=e49] [cursor=pointer]
+              - listitem [ref=e54]:
+                - button "결정이 막혔을 때" [ref=e55] [cursor=pointer]
+          - generic [ref=e60]:
+            - button "업무 분담과 역할 Roles 0/1" [ref=e61] [cursor=pointer]:
+              - generic [ref=e62]: 업무 분담과 역할
+              - generic [ref=e63]: Roles
+              - generic [ref=e64]: 0/1
+            - list [ref=e65]:
+              - listitem [ref=e66]:
+                - button "역할 분담" [ref=e67] [cursor=pointer]:
+                  - generic [ref=e68]: "6"
+          - generic [ref=e70]:
+            - button "지분 구조 제안 문항 포함 Equity & Vesting 2/2" [ref=e71] [cursor=pointer]:
+              - generic [ref=e72]:
+                - text: 지분 구조
+                - generic "제안 문항 포함" [ref=e73]
+              - generic [ref=e74]: Equity & Vesting
+              - generic [ref=e75]: 2/2
+            - list [ref=e76]:
+              - listitem [ref=e77]:
+                - button "지분 배분" [ref=e78] [cursor=pointer]
+              - listitem [ref=e83]:
+                - button "지분 확정 (베스팅·클리프)" [ref=e84] [cursor=pointer]
+          - generic [ref=e89]:
+            - button "근무와 퇴사 제안 문항 포함 Tenure & Exit 3/3" [ref=e90] [cursor=pointer]:
+              - generic [ref=e91]:
+                - text: 근무와 퇴사
+                - generic "제안 문항 포함" [ref=e92]
+              - generic [ref=e93]: Tenure & Exit
+              - generic [ref=e94]: 3/3
+            - list [ref=e95]:
+              - listitem [ref=e96]:
+                - button "퇴사 후 경업 금지" [ref=e97] [cursor=pointer]
+              - listitem [ref=e102]:
+                - button "최소 근무 기간" [ref=e103] [cursor=pointer]
+              - listitem [ref=e108]:
+                - button "퇴사자 주식 회수 가격" [ref=e109] [cursor=pointer]
+          - generic [ref=e114]:
+            - button "지분 양도 제한 Transfer & Penalty 2/2" [ref=e115] [cursor=pointer]:
+              - generic [ref=e116]: 지분 양도 제한
+              - generic [ref=e117]: Transfer & Penalty
+              - generic [ref=e118]: 2/2
+            - list [ref=e119]:
+              - listitem [ref=e120]:
+                - button "주식 매각 제한 기간" [ref=e121] [cursor=pointer]
+              - listitem [ref=e126]:
+                - button "다 같이 팔기 (드래그얼롱)" [ref=e127] [cursor=pointer]
+      - main [ref=e132]:
+        - article [ref=e387]:
+          - generic [ref=e388]:
+            - generic [ref=e389]:
+              - generic [ref=e391]: 기술·지식재산 이전
+              - generic [ref=e392]: 제3조
+              - generic [ref=e393]: 제안
+            - heading "지금 각자 가진 기술과 자료 중, 무엇을 회사로 넘기나요?" [level=1] [ref=e394]
+            - paragraph [ref=e395]: 설립 전에 각자 만들어 둔 코드·디자인·상표·데이터 가운데 회사로 넘길 것을 적습니다. 여기 적은 것은 회사가 세워지는 순간 회사 소유가 됩니다.
+          - generic [ref=e397]:
+            - generic [ref=e398]:
+              - generic [ref=e399]: 김민준 나 (본인)
+              - generic [ref=e400]:
+                - button "소스코드" [ref=e401] [cursor=pointer]
+                - button "디자인·시안" [ref=e402] [cursor=pointer]
+                - button "상표·브랜드" [ref=e403] [cursor=pointer]
+                - button "도메인·계정" [ref=e404] [cursor=pointer]
+                - button "고객 데이터" [ref=e405] [cursor=pointer]
+                - button "특허·출원" [ref=e406] [cursor=pointer]
+                - button "넘길 것 없음" [ref=e407] [cursor=pointer]
+              - textbox "김민준 나 (본인)" [ref=e408]:
+                - /placeholder: 담당하는 역할과 업무를 적어 주세요
+                - text: 서비스 소스코드, 디자인 시안
+            - generic [ref=e409]:
+              - generic [ref=e410]: 이서연 공동창업자
+              - generic [ref=e411]:
+                - button "소스코드" [ref=e412] [cursor=pointer]
+                - button "디자인·시안" [ref=e413] [cursor=pointer]
+                - button "상표·브랜드" [ref=e414] [cursor=pointer]
+                - button "도메인·계정" [ref=e415] [cursor=pointer]
+                - button "고객 데이터" [ref=e416] [cursor=pointer]
+                - button "특허·출원" [ref=e417] [cursor=pointer]
+                - button "넘길 것 없음" [ref=e418] [cursor=pointer]
+              - textbox "이서연 공동창업자" [ref=e419]:
+                - /placeholder: 담당하는 역할과 업무를 적어 주세요
+                - text: 브랜드·상표, 도메인
+            - generic [ref=e420]:
+              - generic [ref=e421]: 박도윤 공동창업자
+              - generic [ref=e422]:
+                - button "소스코드" [ref=e423] [cursor=pointer]
+                - button "디자인·시안" [ref=e424] [cursor=pointer]
+                - button "상표·브랜드" [ref=e425] [cursor=pointer]
+                - button "도메인·계정" [ref=e426] [cursor=pointer]
+                - button "고객 데이터" [ref=e427] [cursor=pointer]
+                - button "특허·출원" [ref=e428] [cursor=pointer]
+                - button "넘길 것 없음" [ref=e429] [cursor=pointer]
+              - textbox "박도윤 공동창업자" [ref=e430]:
+                - /placeholder: 담당하는 역할과 업무를 적어 주세요
+                - text: 고객 데이터베이스
+          - region "이 조항을 어기면" [ref=e431]:
+            - list [ref=e437]:
+              - listitem [ref=e438]:
+                - generic [ref=e439]: 제8조 ①
+                - text: 1억 원
+              - listitem [ref=e440]:
+                - generic [ref=e441]: 제8조 ③
+                - text: 1억 원
+            - generic [ref=e442]:
+              - generic [ref=e443]: 위약벌 기준 금액
+              - generic [ref=e444]:
+                - generic [ref=e445]: ₩
+                - textbox "위약벌 기준 금액" [ref=e446]:
+                  - /placeholder: "0"
+                  - text: 100,000,000
+              - paragraph [ref=e447]: 1억 원
+            - generic [ref=e448] [cursor=pointer]:
+              - checkbox "이 조항만 다른 값으로 정하기" [ref=e449]
+              - generic [ref=e450]: 이 조항만 다른 값으로 정하기
+            - paragraph [ref=e451]: 제8조 전체에 함께 적용되는 값입니다. 다른 조항에서 고쳐도 같이 바뀝니다.
+            - paragraph [ref=e452]: 위약벌을 물더라도 실제로 생긴 손해에 대한 배상은 따로 청구할 수 있습니다(제8조 ④).
+            - group [ref=e453]:
+              - generic "위약벌과 손해배상예정액은 무엇이 다른가" [ref=e454] [cursor=pointer]
+          - button "예외 조항 추가 이 조항에 붙일 단서가 있다면" [ref=e460] [cursor=pointer]:
+            - text: 예외 조항 추가
+            - generic [ref=e462]: 이 조항에 붙일 단서가 있다면
+          - generic [ref=e463]:
+            - generic [ref=e464]: 계약서 반영 미리보기
+            - generic [ref=e468]:
+              - heading "제3조 (회사 설립 후 지식재산 등의 이전)" [level=2] [ref=e469]
+              - paragraph [ref=e470]: 이 계약 당사자인 주주들이 회사를 설립하여 영위할 사업과 관련하여 주주들 또는 주주들을 구성원으로 하는 조합에 권리가 있었던 관련 비즈니스, 기술 및 지식재산권 등은 회사의 설립과 동시에 회사에 그 권리가 이전된다.
+              - paragraph [ref=e471]: ② 제1항에 따라 이전되는 대상은 다음과 같다. (신설)
+              - table [ref=e473]:
+                - rowgroup [ref=e474]:
+                  - row [ref=e475]:
+                    - columnheader "이름" [ref=e476]
+                    - columnheader "회사로 이전하는 비즈니스·기술·지식재산권" [ref=e477]
+                - rowgroup [ref=e478]:
+                  - row [ref=e479]:
+                    - cell "김민준" [ref=e480]
+                    - cell [ref=e481]:
+                      - mark [ref=e482]: 서비스 소스코드, 디자인 시안
+                  - row [ref=e483]:
+                    - cell "이서연" [ref=e484]
+                    - cell [ref=e485]:
+                      - mark [ref=e486]: 브랜드·상표, 도메인
+                  - row [ref=e487]:
+                    - cell "박도윤" [ref=e488]
+                    - cell [ref=e489]:
+                      - mark [ref=e490]: 고객 데이터베이스
+              - heading "제8조 (손해배상 및 위약벌)" [level=2] [ref=e491]
+              - paragraph [ref=e492]:
+                - text: ① 이 계약의 어느 당사자가 제3조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들(이하 '다른 주주들'이라고 한다)에게 손해배상과 별도로 위약벌로서 각
+                - mark [ref=e493]: 100,000,000
+                - text: 원을 지급하여야 한다.
+              - paragraph [ref=e494]:
+                - text: ③ 이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각
+                - mark [ref=e495]: 100,000,000
+                - text: 원을 지급하여야 한다. 단, 손해액이
+                - mark [ref=e496]: 100,000,000
+                - text: 원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다.
+      - complementary "이 조항에 대한 정보" [ref=e176]:
+        - generic [ref=e177]: 알아두면 좋은 것
+        - group [ref=e178]:
+          - generic "이 조항은 무엇인가" [ref=e179] [cursor=pointer]
+        - group [ref=e184]:
+          - generic "정하지 않으면" [ref=e185] [cursor=pointer]
+        - paragraph [ref=e192]: 일반적인 법률 정보이며 특정 사안에 대한 법률 자문이 아닙니다. 구체적인 판단이 필요하면 변호사와 상담하세요.
+    - contentinfo [ref=e193]:
+      - button "이전" [ref=e194] [cursor=pointer]
+      - generic [ref=e197]:
+        - generic [ref=e198]: 3명 중 2명 응답
+        - generic [ref=e205]:
+          - generic [ref=e206]: 3 / 13
+          - generic [ref=e207]: 23%
+        - button "다음" [ref=e210] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e333] [cursor=pointer]
+  - alert [ref=e213]

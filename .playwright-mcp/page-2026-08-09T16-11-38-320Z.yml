@@ -1,0 +1,216 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - generic [ref=f1e4]:
+        - generic [ref=f1e5]:
+          - link "CoSync 홈으로 이동" [ref=f1e6] [cursor=pointer]:
+            - /url: /
+            - strong [ref=f1e8]: CoSync
+          - navigation "주 메뉴" [ref=f1e9]:
+            - link "대시보드" [ref=f1e10] [cursor=pointer]:
+              - /url: /workspace
+            - link "합의 히스토리" [ref=f1e11] [cursor=pointer]:
+              - /url: "#"
+            - link "설정" [ref=f1e12] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=f1e14]:
+          - link "로그인" [ref=f1e15] [cursor=pointer]:
+            - /url: /login
+          - link "회원가입" [ref=f1e16] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=f1e17]:
+      - complementary [ref=f1e18]:
+        - generic [ref=f1e19]: Agreement Draft
+        - navigation "질문 목록" [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - button "계약 기본 제안 문항 포함 Contract Basics 1/3" [ref=f1e22] [cursor=pointer]:
+              - generic [ref=f1e23]:
+                - text: 계약 기본
+                - generic "제안 문항 포함" [ref=f1e24]
+              - generic [ref=f1e25]: Contract Basics
+              - generic [ref=f1e26]: 1/3
+            - list [ref=f1e27]:
+              - listitem [ref=f1e28]:
+                - button "계약 당사자" [ref=f1e29] [cursor=pointer]:
+                  - generic [ref=f1e30]: "1"
+              - listitem [ref=f1e32]:
+                - button "주식의 종류" [ref=f1e33] [cursor=pointer]:
+                  - generic [ref=f1e34]: "2"
+              - listitem [ref=f1e36]:
+                - button "기술·지식재산 이전" [ref=f1e37] [cursor=pointer]
+          - generic [ref=f1e42]:
+            - button "의사 결정 구조 Decision & Deadlock 2/2" [ref=f1e43] [cursor=pointer]:
+              - generic [ref=f1e44]: 의사 결정 구조
+              - generic [ref=f1e45]: Decision & Deadlock
+              - generic [ref=f1e46]: 2/2
+            - list [ref=f1e47]:
+              - listitem [ref=f1e48]:
+                - button "큰 투자의 기준 금액" [ref=f1e49] [cursor=pointer]
+              - listitem [ref=f1e54]:
+                - button "결정이 막혔을 때" [ref=f1e55] [cursor=pointer]
+          - generic [ref=f1e60]:
+            - button "업무 분담과 역할 Roles 0/1" [ref=f1e61] [cursor=pointer]:
+              - generic [ref=f1e62]: 업무 분담과 역할
+              - generic [ref=f1e63]: Roles
+              - generic [ref=f1e64]: 0/1
+            - list [ref=f1e65]:
+              - listitem [ref=f1e66]:
+                - button "역할 분담" [ref=f1e67] [cursor=pointer]:
+                  - generic [ref=f1e68]: "6"
+          - generic [ref=f1e70]:
+            - button "지분 구조 제안 문항 포함 Equity & Vesting 2/2" [ref=f1e71] [cursor=pointer]:
+              - generic [ref=f1e72]:
+                - text: 지분 구조
+                - generic "제안 문항 포함" [ref=f1e73]
+              - generic [ref=f1e74]: Equity & Vesting
+              - generic [ref=f1e75]: 2/2
+            - list [ref=f1e76]:
+              - listitem [ref=f1e77]:
+                - button "지분 배분" [ref=f1e78] [cursor=pointer]
+              - listitem [ref=f1e83]:
+                - button "지분 확정 (베스팅·클리프)" [ref=f1e84] [cursor=pointer]
+          - generic [ref=f1e89]:
+            - button "근무와 퇴사 제안 문항 포함 Tenure & Exit 3/3" [ref=f1e90] [cursor=pointer]:
+              - generic [ref=f1e91]:
+                - text: 근무와 퇴사
+                - generic "제안 문항 포함" [ref=f1e92]
+              - generic [ref=f1e93]: Tenure & Exit
+              - generic [ref=f1e94]: 3/3
+            - list [ref=f1e95]:
+              - listitem [ref=f1e96]:
+                - button "퇴사 후 경업 금지" [ref=f1e97] [cursor=pointer]
+              - listitem [ref=f1e102]:
+                - button "최소 근무 기간" [active] [ref=f1e103] [cursor=pointer]
+              - listitem [ref=f1e108]:
+                - button "퇴사자 주식 회수 가격" [ref=f1e109] [cursor=pointer]
+          - generic [ref=f1e114]:
+            - button "지분 양도 제한 Transfer & Penalty 2/2" [ref=f1e115] [cursor=pointer]:
+              - generic [ref=f1e116]: 지분 양도 제한
+              - generic [ref=f1e117]: Transfer & Penalty
+              - generic [ref=f1e118]: 2/2
+            - list [ref=f1e119]:
+              - listitem [ref=f1e120]:
+                - button "주식 매각 제한 기간" [ref=f1e121] [cursor=pointer]
+              - listitem [ref=f1e126]:
+                - button "다 같이 팔기 (드래그얼롱)" [ref=f1e127] [cursor=pointer]
+      - main [ref=f1e132]:
+        - article [ref=f1e223]:
+          - generic [ref=f1e224]:
+            - generic [ref=f1e225]:
+              - generic [ref=f1e227]: 최소 근무 기간
+              - generic [ref=f1e228]: 제5조 ①
+            - heading "최소 몇 년간 근무 의무를 지나요?" [level=1] [ref=f1e229]
+            - paragraph [ref=f1e230]: 이 기간 안에는 다른 주주 전원의 서면 동의 없이 퇴사할 수 없습니다. 본인 책임이 아닌 비자발적 퇴사는 제외됩니다.
+          - generic [ref=f1e232]:
+            - generic [ref=f1e233]:
+              - button "1년" [ref=f1e234] [cursor=pointer]
+              - button "2년" [ref=f1e235] [cursor=pointer]
+              - button "3년" [pressed] [ref=f1e236] [cursor=pointer]
+              - button "5년" [ref=f1e237] [cursor=pointer]
+            - generic [ref=f1e238]: 직접 입력
+            - generic [ref=f1e239]:
+              - button "1 줄이기" [ref=f1e240] [cursor=pointer]: −
+              - textbox "직접 입력" [ref=f1e241]:
+                - /placeholder: "0"
+                - text: "3"
+              - button "1 늘리기" [ref=f1e242] [cursor=pointer]: +
+              - generic [ref=f1e243]: 년
+          - region "이렇게 됩니다" [ref=f1e244]:
+            - generic [ref=f1e249]:
+              - img [ref=f1e251]:
+                - generic [ref=f1e253]: 액면가 매수 대상 구간
+                - generic [ref=f1e256]:
+                  - generic [ref=f1e257]: 계속근무 의무
+                  - generic [ref=f1e260]: 3년
+                - generic [ref=f1e261]: 0년
+                - generic [ref=f1e264]: 1년
+                - generic [ref=f1e267]: 2년
+                - generic [ref=f1e270]: 3년
+              - paragraph [ref=f1e273]:
+                - text: 3년 안에 나가면, 내 주식을 다른 주주가
+                - generic [ref=f1e274]: 액면가
+                - text: 로 사갈 수 있어요.
+              - list [ref=f1e275]:
+                - listitem [ref=f1e276]:
+                  - generic [ref=f1e277]:
+                    - generic [ref=f1e278]: 함께 반영
+                    - button "제5조 (강화)" [ref=f1e279] [cursor=pointer]
+                  - paragraph [ref=f1e280]: 3년을 채우고 나가도, 지분은 1년을 더 있어야 다 내 것이 돼요.
+                - listitem [ref=f1e281]:
+                  - generic [ref=f1e282]:
+                    - generic [ref=f1e283]: 함께 반영
+                    - button "제6조" [ref=f1e284] [cursor=pointer]
+                  - paragraph [ref=f1e285]: 3년 뒤엔 나갈 수 있는데, 주식은 2년을 더 못 팔아요.
+          - region "이 조항을 어기면" [ref=f1e286]:
+            - list [ref=f1e292]:
+              - listitem [ref=f1e293]:
+                - generic [ref=f1e294]: 제8조 ②
+                - generic [ref=f1e295]: 위약벌 · 처분 금액 비례
+                - text: 처분 금액의 30%
+              - listitem [ref=f1e296]:
+                - generic [ref=f1e297]: 제8조 ③
+                - generic [ref=f1e298]: 손해배상예정액
+                - text: 1억 원
+            - generic [ref=f1e299]:
+              - generic [ref=f1e300]: 위약벌 기준 금액
+              - generic [ref=f1e301]:
+                - generic [ref=f1e302]: ₩
+                - textbox "위약벌 기준 금액" [ref=f1e303]:
+                  - /placeholder: "0"
+                  - text: 100,000,000
+              - paragraph [ref=f1e304]: 1억 원
+            - generic [ref=f1e305]:
+              - generic [ref=f1e306]: 처분 금액 대비 비율
+              - generic [ref=f1e307]:
+                - textbox "처분 금액 대비 비율" [ref=f1e308]:
+                  - /placeholder: "0"
+                  - text: "30"
+                - generic [ref=f1e309]: "%"
+            - generic [ref=f1e310] [cursor=pointer]:
+              - checkbox "이 조항만 다른 값으로 정하기" [ref=f1e311]
+              - generic [ref=f1e312]: 이 조항만 다른 값으로 정하기
+            - paragraph [ref=f1e313]: 제8조 전체에 함께 적용되는 값입니다. 다른 조항에서 고쳐도 같이 바뀝니다.
+            - paragraph [ref=f1e314]: 위약벌을 물더라도 실제로 생긴 손해에 대한 배상은 따로 청구할 수 있습니다(제8조 ④).
+            - group [ref=f1e315]:
+              - generic "위약벌과 손해배상예정액은 무엇이 다른가" [ref=f1e316] [cursor=pointer]
+          - button "예외 조항 추가 이 조항에 붙일 단서가 있다면" [ref=f1e322] [cursor=pointer]:
+            - text: 예외 조항 추가
+            - generic [ref=f1e324]: 이 조항에 붙일 단서가 있다면
+          - generic [ref=f1e325]:
+            - generic [ref=f1e326]: 계약서 반영 미리보기
+            - generic [ref=f1e330]:
+              - heading "제5조 (계속근무)" [level=2] [ref=f1e331]
+              - paragraph [ref=f1e332]:
+                - text: ① 주주는 본 계약 체결일로부터 사유를 불문하고
+                - mark [ref=f1e333]: 3년
+                - text: 간 다른 주주들 전원의 사전 서면 동의 없이 회사에서 퇴사하여서는 아니된다. 단, 해당 주주에게 책임 없는 사유로 인한 비자발적 퇴사에 대하여는 본 조의 적용을 배제한다.
+              - paragraph [ref=f1e334]: ② 제1항에도 불구하고 주주가 3년 이내에 회사에서 퇴사하는 경우, 다른 주주는 퇴사하는 주주가 보유하고 있는 주식 전부 또는 일부를 퇴사일 당시의 각 지분율에 따라 퇴사하는 주주로부터 액면가로 매수할 수 있는 권리를 가진다.
+              - paragraph [ref=f1e335]: ③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다.
+              - heading "제8조 (손해배상 및 위약벌)" [level=2] [ref=f1e336]
+              - paragraph [ref=f1e337]:
+                - text: ② 이 계약의 어느 당사자가 제4조 및 제5조를 위반하는 경우 위반 당사자는 다른 주주들에게 손해배상과 별도로 위약벌로서 해당 주식 처분 금액의
+                - mark [ref=f1e338]: "30"
+                - text: "%에 해당하는 금액을 지급하여야 한다."
+              - paragraph [ref=f1e339]:
+                - text: ③ 이 계약의 어느 당사자가 제3조 또는 제4조 및 제5조를 위반하는 경우 위반 당사자는 이 계약의 다른 당사자들인 주주들에게 손해배상예정액으로써 각
+                - mark [ref=f1e340]: 100,000,000
+                - text: 원을 지급하여야 한다. 단, 손해액이
+                - mark [ref=f1e341]: 100,000,000
+                - text: 원을 초과하는 경우에는 다른 주주들은 초과하는 손해액을 입증하여 손해배상을 청구할 수 있다.
+      - complementary "이 조항에 대한 정보" [ref=f1e176]:
+        - generic [ref=f1e177]: 알아두면 좋은 것
+        - group [ref=f1e178]:
+          - generic "이 조항은 무엇인가" [ref=f1e179] [cursor=pointer]
+        - group [ref=f1e184]:
+          - generic "정하지 않으면" [ref=f1e185] [cursor=pointer]
+        - paragraph [ref=f1e192]: 일반적인 법률 정보이며 특정 사안에 대한 법률 자문이 아닙니다. 구체적인 판단이 필요하면 변호사와 상담하세요.
+    - contentinfo [ref=f1e193]:
+      - button "이전" [ref=f1e194] [cursor=pointer]
+      - generic [ref=f1e197]:
+        - generic [ref=f1e198]: 3명 중 2명 응답
+        - generic [ref=f1e205]:
+          - generic [ref=f1e206]: 10 / 13
+          - generic [ref=f1e207]: 77%
+        - button "다음" [ref=f1e210] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f1e218] [cursor=pointer]
+  - alert [ref=f1e222]

@@ -288,7 +288,7 @@ function MatrixInput({ tpl, value, onChange, id }: {
           <input
             id={`${id}-${m.id}`}
             className="cq-input"
-            placeholder="담당할 역할과 업무를 적어 주세요"
+            placeholder="담당하는 역할과 업무를 적어 주세요"
             value={String(v[m.id] ?? "")}
             onChange={(e) => set(m.id, e.target.value)}
           />

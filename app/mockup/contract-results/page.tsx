@@ -11,6 +11,9 @@ import {
   MOCK_MEMBERS,
   INFO_DISCLAIMER,
   PENALTY_CLAUSES,
+  PENALTY_NOTE,
+  PENALTY_WHAT,
+  CONSENT_ITEMS,
   validateAllocation,
   fillPreview,
   choiceLabel,
@@ -21,16 +24,26 @@ import {
 import { resultsFor, RESULT_QUESTION_IDS, won } from "../../../lib/contractResults";
 import {
   ArrowLeft, ArrowRight, FileText, Users, Check,
-  BookOpen, HelpingHand, Scale, Plus, Trash2, ChevronDown, Sparkles,
+  BookOpen, HelpingHand, Scale, Plus, Trash2, ChevronDown, Sparkles, ListChecks,
 } from "lucide-react";
 
 // ponytail: 결과 카드 제안 시안. /mockup/contract-questions 를 그대로 두고 이 파일만 따로 둔다.
 // 화면 구성은 원본과 같고, 입력과 미리보기 사이에 「이렇게 됩니다」 한 덩어리만 추가된다.
 
+// 지분율이 넘어설 때마다 할 수 있는 일이 달라지는 지점.
+// 출처: docs/창진원 발표_임호균_20251030 4p 「주식 지분에 따른 법률 행위」
+const EQUITY_THRESHOLDS = [
+  { v: 66.7, name: "특별결의", plain: "정관 바꾸기, 회사 합치기·팔기까지 혼자 통과시킬 수 있어요.", law: "상법 제434조" },
+  { v: 50.1, name: "보통결의", plain: "이사 뽑기, 배당 정하기 같은 일상 안건을 혼자 통과시킬 수 있어요.", law: "상법 제368조" },
+  { v: 33.4, name: "특별결의 방어선", plain: "혼자 통과시킬 수는 없지만, 다른 사람이 정관 변경·매각을 밀어붙이는 것은 막을 수 있어요.", law: "상법 제434조" },
+  { v: 3, name: "소수주주권", plain: "임시 주주총회 소집, 회계장부 열람, 주주 제안, 이사·감사 해임 청구를 할 수 있어요.", law: "상법 제366조 등" },
+];
+
 // 회의에서 바로 결과를 보도록 답을 채워 둔 상태로 시작한다. 값은 자유롭게 바꿀 수 있다.
 const PREFILL: Record<string, unknown> = {
   decisionAmount: 100_000_000,
   deadlock: { days: 7, decider: "m1" },
+  ipTransfer: { m1: "서비스 소스코드, 디자인 시안", m2: "브랜드·상표, 도메인", m3: "고객 데이터베이스" },
   equity: { m1: 50, m2: 30, m3: 20 },
   noncompete: 1,
   tenure: 3,
@@ -76,6 +89,10 @@ export default function ContractResultsMockup() {
     if (override) setPenaltyOverrides((prev) => ({ ...prev, [q.id]: { ...prev[q.id], [key]: v } }));
     else setAnswers((prev) => ({ ...prev, penalty: { ...(prev.penalty as object), [key]: v } }));
   };
+  const otherOverrides = Object.entries(penaltyOverrides).filter(([id]) => id !== q.id);
+  // 문턱 눈금 위에 지금 배분을 얹는다. 아직 안 적은 사람은 0%라 왼쪽 끝에 선다.
+  const equityAnswer = (answers.equity ?? {}) as Record<string, number>;
+  const equityRows = MOCK_MEMBERS.map((m) => ({ id: m.id, name: m.name, value: Number(equityAnswer[m.id]) || 0 }));
   // 켜는 순간 지금 보이는 값에서 갈라져 나온다. 끄면 다시 공유 값으로 돌아간다.
   const toggleOverride = () =>
     setPenaltyOverrides((prev) => {
@@ -102,6 +119,9 @@ export default function ContractResultsMockup() {
   const go = (delta: number) => jumpTo(index + delta);
 
   const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
+
+  // 7호의 금액은 제2조 ① 7호 문항에서 정한 값을 그대로 쓴다. 아직 없으면 자리만 알려 준다.
+  const consentAmount = answers.decisionAmount ? won(Number(answers.decisionAmount)) : "정한 금액";
 
   return (
     <div className="cq-page">
@@ -150,7 +170,7 @@ export default function ContractResultsMockup() {
                             <span className={`cq-side-mark ${answered ? "done" : ""}`} aria-hidden="true">
                               {answered ? <Check size={11} strokeWidth={3.5} /> : idx + 1}
                             </span>
-                            <span className="cq-side-q-text">{item.article}</span>
+                            <span className="cq-side-q-text">{item.topic}</span>
                             {exceptions[item.id]?.trim() && (
                               <span className="cq-side-exc" title="예외 조항 있음" aria-label="예외 조항 있음" />
                             )}
@@ -166,16 +186,80 @@ export default function ContractResultsMockup() {
         </aside>
 
         <main className="cq-main">
-          <article className="cq-card">
+          {/* key로 다시 그리게 해서, 문항을 넘길 때마다 등장 애니메이션이 처음부터 돈다. */}
+          <article className="cq-card" key={q.id}>
             <header className="cq-card-head">
               <div className="cq-eyebrow-row">
                 <span className="cq-eyebrow-bar" />
-                <span className="cq-eyebrow">{q.article} · {q.articleTag}</span>
+                <span className="cq-eyebrow">{q.topic}</span>
+                <span className="cq-article-ref">{q.article}</span>
                 {q.proposed && <span className="cq-badge-proposed">제안</span>}
                 {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
               </div>
               <h1 className="cq-title">{q.title}</h1>
               <p className="cq-desc"><Gloss text={q.desc} /></p>
+
+              {/* 지분을 나누기 전에, 몇 %가 무엇을 할 수 있는 선인지부터 본다. */}
+              {q.id === "equity" && (
+                <details className="cq-fold">
+                  <summary className="cq-fold-head">
+                    <Scale size={15} /> 몇 %면 무엇을 할 수 있나 — 지분율 4개의 선
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+                  </summary>
+                  <div className="cq-fold-body">
+                    <div className="cq-thr-scale">
+                      {equityRows.map((m) => (
+                        <span key={m.id} className="cq-thr-dot" style={{ left: `${Math.min(100, m.value)}%` }}>
+                          <b>{m.name} {m.value}%</b>
+                          <i />
+                        </span>
+                      ))}
+                      <div className="cq-thr-track" />
+                      {EQUITY_THRESHOLDS.map((t) => (
+                        <span key={t.v} className="cq-thr-tick" style={{ left: `${t.v}%` }}>
+                          <i />
+                          <b>{t.v}%</b>
+                        </span>
+                      ))}
+                    </div>
+                    <ul className="cq-thr-list">
+                      {EQUITY_THRESHOLDS.map((t) => (
+                        <li key={t.v}>
+                          <span className="cq-thr-badge">{t.v}%</span>
+                          <span className="cq-thr-body">
+                            <span className="cq-thr-name">{t.name} <em>{t.law}</em></span>
+                            <span className="cq-thr-plain">{t.plain}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="cq-thr-note">
+                      정확히 반반(5:5)으로 나누면 어느 쪽도 혼자 통과시킬 수 없습니다. 이 구조를 고를 때는 제2조 ③항의 결정권자 조항을 함께 봐야 합니다.
+                    </p>
+                  </div>
+                </details>
+              )}
+
+              {/* 데드락 문항은 "그 합의"가 무엇을 가리키는지 모르면 답할 수 없다. 7가지를 여기서 편다. */}
+              {q.id === "deadlock" && (
+                <details className="cq-fold">
+                  <summary className="cq-fold-head">
+                    <ListChecks size={15} /> 전원 동의가 필요한 7가지 (제2조 ①)
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+                  </summary>
+                  <ol className="cq-fold-body cq-consent-list">
+                    {CONSENT_ITEMS.map((c, i) => (
+                      <li key={i}>
+                        <span className="cq-consent-n">{i + 1}</span>
+                        <span className="cq-consent-body">
+                          <span className="cq-consent-plain">{c.plain.replace("{0}", consentAmount)}</span>
+                          <span className="cq-consent-text">{c.text.replace("{0}", consentAmount)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
             </header>
 
             <section className="cq-input-zone">
@@ -240,6 +324,7 @@ export default function ContractResultsMockup() {
                   {penaltyClauses.map((c) => (
                     <li key={c.article}>
                       <span className="cq-penalty-tag">{c.article}</span>
+                      <span className="cq-penalty-kind">{c.kind}</span>
                       {penaltyLine(c, penalty)}
                     </li>
                   ))}
@@ -289,31 +374,37 @@ export default function ContractResultsMockup() {
                     ? "이 조항에만 적용됩니다. 체크를 끄면 제8조 공통 값으로 돌아갑니다."
                     : "제8조 전체에 함께 적용되는 값입니다. 다른 조항에서 고쳐도 같이 바뀝니다."}
                 </p>
-              </section>
-            )}
+                <p className="cq-help">{PENALTY_NOTE}</p>
 
-            {/* 제8조 문항은 공통 값을 정하는 자리이자, 따로 정한 조항을 모아 보는 자리다. */}
-            {q.id === "penalty" && Object.keys(penaltyOverrides).length > 0 && (
-              <section className="cq-penalty" aria-label="따로 정한 조항">
-                <div className="cq-penalty-head"><Scale size={15} /> 따로 정한 조항</div>
-                <ul className="cq-penalty-lines">
-                  {Object.entries(penaltyOverrides).map(([id, ov]) => {
-                    const target = CONTRACT_QUESTIONS.find((x) => x.id === id);
-                    return (
+                {/* 제8조를 따로 묻지 않으니, 다른 조항에서 갈라 둔 값도 여기서 보인다. */}
+                {otherOverrides.length > 0 && (
+                  <ul className="cq-penalty-lines">
+                    {otherOverrides.map(([id, ov]) => (
                       <li key={id}>
                         <button
                           type="button"
                           className="cq-penalty-jump"
                           onClick={() => jumpTo(CONTRACT_QUESTIONS.findIndex((x) => x.id === id))}
                         >
-                          {target?.article}
+                          {CONTRACT_QUESTIONS.find((x) => x.id === id)?.topic}
                         </button>
-                        {ov.base !== undefined && ` 위약벌 ${won(ov.base)}`}
-                        {ov.rate !== undefined && ` 처분 금액의 ${ov.rate}%`}
+                        <span className="cq-penalty-other">
+                          은 따로 정함
+                          {ov.base !== undefined && ` · 위약벌 ${won(ov.base)}`}
+                          {ov.rate !== undefined && ` · 처분 금액의 ${ov.rate}%`}
+                        </span>
                       </li>
-                    );
-                  })}
-                </ul>
+                    ))}
+                  </ul>
+                )}
+
+                <details className="cq-fold slim">
+                  <summary className="cq-fold-head">
+                    <BookOpen size={14} /> 위약벌과 손해배상예정액은 무엇이 다른가
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+                  </summary>
+                  <div className="cq-fold-body"><p className="cq-fold-text">{PENALTY_WHAT}</p></div>
+                </details>
               </section>
             )}
 
@@ -567,10 +658,14 @@ const CSS = `
     radial-gradient(at 100% 100%, rgba(79,70,229,0.08) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(16,185,129,0.08) 0px, transparent 50%),
     #F8FAFC; }
-.cq-shell { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; max-width: 1680px; margin: 0 auto; width: 100%; }
+/* 세 영역을 카드 세 장으로 띄우지 않는다. 하나의 흰 면을 세로 구분선으로 나눌 뿐이다. */
+.cq-shell { flex: 1; display: flex; flex-wrap: wrap; align-items: stretch; max-width: 1680px;
+  width: calc(100% - 56px); margin: 28px auto 132px;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 28px;
+  box-shadow: 0 24px 60px -34px rgba(15,23,42,0.18); }
 
-/* 본문과 같이 움직인다. 따로 스크롤하지 않고, 본문 카드처럼 흰 면 위에 얹는다. */
-.cq-sidebar { width: 272px; flex-shrink: 0; margin: 32px 0 140px 32px; padding: 24px 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; align-self: flex-start; overflow: hidden; }
+/* 구분선이 곧 스플릿바다. 사이드바는 자기 배경을 갖지 않는다. */
+.cq-sidebar { width: 268px; flex-shrink: 0; padding: 26px 0; border-right: 1px solid #eef2f7; border-radius: 28px 0 0 28px; overflow: hidden; }
 .cq-sidebar-label { padding: 0 20px; margin-bottom: 20px; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; }
 .cq-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
 .cq-side-group { position: relative; padding-bottom: 8px; }
@@ -598,14 +693,57 @@ const CSS = `
 .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #10B981; }
 .cq-side-q.current .cq-side-q-text { color: #3730A3; font-weight: 800; }
 
-.cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 28px 140px; }
-.cq-card { max-width: 880px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
-  border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(79,70,229,0.05);
-  border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
+.cq-main { flex: 1 1 520px; min-width: 0; padding: 34px 40px 48px; }
+.cq-card { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
 .cq-card-head { display: flex; flex-direction: column; gap: 14px; }
 .cq-eyebrow-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .cq-eyebrow-bar { height: 3px; width: 32px; background: #4F46E5; border-radius: 999px; }
-.cq-eyebrow { color: #4F46E5; font-weight: 900; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+/* 주제목이 앞에 서고, 조문 번호는 뒤에서 근거로만 따라간다. */
+.cq-eyebrow { color: #4F46E5; font-weight: 900; font-size: 13px; letter-spacing: -0.01em; }
+.cq-article-ref { padding: 3px 9px; border-radius: 999px; background: #f1f5f9; color: #94a3b8; font-size: 11px; font-weight: 800; }
+
+/* 본문 안 접이식 — 평소엔 한 줄로 접어 두고, 필요한 사람만 편다. */
+.cq-fold { margin-top: 2px; border: 1px solid #e2e8f0; border-radius: 16px; background: #f8fafc; transition: border-color 0.18s, background 0.18s; }
+.cq-fold:hover { border-color: #c7d2fe; }
+.cq-fold[open] { background: #fff; border-color: #c7d2fe; }
+.cq-fold.slim { background: none; border-color: #e2e8f0; }
+.cq-fold > summary { list-style: none; cursor: pointer; padding: 12px 16px; min-height: 44px; }
+.cq-fold > summary::-webkit-details-marker { display: none; }
+.cq-fold > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; border-radius: 16px; }
+.cq-fold-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #334155; }
+.cq-fold-head svg { color: #4F46E5; flex-shrink: 0; }
+.cq-fold-head .cq-info-chev { margin-left: auto; color: #cbd5e1; }
+.cq-fold[open] .cq-info-chev { transform: rotate(180deg); }
+.cq-fold-body { padding: 4px 18px 18px; }
+.cq-fold-text { font-size: 13px; line-height: 1.8; color: #475569; font-weight: 500; word-break: keep-all; }
+.cq-consent-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.cq-consent-list li { display: flex; gap: 10px; }
+.cq-consent-n { width: 19px; height: 19px; flex-shrink: 0; margin-top: 2px; border-radius: 999px; background: #EEF2FF; color: #4338CA; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
+.cq-consent-body { display: flex; flex-direction: column; gap: 3px; }
+.cq-consent-plain { font-size: 14px; font-weight: 700; color: #1e293b; word-break: keep-all; }
+.cq-consent-text { font-size: 12px; font-weight: 500; line-height: 1.6; color: #94a3b8; word-break: keep-all; }
+
+/* 지분율 눈금 — 문턱을 선으로 긋고, 지금 배분을 그 위에 얹는다. */
+.cq-thr-scale { position: relative; margin: 30px 4px 44px; }
+.cq-thr-track { height: 14px; border-radius: 999px; background:
+  linear-gradient(90deg, #F1F5F9 0 3%, #EEF2FF 3% 33.4%, #E0E7FF 33.4% 50.1%, #C7D2FE 50.1% 66.7%, #4F46E5 66.7% 100%); }
+.cq-thr-tick { position: absolute; top: 14px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.cq-thr-tick i { width: 2px; height: 9px; background: #94a3b8; border-radius: 1px; }
+.cq-thr-tick b { margin-top: 3px; font-size: 10.5px; font-weight: 900; color: #64748b; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cq-thr-dot { position: absolute; bottom: 16px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;
+  animation: thrDot 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.cq-thr-dot:nth-child(2) { animation-delay: 0.06s; }
+.cq-thr-dot:nth-child(3) { animation-delay: 0.12s; }
+.cq-thr-dot b { padding: 3px 9px; border-radius: 999px; background: #1e293b; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.cq-thr-dot i { width: 2px; height: 10px; background: #1e293b; }
+.cq-thr-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.cq-thr-list li { display: flex; gap: 12px; align-items: flex-start; }
+.cq-thr-badge { flex-shrink: 0; min-width: 52px; padding: 5px 0; border-radius: 10px; background: #EEF2FF; color: #4338CA; font-size: 12px; font-weight: 900; text-align: center; font-variant-numeric: tabular-nums; }
+.cq-thr-body { display: flex; flex-direction: column; gap: 3px; }
+.cq-thr-name { font-size: 14px; font-weight: 800; color: #0f172a; }
+.cq-thr-name em { margin-left: 6px; font-style: normal; font-size: 11px; font-weight: 700; color: #cbd5e1; }
+.cq-thr-plain { font-size: 13px; line-height: 1.65; font-weight: 500; color: #64748b; word-break: keep-all; }
+.cq-thr-note { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #FEF3C7; color: #92400E; font-size: 12.5px; line-height: 1.7; font-weight: 700; word-break: keep-all; }
 .cq-badge-proposed { padding: 4px 10px; border-radius: 999px; border: 1px dashed #F59E0B; background: rgba(245,158,11,0.06); color: #B45309; font-size: 11px; font-weight: 900; }
 .cq-badge-fact { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 800; }
 .cq-title { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
@@ -699,6 +837,8 @@ const CSS = `
 .cq-penalty-check input { width: 18px; height: 18px; accent-color: #4F46E5; cursor: pointer; }
 .cq-penalty-jump { border: none; background: none; font: inherit; font-size: 14px; font-weight: 800; color: #4338CA; text-decoration: underline; padding: 0; cursor: pointer; }
 .cq-penalty-jump:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+.cq-penalty-other { font-size: 13px; font-weight: 600; color: #64748b; }
+.cq-penalty-kind { font-size: 12px; font-weight: 700; color: #94a3b8; }
 .cq-paper-article.next { margin-top: 18px; }
 
 .cq-preview { background: rgba(241,245,249,0.5); border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
@@ -722,26 +862,26 @@ const CSS = `
 .cq-mark-fill { background: rgba(79,70,229,0.12); color: #3730A3; font-weight: 800; padding: 1px 5px; border-radius: 4px; font-variant-numeric: tabular-nums; }
 .cq-blank { display: inline-block; min-width: 3.2em; border-bottom: 1px solid #cbd5e1; vertical-align: baseline; }
 
-/* 사이드바와 같다. 본문과 함께 움직이고, 카드는 제목만 두고 접어 둔다. */
-.cq-info { width: 340px; flex-shrink: 0; padding: 32px 32px 140px 0; display: flex; flex-direction: column; gap: 10px; align-self: flex-start; }
-.cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; margin-bottom: 4px; }
-.cq-info-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; }
-.cq-info-card:hover { border-color: #cbd5e1; }
-.cq-info-card > summary { list-style: none; cursor: pointer; padding: 13px 16px; min-height: 44px; }
+/* 오른쪽도 같은 면의 일부다. 카드를 얹지 않고 구분선으로만 나눈다. */
+.cq-info { width: 324px; flex-shrink: 0; padding: 26px 24px 40px; border-left: 1px solid #eef2f7; border-radius: 0 28px 28px 0; display: flex; flex-direction: column; gap: 2px; }
+.cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; margin-bottom: 10px; }
+.cq-info-card { border-bottom: 1px solid #f1f5f9; }
+.cq-info-card > summary { list-style: none; cursor: pointer; padding: 13px 4px; min-height: 44px; border-radius: 8px; }
+.cq-info-card > summary:hover { background: #f8fafc; }
 .cq-info-card > summary::-webkit-details-marker { display: none; }
 .cq-info-card > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
 .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
 .cq-info-head .cq-info-chev { margin-left: auto; color: #cbd5e1; transition: transform 0.15s; }
 .cq-info-card[open] .cq-info-chev { transform: rotate(180deg); }
-.cq-info-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.cq-info-body { padding: 0 4px 16px; display: flex; flex-direction: column; gap: 10px; }
 .cq-info-card p { font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
 .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
 .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
 .cq-info-side-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; }
 .cq-info-side-tag.low { background: rgba(148,163,184,0.14); color: #475569; }
 .cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
-.cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 0 4px; }
+.cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 16px 4px 0; }
 
 .cq-composite { display: flex; flex-direction: column; gap: 28px; }
 .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
@@ -808,21 +948,62 @@ const CSS = `
 .cr-empty-art svg { width: 100%; height: auto; }
 .cr-empty-text { font-size: 13px; font-weight: 700; color: #cbd5e1; }
 
-/* 정보 칼럼이 좁아지기 전에 본문 아래로 내려보낸다. 읽는 순서는 질문 → 정보 그대로. */
+/* ── 움직임 ──────────────────────────────────────────────
+   접힘은 높이가 자라고, 새 화면은 아래에서 떠오른다. 값이 바뀌는 것만 움직인다. */
+@supports (interpolate-size: allow-keywords) { :root { interpolate-size: allow-keywords; } }
+
+/* 본문 접이식만 높이를 애니메이션한다. 정보 카드는 뜻풀이 말풍선이 잘리면 안 되므로 제외. */
+.cq-fold::details-content {
+  height: 0; overflow: clip; opacity: 0;
+  transition: height 0.34s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.26s ease, content-visibility 0.34s allow-discrete;
+}
+.cq-fold[open]::details-content { height: auto; opacity: 1; }
+.cq-info-chev { transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+.cq-info-card[open] .cq-info-body { animation: foldIn 0.3s ease both; }
+
+@keyframes foldIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+@keyframes thrDot { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translateX(-50%); } }
+
+/* 문항을 넘길 때마다 카드가 새로 그려진다 — 위에서부터 순서대로 자리를 잡는다. */
+.cq-card > * { animation: cardIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.cq-card > *:nth-child(2) { animation-delay: 0.05s; }
+.cq-card > *:nth-child(3) { animation-delay: 0.1s; }
+.cq-card > *:nth-child(4) { animation-delay: 0.15s; }
+.cq-card > *:nth-child(n+5) { animation-delay: 0.2s; }
+.cr-card, .cr-empty { animation: riseIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* 누를 수 있는 것은 손이 닿을 때 반응한다. */
+.cq-side-q, .cq-side-head { transition: background 0.16s, padding-left 0.16s; }
+.cq-side-q:hover { padding-left: 24px; }
+.cq-chip:active, .cq-choice:active, .cq-step-btn:active, .cq-mark:active { transform: scale(0.97); }
+.cq-choice { transition: border-color 0.15s, background 0.15s, box-shadow 0.2s, transform 0.15s; }
+.cq-choice:hover { transform: translateY(-2px); }
+.cq-chip { transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.12s; }
+.cq-cta:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(79,70,229,0.36); }
+.cq-cta:active:not(:disabled) { transform: translateY(0); }
+.cq-exception-add:hover { transform: translateY(-1px); }
+.cr-from-tag { transition: background 0.15s, transform 0.12s; }
+.cr-from-tag:hover { transform: translateY(-1px); }
+.cq-bar span, .cq-progress-bar span { transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* 정보 칼럼이 좁아지기 전에 본문 아래로 내려보낸다. 구분선도 세로에서 가로로 바뀐다. */
 @media (max-width: 1320px) {
-  .cq-info { width: 100%; position: static; max-height: none; overflow: visible; padding: 0 40px 140px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+  .cq-info { width: 100%; border-left: none; border-top: 1px solid #eef2f7; border-radius: 0 0 28px 28px;
+    padding: 24px 40px 32px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 0 24px; }
   .cq-info-label { width: 100%; }
   .cq-info-card { flex: 1 1 280px; }
   .cq-info-disclaimer { width: 100%; }
-  .cq-main { padding-bottom: 24px; }
+  .cq-main { padding-bottom: 32px; }
 }
 
 @media (max-width: 1100px) {
+  .cq-shell { width: calc(100% - 24px); margin: 14px auto 150px; border-radius: 20px; }
   .cq-sidebar { display: none; }
   .cq-paper { padding: 24px 20px; }
-  .cq-info { padding: 0 20px 180px; }
-  .cq-main { padding: 24px 20px 8px; }
-  .cq-card { padding: 28px 24px; border-radius: 28px; }
+  .cq-info { padding: 20px 20px 28px; border-radius: 0 0 20px 20px; }
+  .cq-main { padding: 24px 20px 28px; }
   .cq-title { font-size: 24px; }
   .cq-matrix-row { grid-template-columns: 1fr; }
   .cq-matrix-row.text { grid-template-columns: 1fr; grid-template-areas: "name" "chips" "input"; }
@@ -833,7 +1014,9 @@ const CSS = `
   .cq-cta { padding: 0 24px; }
 }
 
+/* 움직임을 원하지 않는 사람에게는 전부 끈다. 상태 변화는 색과 위치로만 남는다. */
 @media (prefers-reduced-motion: reduce) {
-  .cq-chip, .cq-choice, .cq-bar span, .cq-progress-bar span, .cq-cta, .cq-info-chev, .cq-term-pop { transition: none; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .cq-side-q:hover, .cq-choice:hover, .cq-cta:hover:not(:disabled), .cq-exception-add:hover, .cr-from-tag:hover { transform: none; padding-left: 20px; }
 }
 `;
