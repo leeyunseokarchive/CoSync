@@ -10,6 +10,7 @@ type Q = {
   id: string; group: string; sideLabel: string; topic: string;
   title: string; desc: string; opts: Opt[]; hasCustom?: boolean;
   tip?: { title: string; body: string };
+  scenario?: string;
   clause: (opt: string, chips: Record<string, string>, custom: string) => string;
 };
 type Answer = { opt: string; chips: Record<string, string>; custom: string; memo: string };
@@ -28,6 +29,7 @@ const QUESTIONS: Q[] = [
     id: "grayArea", group: "role", sideLabel: "회색지대",
     topic: "역할 & 책임",
     title: "명확한 담당자 없는 업무, 어떻게 처리하나요?",
+    scenario: "출시 일주일 전, 고객 문의 담당자가 없었고 둘 다 서로가 맡을 줄 알고 있었습니다.",
     desc: "스타트업에서 회색지대는 반드시 생깁니다. 감정이 없는 지금 처리 원칙을 정해둡니다.",
     opts: [
       { id: "1", label: "순번제 (로테이션)",         desc: "팀원이 돌아가며 처리합니다. 누군가에게 쏠리지 않도록 공평하게 분담합니다." },
@@ -50,6 +52,7 @@ const QUESTIONS: Q[] = [
     id: "underperform", group: "role", sideLabel: "성과 조치",
     topic: "역할 & 책임",
     title: "성과 부진이 지속될 때 어떻게 대응하나요?",
+    scenario: "파트너가 맡은 영업 목표를 3개월째 절반도 못 채우고 있습니다. 어떻게 말을 꺼내야 할지 모르겠습니다.",
     desc: "역할 조정 기준과 타이밍을 미리 합의해 감정 소모 없이 대화를 시작할 수 있습니다.",
     opts: [
       { id: "1", label: "즉시 역할 조정", desc: "성과 부진 확인 즉시 역할을 조정해 실행 속도를 유지합니다." },
@@ -78,6 +81,7 @@ const QUESTIONS: Q[] = [
     id: "commitment", group: "role", sideLabel: "헌신 기대치",
     topic: "역할 & 책임",
     title: "파트너에게 기대하는 헌신 수준이 어느 정도인가요?",
+    scenario: "파트너가 부업 프로젝트를 시작했다는 걸 SNS에서 우연히 알게 됐습니다. 직접 말해준 적은 없었습니다.",
     desc: "시간보다 성과인지, 전업 수준의 투입인지 — 서로의 기대치를 솔직하게 맞춰둡니다.",
     opts: [
       { id: "1", label: "전업 수준 헌신", desc: "이 사업에 온전히 집중하는 전업 수준의 투입을 기대합니다." },
@@ -100,6 +104,7 @@ const QUESTIONS: Q[] = [
     id: "decisionAuth", group: "role", sideLabel: "결정 권한",
     topic: "역할 & 책임",
     title: "혼자 결정할 것과 같이 의논할 것, 어떻게 나눌까요?",
+    scenario: "파트너가 내 동의 없이 외주 개발사와 300만원짜리 계약을 체결했습니다. '빠르게 결정해야 했다'고 합니다.",
     desc: "결정 권한이 불명확하면 실행이 느려지거나 파트너 신뢰가 깨집니다. 기준을 미리 정해둡니다.",
     tip: { title: "DRI라는 방식도 있어요", body: "DRI(Directly Responsible Individual, 직접책임자)는 애플이 도입한 의사결정 구조로, 국내 일부 스타트업도 이 방식을 참고합니다. 직급·연차 대신 '그 문제를 가장 깊이 고민한 사람'이 DRI를 맡고, 의견을 충분히 수렴한 뒤 최종 결정을 내리는 방식이에요. 결정권자를 명확히 두면 실행 속도와 책임 소재가 동시에 분명해지는 효과가 있다고 알려져 있습니다." },
     opts: [
@@ -123,6 +128,7 @@ const QUESTIONS: Q[] = [
     id: "roleEvolution", group: "role", sideLabel: "역할 진화",
     topic: "역할 & 책임",
     title: "회사가 성장하면 창업자의 역할은 어떻게 바뀌어야 할까요?",
+    scenario: "시리즈A 투자 미팅에서 투자자가 'CEO를 외부 전문가로 교체할 생각이 있냐'고 물었습니다.",
     desc: "스케일업 단계에서 역할 이전에 대한 기대를 맞춰두면 훗날 감정 소모 없이 대화할 수 있습니다.",
     tip: { title: "이런 시각도 있어요", body: "스타트업이 성장할수록 창업자의 역할이 바뀌는 경우가 많습니다. First Round Capital은 이를 '레고 넘겨주기'라고 표현하는데, 자신이 쌓은 역할을 전문가에게 건네는 과정을 성장의 신호로 보는 시각이에요. 국내 한 커머스 스타트업에서는 공동대표 중 한 명이 사업 확장 시점에 CSO로 역할을 전환한 사례도 있습니다." },
     opts: [
@@ -149,6 +155,7 @@ const QUESTIONS: Q[] = [
     id: "externalActivity", group: "role", sideLabel: "외부 활동",
     topic: "역할 & 책임",
     title: "창업 외에 자문·겸직·외부 투자 활동은 어디까지 괜찮나요?",
+    scenario: "파트너가 우리와 유사한 분야 스타트업의 기술 자문을 맡겠다고 합니다. 월 100만원 보수라고 합니다.",
     desc: "단순 부업과 달리 타 스타트업 자문이나 투자는 이해충돌 또는 시간 배분 문제가 생길 수 있습니다.",
     opts: [
       { id: "1", label: "전면 금지",          desc: "재직 중 외부 자문·투자·겸직은 어떤 형태로도 하지 않습니다." },
@@ -172,6 +179,7 @@ const QUESTIONS: Q[] = [
     id: "exitVision", group: "vision", sideLabel: "출구 전략",
     topic: "비전 & 가치관",
     title: "이 회사의 이상적인 결말이 무엇인가요?",
+    scenario: "대기업에서 인수 제안이 들어왔습니다. 한 명은 지금이 기회라고 하고, 한 명은 아직 너무 이르다고 합니다.",
     desc: "출구 전략이 다르면 투자·채용·제품 방향이 모두 달라집니다. 각자의 그림을 지금 맞춰둡니다.",
     tip: { title: "부자가 될 것인가, 왕이 될 것인가", body: "하버드 경영대학원 Noam Wasserman 교수는 창업자가 '통제권(왕)'과 '재정적 성공(부자)' 사이에서 선택의 순간을 맞이하는 경우가 많다고 분석합니다. 두 가지를 동시에 유지하는 경우는 드물다는 연구 결과가 있어요. 공동창업자 간 이 가치관이 다르면 투자 유치나 엑싯 시점에서 서로 다른 기대가 부딪히는 경우도 있다고 합니다." },
     opts: [
@@ -195,6 +203,7 @@ const QUESTIONS: Q[] = [
     id: "pivot", group: "vision", sideLabel: "피벗 기준",
     topic: "비전 & 가치관",
     title: "피벗이나 중단, 언제 논의하기로 할까요?",
+    scenario: "반년째 MAU가 제자리고 투자금 60%가 소진된 상황에서, 투자자가 방향 재검토를 요청했습니다.",
     desc: "감정이 없는 지금, 대화를 시작할 트리거를 미리 정해두면 나중에 충돌을 막습니다.",
     tip: { title: "피벗 기준을 미리 정해두는 팀도 있어요", body: "린 스타트업의 Eric Ries는 피벗을 '포기가 아닌 방향 전환'으로 정의합니다. 일부 팀은 피벗 논의의 트리거를 미리 합의해두기도 해요. 예시 기준으로는 ① 런웨이 3개월 이하 도달, ② 핵심 지표 2분기 연속 정체, ③ 창업자 팀 과반 동의 등이 있습니다. 어떤 기준을 쓸지는 팀마다 다릅니다." },
     opts: [
@@ -227,6 +236,7 @@ const QUESTIONS: Q[] = [
     id: "conflictProcess", group: "vision", sideLabel: "갈등 해결",
     topic: "비전 & 가치관",
     title: "창업자 간 갈등이 생겼을 때, 어떻게 풀기로 할까요?",
+    scenario: "채용 문제로 언성이 높아졌고, 이후 사흘째 둘 다 먼저 말을 걸지 않고 있습니다.",
     desc: "감정이 없는 지금 절차를 미리 합의해두면, 갈등이 격화됐을 때 기댈 수 있는 기준이 됩니다.",
     opts: [
       {
@@ -264,6 +274,7 @@ const QUESTIONS: Q[] = [
     id: "dealbreaker", group: "vision", sideLabel: "딜브레이커",
     topic: "비전 & 가치관",
     title: "팀에서 절대 용납 못하는 것이 무엇인가요?",
+    scenario: "파트너가 내 동의 없이 투자자에게 지분 일부를 약속했다는 걸 제3자에게서 먼저 들었습니다.",
     desc: "각자의 레드라인을 솔직하게 공유합니다. 위 보기에 없으면 직접 씁니다.",
     opts: [
       { id: "1", label: "파트너 몰래 독단 결정", desc: "주요 사안을 합의 없이 혼자 결정·실행하는 것을 용납하지 않습니다." },
@@ -286,6 +297,7 @@ const QUESTIONS: Q[] = [
     id: "growthModel", group: "vision", sideLabel: "성장 방식",
     topic: "비전 & 가치관",
     title: "초기에 어떤 방식으로 성장할 건가요?",
+    scenario: "투자자는 급성장을, 파트너는 수익 구조 우선을 주장합니다. 다음 달 투자 미팅이 잡혔습니다.",
     desc: "성장 방식에 대한 관점이 다르면 투자 판단, 채용 기준, 제품 방향이 모두 달라집니다.",
     opts: [
       { id: "1", label: "사용자·시장 점유 우선", desc: "초기엔 수익성보다 성장 지표와 시장 점유를 최우선으로 합니다." },
@@ -308,6 +320,7 @@ const QUESTIONS: Q[] = [
     id: "hiringCriteria", group: "vision", sideLabel: "팀 확장",
     topic: "비전 & 가치관",
     title: "새로운 팀원 합류 결정은 어떻게 하나요?",
+    scenario: "파트너가 친한 지인을 CTO로 데려오고 싶다고 합니다. 나는 함께 일해본 적 없어서 확신이 서지 않습니다.",
     desc: "채용 결정 방식이 불명확하면 속도와 팀 신뢰 사이에서 마찰이 생깁니다.",
     opts: [
       { id: "1", label: "창업자 전원 합의", desc: "모든 팀 합류는 창업자 양쪽 모두의 동의가 있어야 합니다." },
@@ -331,6 +344,7 @@ const QUESTIONS: Q[] = [
     id: "runway", group: "fund", sideLabel: "자금 위기",
     topic: "자금조달 & 운용",
     title: "자금 위기가 왔을 때, 가장 먼저 무엇을 해야 할까요?",
+    scenario: "이대로면 두 달 안에 통장이 바닥납니다. 직원 월급을 못 줄 수도 있는 상황입니다.",
     desc: "위기 상황에서 판단 기준이 다르면 갈등이 커집니다. 각자의 우선순위를 지금 맞춰둡니다.",
     opts: [
       { id: "1", label: "비용 절감 우선",    desc: "인원 감축 포함 전면적 비용 절감을 최우선으로 합니다." },
@@ -353,6 +367,7 @@ const QUESTIONS: Q[] = [
     id: "spending", group: "fund", sideLabel: "지출 기준",
     topic: "자금조달 & 운용",
     title: "단독 지출 결정, 어디까지 할 수 있을까요?",
+    scenario: "파트너가 '기회가 사라질 것 같아서' 동의 없이 에이전시에 500만원을 선결제했습니다.",
     desc: "지출 기준이 명확하면 실행 속도와 팀 신뢰를 동시에 지킬 수 있습니다.",
     opts: [
       { id: "1", label: "역할 범위 내 단독", desc: "담당 역할 범위 내 지출은 단독으로 결정할 수 있습니다." },
@@ -378,6 +393,7 @@ const QUESTIONS: Q[] = [
     id: "investment", group: "fund", sideLabel: "투자 기준",
     topic: "자금조달 & 운용",
     title: "투자 제안을 판단하는 최우선 기준이 무엇인가요?",
+    scenario: "'네트워크 좋은 저밸류 투자자 A' vs '밸류 높지만 전략 없는 투자자 B' — 하나를 선택해야 합니다.",
     desc: "투자자 앞에서 의견이 갈리지 않도록 판단 기준을 미리 맞춥니다. 지금은 최우선 1개만 선택합니다.",
     opts: [
       { id: "1", label: "밸류에이션 최우선", desc: "회사 가치 평가가 최우선 수락 기준입니다." },
@@ -400,6 +416,7 @@ const QUESTIONS: Q[] = [
     id: "account", group: "fund", sideLabel: "계좌 관리",
     topic: "자금조달 & 운용",
     title: "법인 계좌와 카드를 어떻게 관리하나요?",
+    scenario: "법인카드 내역을 처음으로 같이 들여다봤는데, 서로 설명이 안 되는 지출 항목이 몇 개 보입니다.",
     desc: "재무 관리 주체를 명확히 해두면 투명성과 신뢰를 함께 지킬 수 있습니다.",
     opts: [
       { id: "1", label: "대표 단독 관리",       desc: "법인 계좌·카드는 대표가 단독으로 관리합니다." },
@@ -422,6 +439,7 @@ const QUESTIONS: Q[] = [
     id: "founderSalary", group: "fund", sideLabel: "창업자 보수",
     topic: "자금조달 & 운용",
     title: "창업 초기에 각자 보수를 어떻게 운영할 건가요?",
+    scenario: "투자금이 들어왔습니다. 한 명은 생활비가 급하고, 한 명은 최대한 회사에 재투자하자는 입장입니다.",
     desc: "보수 불균형은 팀 갈등의 핵심 원인입니다. 초기 기준을 솔직하게 맞춰둡니다.",
     opts: [
       { id: "1", label: "무보수 (투자 전까지)", desc: "창업자 간 합의로 외부 투자를 받기 전까지는 무보수로 운영합니다." },
@@ -450,6 +468,7 @@ const QUESTIONS: Q[] = [
     id: "profitPolicy", group: "fund", sideLabel: "수익 정책",
     topic: "자금조달 & 운용",
     title: "수익이 생기면 어떻게 쓸 건가요?",
+    scenario: "첫 흑자를 냈는데, 이 돈을 어디에 쓸지를 두고 처음으로 진지한 의견 차이가 생겼습니다.",
     desc: "흑자 전환 이후 어떻게 돈을 쓸지를 미리 맞춰두면 불필요한 마찰을 줄입니다.",
     opts: [
       { id: "1", label: "전액 재투자", desc: "수익은 전액 사업 성장에 재투자하는 것을 원칙으로 합니다." },
@@ -607,14 +626,24 @@ export default function BasicConsensusMockup() {
                   </button>
                 )}
               </div>
-              <p className="cq-desc">{q.desc}</p>
+              {q.scenario ? (
+                <div className="bc-scenario">
+                  <span className="bc-scenario-badge">합의가 없다면?</span>
+                  <span>{q.scenario}</span>
+                </div>
+              ) : (
+                <p className="cq-desc">{q.desc}</p>
+              )}
               {q.tip && tipOpen[q.id] && (
                 <div className="bc-tip-panel">
-                  <div className="bc-tip-head">
-                    <span className="bc-tip-badge">사례</span>
-                    <span>{q.tip.title}</span>
+                  <img src="/images/mascot-knoty.png" className="bc-tip-knoty" alt="Knoty" />
+                  <div className="bc-tip-content">
+                    <div className="bc-tip-head">
+                      <span className="bc-tip-badge">사례</span>
+                      <span>{q.tip.title}</span>
+                    </div>
+                    <p className="bc-tip-body">{q.tip.body}</p>
                   </div>
-                  <p className="bc-tip-body">{q.tip.body}</p>
                 </div>
               )}
             </header>
@@ -850,7 +879,11 @@ export default function BasicConsensusMockup() {
         .bc-tip-btn { flex-shrink: 0; margin-top: 7px; width: 32px; height: 32px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #94a3b8; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .bc-tip-btn:hover { border-color: #a5b4fc; color: #6366f1; background: #f5f3ff; }
         .bc-tip-btn.active { border-color: #6366f1; color: #6366f1; background: #f5f3ff; }
-        .bc-tip-panel { background: #f8f7ff; border: 1.5px solid #e0e7ff; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .bc-scenario { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.5; }
+        .bc-scenario-badge { flex-shrink: 0; font-size: 10px; font-weight: 900; color: #6366f1; background: #e0e7ff; border-radius: 6px; padding: 2px 7px; letter-spacing: 0.04em; white-space: nowrap; }
+        .bc-tip-panel { background: #fff; border: 1.5px solid #e0e7ff; border-radius: 18px; display: flex; flex-direction: row; align-items: center; gap: 4px; padding-left: 12px; }
+        .bc-tip-knoty { width: 108px; flex-shrink: 0; object-fit: contain; object-position: center bottom; }
+        .bc-tip-content { flex: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
         .bc-tip-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #1e1b4b; }
         .bc-tip-badge { flex-shrink: 0; font-size: 10px; font-weight: 900; color: #6366f1; background: #e0e7ff; border-radius: 6px; padding: 2px 7px; letter-spacing: 0.06em; }
         .bc-tip-body { font-size: 13.5px; color: #3730a3; font-weight: 500; line-height: 1.75; white-space: pre-line; margin: 0; }
