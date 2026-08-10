@@ -358,5 +358,22 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     });
   }
 
+  // ── 제7조 + 제7의 2조 · 드래그얼롱·태그얼롱 상관관계 (드래그얼롱 결과에 붙임) ──
+  if (qid === "dragAlong" && dragAlong) {
+    out.push({
+      id: "dragAlong-tagAlong",
+      from: ["tagAlong"],
+      plain: `드래그얼롱은 ${dragAlong}% 이상이 팔자고 하면 나머지도 따라 팔아야 하는 권리, 태그얼롱은 누군가 팔 때 소수 주주도 같은 조건으로 함께 팔 수 있는 권리예요. 두 조항이 세트로 있어 매각 과정에서 다수·소수 모두에게 출구 조건이 생깁니다.`,
+      formal: `제7의 2조 공동매도요구권(드래그얼롱, 발동 기준 ${dragAlong}%)과 제7조 공동매도참여권(태그얼롱)은 매각 상황에서 서로 반대 방향으로 작동합니다. 드래그얼롱은 기준 비율 이상의 주주가 소수 주주에게 동반 매도를 요구하는 권리이고, 태그얼롱은 소수 주주가 대주주 매각에 동일 조건으로 참여할 수 있는 권리입니다. 두 조항이 함께 있으면 엑싯 과정에서 어느 쪽도 상대를 완전히 배제하기 어려워집니다.`,
+      figure: {
+        shape: "magnitude",
+        bars: [
+          { label: "드래그얼롱 (다수 → 소수)", value: 1, text: `${dragAlong}% 기준` },
+          { label: "태그얼롱 (소수 → 대주주)", value: 1, text: "항시 보장" },
+        ],
+      },
+    });
+  }
+
   return out;
 }

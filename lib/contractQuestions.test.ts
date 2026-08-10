@@ -4,7 +4,6 @@ import {
   CONTRACT_QUESTIONS,
   QUESTION_GROUPS,
   MOCK_MEMBERS,
-  PENALTY_CLAUSES,
   validateAllocation,
   tenureWarning,
   fillPreview,
@@ -12,19 +11,19 @@ import {
   type QuestionTemplate,
 } from "./contractQuestions.ts";
 
-test("질문은 13개이고 id가 중복되지 않는다", () => {
-  assert.equal(CONTRACT_QUESTIONS.length, 13);
+test("질문은 15개이고 id가 중복되지 않는다", () => {
+  assert.equal(CONTRACT_QUESTIONS.length, 15);
   const ids = CONTRACT_QUESTIONS.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("확정 8개 / 제안 5개로 나뉜다", () => {
+test("확정 9개 / 제안 6개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
   assert.deepEqual(
     proposed.map((q) => q.id),
-    ["identity", "shareType", "vesting", "noncompete", "buybackPrice"]
+    ["identity", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
   );
-  assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 8);
+  assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 9);
 });
 
 test("모든 질문에 정보 카드 2종(무엇인가·정하지 않으면)이 있다", () => {
@@ -65,10 +64,13 @@ test("모든 질문은 조문 제목과 치환 자리를 가진다", () => {
   for (const q of CONTRACT_QUESTIONS) {
     assert.ok(q.preview.article.startsWith("제") || q.preview.article.startsWith("계약"), `조문 제목 이상: ${q.id}`);
     assert.ok(q.preview.blocks.length >= 1, `미리보기 블록 없음: ${q.id}`);
-    assert.ok(
-      previewStrings(q).some((line) => /\{\d\}/.test(line)),
-      `치환 자리 없음: ${q.id}`
-    );
+    // consensus:false 정보 문항은 합의 대상이 아니라 빈칸이 없다.
+    if (q.consensus) {
+      assert.ok(
+        previewStrings(q).some((line) => /\{\d\}/.test(line)),
+        `치환 자리 없음: ${q.id}`
+      );
+    }
   }
 });
 
@@ -81,7 +83,7 @@ test("미리보기에 마크다운 표 기호가 남아있지 않다", () => {
 });
 
 test("7종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
-  const used = new Set(CONTRACT_QUESTIONS.map((q) => q.template.type));
+  const used = new Set(CONTRACT_QUESTIONS.filter((q) => q.template).map((q) => q.template!.type));
   for (const t of ["amount", "duration", "percent", "choice", "matrix", "fields", "composite"]) {
     assert.ok(used.has(t as never), `쓰이지 않은 템플릿: ${t}`);
   }
@@ -89,7 +91,7 @@ test("7종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
 
 test("멤버별 입력 질문은 팀원 수만큼의 표 행을 가진다", () => {
   for (const q of CONTRACT_QUESTIONS) {
-    if (q.template.type !== "matrix") continue;
+    if (!q.template || q.template.type !== "matrix") continue;
     const table = q.preview.blocks.find((b) => b.kind === "table");
     assert.ok(table && table.kind === "table", `표 블록 없음: ${q.id}`);
     const memberRows = table.rows.filter((r) => MOCK_MEMBERS.some((m) => r[0] === m.name));
@@ -106,15 +108,6 @@ test("종류주식은 고른 내용을 괄호로 덧붙여 조문에 들어간�
   assert.equal(choiceLabel(t, "없는값"), null);
 });
 
-test("제재 연결은 실제 문항을 가리키고, 쓰는 값만 자리표시자로 갖는다", () => {
-  for (const [qid, clauses] of Object.entries(PENALTY_CLAUSES)) {
-    assert.ok(CONTRACT_QUESTIONS.some((q) => q.id === qid), `없는 문항: ${qid}`);
-    for (const c of clauses) {
-      assert.equal(c.text.includes("{0}"), c.uses.includes("base"), `${c.article}: 기준 금액 자리 불일치`);
-      assert.equal(c.text.includes("{1}"), c.uses.includes("rate"), `${c.article}: 비율 자리 불일치`);
-    }
-  }
-});
 
 test("지분 합계가 100이면 통과한다", () => {
   const r = validateAllocation({ a: 50, b: 30, c: 20 });

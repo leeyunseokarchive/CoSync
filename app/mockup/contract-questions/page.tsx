@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { TopNav } from "../../../components/TopNav";
 import { QuestionInput, formatKoreanAmount, formatNumber } from "../../../components/ContractQuestionInputs";
+import { PenaltyInput } from "../../../components/PenaltyInput";
 import {
   CONTRACT_QUESTIONS,
   QUESTION_GROUPS,
@@ -73,7 +74,7 @@ export default function ContractQuestionsMockup() {
 
       <div className="cq-shell">
         <aside className="cq-sidebar">
-          <div className="cq-sidebar-label">Agreement Draft</div>
+          <div className="cq-sidebar-label">Team Consensus</div>
           <nav className="cq-sidebar-nav" aria-label="질문 목록">
             {QUESTION_GROUPS.map((g) => {
               const inGroup = CONTRACT_QUESTIONS.filter((x) => x.group === g.id);
@@ -135,9 +136,20 @@ export default function ContractQuestionsMockup() {
               <p className="cq-desc">{q.desc}</p>
             </header>
 
-            <section className="cq-input-zone">
-              <QuestionInput template={q.template} value={value} onChange={setValue} keyPrefix={q.id} />
-            </section>
+            {(q.id === "penalty" || q.template) && (
+              <section className="cq-input-zone">
+                {q.id === "penalty" ? (
+                  <PenaltyInput
+                    value={value as { base?: number; rate?: number } | undefined}
+                    onChange={setValue}
+                    answers={answers}
+                    members={MOCK_MEMBERS}
+                  />
+                ) : (
+                  <QuestionInput template={q.template!} value={value} onChange={setValue} keyPrefix={q.id} />
+                )}
+              </section>
+            )}
 
             <section className="cq-exception">
               {!showException ? (
@@ -331,7 +343,12 @@ export default function ContractQuestionsMockup() {
 
         .cq-pct-row { display: flex; align-items: center; gap: 8px; }
         .cq-pct-num { width: 96px; text-align: center; }
-        .cq-range { width: 100%; accent-color: #4F46E5; height: 44px; }
+        .cq-range { width: 100%; height: 44px; appearance: none; -webkit-appearance: none; cursor: pointer; background: transparent; }
+        .cq-range::-webkit-slider-runnable-track { height: 14px; border-radius: 999px; background: linear-gradient(to right, #4F46E5 var(--pct, 50%), #E2E8F0 var(--pct, 50%)); }
+        .cq-range::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; margin-top: -5px; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
+        .cq-range::-moz-range-track { height: 14px; border-radius: 999px; background: #E2E8F0; }
+        .cq-range::-moz-range-progress { height: 14px; border-radius: 999px; background: #4F46E5; }
+        .cq-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; border: none; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
         .cq-marks { display: flex; justify-content: space-between; gap: 8px; }
         .cq-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
         .cq-mark:hover { background: #f8fafc; }
@@ -357,6 +374,20 @@ export default function ContractQuestionsMockup() {
         .cq-matrix-row.text .cq-input { grid-area: input; }
         .cq-matrix-name { font-size: 15px; font-weight: 800; color: #1e293b; }
         .cq-matrix-role { font-size: 12px; font-weight: 600; color: #94a3b8; }
+        .cq-consent { display: flex; flex-direction: column; gap: 20px; }
+        .cq-consent-list { margin: 0; padding: 0 0 0 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; }
+        .cq-consent-list li { font-size: 14px; font-weight: 600; color: #374151; line-height: 1.5; }
+        .cq-consent-q { font-size: 14px; font-weight: 700; color: #374151; line-height: 1.6; margin: 0; }
+        .cq-consent-btns { display: flex; gap: 12px; }
+        .cq-consent-opt {
+          flex: 1; min-height: 52px; border-radius: 16px;
+          border: 2px solid #e2e8f0; background: #fff;
+          font: inherit; font-size: 15px; font-weight: 700; color: #64748b;
+          cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+        .cq-consent-opt:hover { border-color: #c7d2fe; }
+        .cq-consent-agree.on { border-color: #4F46E5; background: rgba(79,70,229,0.06); color: #3730A3; }
+        .cq-consent-none.on { border-color: #94a3b8; background: #f8fafc; color: #475569; }
         .cq-bar { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
         .cq-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
         .cq-total { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; margin-top: 8px; padding: 12px 18px; border-radius: 16px; font-size: 14px; font-weight: 800; min-height: 44px; }
@@ -524,13 +555,21 @@ function PreviewBlockView({ block, values }: { block: PreviewBlock; values: (str
 // 답변 값을 미리보기 {0} {1} 자리에 넣을 문자열 배열로 바꾼다.
 function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[] {
   return useMemo(() => {
+    if (q.id === "penalty") {
+      const p = (value ?? {}) as { base?: number; rate?: number };
+      return [
+        p.base ? formatKoreanAmount(p.base) : null,
+        p.rate ? String(p.rate) : null,
+      ];
+    }
     const t = q.template;
-    if (value === undefined || value === null || value === "") return [];
+    if (!t || value === undefined || value === null || value === "") return [];
 
     if (t.type === "amount") return [formatKoreanAmount(Number(value))];
     if (t.type === "duration") return [`${value}${t.unit}`];
     if (t.type === "percent") return [String(value)];
     if (t.type === "choice") return [choiceLabel(t, value)];
+    if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
     if (t.type === "matrix") {
       const v = value as Record<string, string | number>;
       return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
@@ -555,7 +594,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
 
 // 지분 배분만 다음 진행을 막는다. 합계가 100이 아니면 계약서가 성립하지 않는다.
 function isBlocked(q: ContractQuestion, value: unknown): boolean {
-  if (q.template.type !== "matrix" || q.template.variant !== "allocation") return false;
+  if (!q.template || q.template.type !== "matrix" || q.template.variant !== "allocation") return false;
   const v = (value ?? {}) as Record<string, number>;
   const nums: Record<string, number> = {};
   for (const m of MOCK_MEMBERS) nums[m.id] = Number(v[m.id]) || 0;

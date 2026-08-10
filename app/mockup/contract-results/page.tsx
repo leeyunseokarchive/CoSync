@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { TopNav } from "../../../components/TopNav";
 import { QuestionInput, formatKoreanAmount, formatNumber } from "../../../components/ContractQuestionInputs";
+import { PenaltyInput } from "../../../components/PenaltyInput";
 import { ResultFigure } from "../../../components/ResultFigure";
 import { Gloss } from "../../../components/Gloss";
 import {
@@ -10,15 +11,11 @@ import {
   QUESTION_GROUPS,
   MOCK_MEMBERS,
   INFO_DISCLAIMER,
-  PENALTY_CLAUSES,
-  PENALTY_NOTE,
-  PENALTY_WHAT,
   CONSENT_ITEMS,
   validateAllocation,
   fillPreview,
   choiceLabel,
   type ContractQuestion,
-  type PenaltyClause,
   type PreviewBlock,
 } from "../../../lib/contractQuestions";
 import { resultsFor, RESULT_QUESTION_IDS, won } from "../../../lib/contractResults";
@@ -43,7 +40,7 @@ const EQUITY_THRESHOLDS = [
 const PREFILL: Record<string, unknown> = {
   decisionAmount: 100_000_000,
   deadlock: { days: 7, decider: "m1" },
-  ipTransfer: { m1: "서비스 소스코드, 디자인 시안", m2: "브랜드·상표, 도메인", m3: "고객 데이터베이스" },
+  ipTransfer: true,
   equity: { m1: 50, m2: 30, m3: 20 },
   noncompete: 1,
   tenure: 3,
@@ -51,7 +48,6 @@ const PREFILL: Record<string, unknown> = {
   buybackPrice: "par",
   lockup: 5,
   dragAlong: 67,
-  penalty: { base: 100_000_000, rate: 30 },
 };
 
 export default function ContractResultsMockup() {
@@ -59,8 +55,6 @@ export default function ContractResultsMockup() {
   const [answers, setAnswers] = useState<Record<string, unknown>>(PREFILL);
   const [exceptions, setExceptions] = useState<Record<string, string>>({});
   const [exceptionOpen, setExceptionOpen] = useState(false);
-  // 제8조 값은 문항끼리 공유한다. 체크박스를 켠 조항만 자기 값을 따로 갖는다.
-  const [penaltyOverrides, setPenaltyOverrides] = useState<Record<string, { base?: number; rate?: number }>>({});
 
   const q = CONTRACT_QUESTIONS[index];
   const value = answers[q.id];
@@ -75,32 +69,9 @@ export default function ContractResultsMockup() {
   const results = resultsFor(q.id, answers);
   const hasResultZone = RESULT_QUESTION_IDS.has(q.id);
 
-  // 제8조가 이 조항을 가리키면, 그 항을 이 페이지에서 바로 정하고 조문으로도 확인한다.
-  const penaltyClauses = PENALTY_CLAUSES[q.id];
-  const shared = (answers.penalty ?? {}) as { base?: number; rate?: number };
-  const override = penaltyOverrides[q.id];
-  const penalty = { base: override?.base ?? shared.base, rate: override?.rate ?? shared.rate };
-  const penaltyValues = [
-    penalty.base ? formatNumber(penalty.base) : null,
-    penalty.rate ? String(penalty.rate) : null,
-  ];
-
-  const setPenalty = (key: "base" | "rate", v: number) => {
-    if (override) setPenaltyOverrides((prev) => ({ ...prev, [q.id]: { ...prev[q.id], [key]: v } }));
-    else setAnswers((prev) => ({ ...prev, penalty: { ...(prev.penalty as object), [key]: v } }));
-  };
-  const otherOverrides = Object.entries(penaltyOverrides).filter(([id]) => id !== q.id);
   // 문턱 눈금 위에 지금 배분을 얹는다. 아직 안 적은 사람은 0%라 왼쪽 끝에 선다.
   const equityAnswer = (answers.equity ?? {}) as Record<string, number>;
   const equityRows = MOCK_MEMBERS.map((m) => ({ id: m.id, name: m.name, value: Number(equityAnswer[m.id]) || 0 }));
-  // 켜는 순간 지금 보이는 값에서 갈라져 나온다. 끄면 다시 공유 값으로 돌아간다.
-  const toggleOverride = () =>
-    setPenaltyOverrides((prev) => {
-      const next = { ...prev };
-      if (next[q.id]) delete next[q.id];
-      else next[q.id] = { ...penalty };
-      return next;
-    });
 
   const jumpTo = (i: number) => {
     setIndex(Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i)));
@@ -136,7 +107,7 @@ export default function ContractResultsMockup() {
 
       <div className="cq-shell">
         <aside className="cq-sidebar">
-          <div className="cq-sidebar-label">Agreement Draft</div>
+          <div className="cq-sidebar-label">Team Consensus</div>
           <nav className="cq-sidebar-nav" aria-label="질문 목록">
             {QUESTION_GROUPS.map((g) => {
               const inGroup = CONTRACT_QUESTIONS.filter((x) => x.group === g.id);
@@ -262,9 +233,20 @@ export default function ContractResultsMockup() {
               )}
             </header>
 
-            <section className="cq-input-zone">
-              <QuestionInput template={q.template} value={value} onChange={setValue} keyPrefix={q.id} />
-            </section>
+            {(q.id === "penalty" || q.template) && (
+              <section className="cq-input-zone">
+                {q.id === "penalty" ? (
+                  <PenaltyInput
+                    value={value as { base?: number; rate?: number } | undefined}
+                    onChange={setValue}
+                    answers={answers}
+                    members={MOCK_MEMBERS}
+                  />
+                ) : (
+                  <QuestionInput template={q.template!} value={value} onChange={setValue} keyPrefix={q.id} />
+                )}
+              </section>
+            )}
 
             {/* 추가되는 유일한 덩어리. 내가 넣은 값이 만드는 결과를 그 자리에서 보여준다. */}
             {hasResultZone && (
@@ -316,97 +298,6 @@ export default function ContractResultsMockup() {
               </section>
             )}
 
-            {/* 제8조를 맨 뒤에서 한 번에 묻지 않고, 그 제재가 걸린 조항 옆에서 정한다. */}
-            {penaltyClauses && (
-              <section className="cq-penalty" aria-label="이 조항을 어기면">
-                <div className="cq-penalty-head"><Scale size={15} /> 이 조항을 어기면</div>
-                <ul className="cq-penalty-lines">
-                  {penaltyClauses.map((c) => (
-                    <li key={c.article}>
-                      <span className="cq-penalty-tag">{c.article}</span>
-                      <span className="cq-penalty-kind">{c.kind}</span>
-                      {penaltyLine(c, penalty)}
-                    </li>
-                  ))}
-                </ul>
-
-                {penaltyUses(penaltyClauses).has("base") && (
-                  <div className="cq-field-row">
-                    <label className="cq-label" htmlFor={`${q.id}-pen-base`}>위약벌 기준 금액</label>
-                    <div className="cq-amount-row">
-                      <span className="cq-amount-won" aria-hidden="true">₩</span>
-                      <input
-                        id={`${q.id}-pen-base`}
-                        className="cq-input cq-num"
-                        inputMode="numeric"
-                        placeholder="0"
-                        value={penalty.base ? formatNumber(penalty.base) : ""}
-                        onChange={(e) => setPenalty("base", Number(e.target.value.replace(/[^0-9]/g, "")))}
-                      />
-                    </div>
-                    <p className="cq-help">{formatKoreanAmount(penalty.base ?? 0) || "금액을 입력하면 한글로 확인해 드립니다."}</p>
-                  </div>
-                )}
-
-                {penaltyUses(penaltyClauses).has("rate") && (
-                  <div className="cq-field-row">
-                    <label className="cq-label" htmlFor={`${q.id}-pen-rate`}>처분 금액 대비 비율</label>
-                    <div className="cq-pct-row">
-                      <input
-                        id={`${q.id}-pen-rate`}
-                        className="cq-input cq-num cq-pct-num"
-                        inputMode="numeric"
-                        placeholder="0"
-                        value={penalty.rate || ""}
-                        onChange={(e) => setPenalty("rate", Math.min(100, Number(e.target.value.replace(/[^0-9]/g, ""))))}
-                      />
-                      <span className="cq-unit">%</span>
-                    </div>
-                  </div>
-                )}
-
-                <label className="cq-penalty-check">
-                  <input type="checkbox" checked={!!override} onChange={toggleOverride} />
-                  <span>이 조항만 다른 값으로 정하기</span>
-                </label>
-                <p className="cq-help">
-                  {override
-                    ? "이 조항에만 적용됩니다. 체크를 끄면 제8조 공통 값으로 돌아갑니다."
-                    : "제8조 전체에 함께 적용되는 값입니다. 다른 조항에서 고쳐도 같이 바뀝니다."}
-                </p>
-                <p className="cq-help">{PENALTY_NOTE}</p>
-
-                {/* 제8조를 따로 묻지 않으니, 다른 조항에서 갈라 둔 값도 여기서 보인다. */}
-                {otherOverrides.length > 0 && (
-                  <ul className="cq-penalty-lines">
-                    {otherOverrides.map(([id, ov]) => (
-                      <li key={id}>
-                        <button
-                          type="button"
-                          className="cq-penalty-jump"
-                          onClick={() => jumpTo(CONTRACT_QUESTIONS.findIndex((x) => x.id === id))}
-                        >
-                          {CONTRACT_QUESTIONS.find((x) => x.id === id)?.topic}
-                        </button>
-                        <span className="cq-penalty-other">
-                          은 따로 정함
-                          {ov.base !== undefined && ` · 위약벌 ${won(ov.base)}`}
-                          {ov.rate !== undefined && ` · 처분 금액의 ${ov.rate}%`}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <details className="cq-fold slim">
-                  <summary className="cq-fold-head">
-                    <BookOpen size={14} /> 위약벌과 손해배상예정액은 무엇이 다른가
-                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
-                  </summary>
-                  <div className="cq-fold-body"><p className="cq-fold-text">{PENALTY_WHAT}</p></div>
-                </details>
-              </section>
-            )}
 
             <section className="cq-exception">
               {!showException ? (
@@ -455,16 +346,6 @@ export default function ContractResultsMockup() {
                     <span className="cq-paper-exception-tag">예외</span>
                     {exception.trim()}
                   </p>
-                )}
-                {penaltyClauses && (
-                  <>
-                    <h2 className="cq-paper-article next">제8조 (손해배상 및 위약벌)</h2>
-                    {penaltyClauses.map((c) => (
-                      <p key={c.article} className="cq-paper-para">
-                        {c.article.replace("제8조 ", "")} <Filled text={c.text} values={penaltyValues} />
-                      </p>
-                    ))}
-                  </>
                 )}
               </div>
             </section>
@@ -549,21 +430,6 @@ export default function ContractResultsMockup() {
   );
 }
 
-// 제8조의 한 항이 이 조항에 무엇을 거는지 한 줄로 읽어 준다.
-function penaltyLine(c: PenaltyClause, p: { base?: number; rate?: number }): string {
-  return c.uses
-    .map((u) =>
-      u === "base"
-        ? p.base ? `${won(p.base)}` : "금액 미정"
-        : p.rate ? `처분 금액의 ${p.rate}%` : "비율 미정"
-    )
-    .join(c.uses.length > 1 ? " 또는 " : "");
-}
-
-function penaltyUses(clauses: PenaltyClause[]): Set<"base" | "rate"> {
-  return new Set(clauses.flatMap((c) => c.uses));
-}
-
 // 조문 한 조각을 그리고, 답변이 들어간 자리를 하이라이트한다.
 function Filled({ text, values }: { text: string; values: (string | null)[] }) {
   return (
@@ -613,13 +479,21 @@ function PreviewBlockView({ block, values }: { block: PreviewBlock; values: (str
 
 function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[] {
   return useMemo(() => {
+    if (q.id === "penalty") {
+      const p = (value ?? {}) as { base?: number; rate?: number };
+      return [
+        p.base ? formatKoreanAmount(p.base) : null,
+        p.rate ? String(p.rate) : null,
+      ];
+    }
     const t = q.template;
-    if (value === undefined || value === null || value === "") return [];
+    if (!t || value === undefined || value === null || value === "") return [];
 
     if (t.type === "amount") return [formatKoreanAmount(Number(value))];
     if (t.type === "duration") return [`${value}${t.unit}`];
     if (t.type === "percent") return [String(value)];
     if (t.type === "choice") return [choiceLabel(t, value)];
+    if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
     if (t.type === "matrix") {
       const v = value as Record<string, string | number>;
       return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
@@ -642,7 +516,7 @@ function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[
 }
 
 function isBlocked(q: ContractQuestion, value: unknown): boolean {
-  if (q.template.type !== "matrix" || q.template.variant !== "allocation") return false;
+  if (!q.template || q.template.type !== "matrix" || q.template.variant !== "allocation") return false;
   const v = (value ?? {}) as Record<string, number>;
   const nums: Record<string, number> = {};
   for (const m of MOCK_MEMBERS) nums[m.id] = Number(v[m.id]) || 0;
@@ -776,7 +650,12 @@ const CSS = `
 
 .cq-pct-row { display: flex; align-items: center; gap: 8px; }
 .cq-pct-num { width: 96px; text-align: center; }
-.cq-range { width: 100%; accent-color: #4F46E5; height: 44px; }
+.cq-range { width: 100%; height: 44px; appearance: none; -webkit-appearance: none; cursor: pointer; background: transparent; }
+.cq-range::-webkit-slider-runnable-track { height: 14px; border-radius: 999px; background: linear-gradient(to right, #4F46E5 var(--pct, 50%), #E2E8F0 var(--pct, 50%)); }
+.cq-range::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; margin-top: -5px; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
+.cq-range::-moz-range-track { height: 14px; border-radius: 999px; background: #E2E8F0; }
+.cq-range::-moz-range-progress { height: 14px; border-radius: 999px; background: #4F46E5; }
+.cq-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; border: none; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
 .cq-marks { display: flex; justify-content: space-between; gap: 8px; }
 .cq-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
 .cq-mark:hover { background: #f8fafc; }
@@ -802,6 +681,20 @@ const CSS = `
 .cq-matrix-row.text .cq-input { grid-area: input; }
 .cq-matrix-name { font-size: 15px; font-weight: 800; color: #1e293b; }
 .cq-matrix-role { font-size: 12px; font-weight: 600; color: #94a3b8; }
+.cq-consent { display: flex; flex-direction: column; gap: 20px; }
+.cq-consent > .cq-consent-list { padding: 0 0 0 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; list-style: decimal; }
+.cq-consent > .cq-consent-list li { font-size: 14px; font-weight: 600; color: #374151; line-height: 1.5; display: list-item; }
+.cq-consent-q { font-size: 14px; font-weight: 700; color: #374151; line-height: 1.6; margin: 0; }
+.cq-consent-btns { display: flex; gap: 12px; }
+.cq-consent-opt {
+  flex: 1; min-height: 52px; border-radius: 16px;
+  border: 2px solid #e2e8f0; background: #fff;
+  font: inherit; font-size: 15px; font-weight: 700; color: #64748b;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.cq-consent-opt:hover { border-color: #c7d2fe; }
+.cq-consent-agree.on { border-color: #4F46E5; background: rgba(79,70,229,0.06); color: #3730A3; }
+.cq-consent-none.on { border-color: #94a3b8; background: #f8fafc; color: #475569; }
 .cq-bar { height: 14px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
 .cq-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
 .cq-total { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; margin-top: 8px; padding: 12px 18px; border-radius: 16px; font-size: 14px; font-weight: 800; min-height: 44px; }
@@ -826,19 +719,6 @@ const CSS = `
 .cq-paper-exception { position: relative; margin-top: 4px; padding: 14px 16px; border-radius: 10px; background: rgba(16,185,129,0.06); border-left: 3px solid #10B981; }
 .cq-paper-exception-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #047857; font-size: 10px; font-weight: 900; vertical-align: 2px; }
 
-/* 제재 — 조문 미리보기와 같은 결의 구획. 카드를 하나 더 얹지 않는다. */
-.cq-penalty { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f8fafc; }
-.cq-penalty-head { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
-.cq-penalty-head svg { color: #4F46E5; }
-.cq-penalty-lines { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.cq-penalty-lines li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; font-weight: 700; color: #1e293b; }
-.cq-penalty-tag { padding: 3px 9px; border-radius: 999px; background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 900; }
-.cq-penalty-check { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; font-size: 13px; font-weight: 700; color: #475569; cursor: pointer; }
-.cq-penalty-check input { width: 18px; height: 18px; accent-color: #4F46E5; cursor: pointer; }
-.cq-penalty-jump { border: none; background: none; font: inherit; font-size: 14px; font-weight: 800; color: #4338CA; text-decoration: underline; padding: 0; cursor: pointer; }
-.cq-penalty-jump:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
-.cq-penalty-other { font-size: 13px; font-weight: 600; color: #64748b; }
-.cq-penalty-kind { font-size: 12px; font-weight: 700; color: #94a3b8; }
 .cq-paper-article.next { margin-top: 18px; }
 
 .cq-preview { background: rgba(241,245,249,0.5); border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }

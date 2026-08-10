@@ -142,6 +142,7 @@ function PercentInput({ tpl, value, onChange, id }: {
         step={1}
         value={v}
         aria-label="비율 슬라이더"
+        style={{ "--pct": `${v}%` } as React.CSSProperties}
         onChange={(e) => onChange(Number(e.target.value))}
       />
       <div className="cq-marks">
@@ -298,6 +299,41 @@ function MatrixInput({ tpl, value, onChange, id }: {
   );
 }
 
+function ConsentInput({ tpl, value, onChange }: {
+  tpl: Extract<QuestionTemplate, { type: "consent" }>;
+  value: boolean | undefined;
+  onChange: (v: boolean | undefined) => void;
+}) {
+  return (
+    <div className="cq-consent">
+      <ol className="cq-consent-list">
+        {tpl.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ol>
+      <p className="cq-consent-q">위 항목 중 내가 보유한 것을 법인 명의로 이전하는 것에 동의하시나요?</p>
+      <div className="cq-consent-btns">
+        <button
+          type="button"
+          aria-pressed={value === true}
+          className={`cq-consent-opt cq-consent-agree ${value === true ? "on" : ""}`}
+          onClick={() => onChange(value === true ? undefined : true)}
+        >
+          동의합니다
+        </button>
+        <button
+          type="button"
+          aria-pressed={value === false}
+          className={`cq-consent-opt cq-consent-none ${value === false ? "on" : ""}`}
+          onClick={() => onChange(value === false ? undefined : false)}
+        >
+          해당 없음
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FieldsInput({ tpl, value, onChange, id }: {
   tpl: Extract<QuestionTemplate, { type: "fields" }>;
   value: Record<string, string> | undefined;
@@ -394,6 +430,14 @@ export function QuestionInput({ template, value, onChange, keyPrefix }: {
           value={value as Record<string, unknown>}
           onChange={onChange as (v: Record<string, unknown>) => void}
           id={keyPrefix}
+        />
+      );
+    case "consent":
+      return (
+        <ConsentInput
+          tpl={template}
+          value={value as boolean | undefined}
+          onChange={onChange as (v: boolean | undefined) => void}
         />
       );
   }

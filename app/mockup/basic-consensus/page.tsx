@@ -565,7 +565,7 @@ export default function BasicConsensusMockup() {
       <div className="cq-shell">
         {/* ── sidebar ── */}
         <aside className="cq-sidebar">
-          <div className="cq-sidebar-label">Team Consensus</div>
+          <div className="cq-sidebar-label">CoSync</div>
           <nav className="cq-sidebar-nav" aria-label="질문 목록">
             {GROUPS.map(g => {
               const inGroup = QUESTIONS.filter(x => x.group === g.id);
