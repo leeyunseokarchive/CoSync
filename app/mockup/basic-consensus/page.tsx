@@ -502,11 +502,19 @@ export default function BasicConsensusMockup() {
   const [customChipVals, setCustomChipVals] = useState<Record<string, string>>({});
 
   useLayoutEffect(() => {
-    if (!gridRef.current) return;
-    const cards = Array.from(gridRef.current.querySelectorAll<HTMLElement>(".cq-choice"));
-    cards.forEach(c => { c.style.minHeight = ""; });
-    const max = Math.max(...cards.map(c => c.offsetHeight));
-    cards.forEach(c => { c.style.minHeight = `${max}px`; });
+    const grid = gridRef.current;
+    if (!grid) return;
+    const equalize = () => {
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>(".cq-choice"));
+      cards.forEach(c => { c.style.minHeight = ""; });
+      // 1열 레이아웃(모바일)에서는 높이 맞춤 불필요
+      if (getComputedStyle(grid).gridTemplateColumns.split(" ").length < 2) return;
+      const max = Math.max(...cards.map(c => c.offsetHeight));
+      cards.forEach(c => { c.style.minHeight = `${max}px`; });
+    };
+    equalize();
+    window.addEventListener("resize", equalize);
+    return () => window.removeEventListener("resize", equalize);
   }, [index]);
 
   const q = QUESTIONS[index];
@@ -828,7 +836,7 @@ export default function BasicConsensusMockup() {
       </footer>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .cq-page { min-height: 100vh; display: flex; flex-direction: column; font-size: 16px;
+        .cq-page { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; font-size: 16px;
           background:
             radial-gradient(at 0% 0%, rgba(79,70,229,0.12) 0px, transparent 50%),
             radial-gradient(at 100% 0%, rgba(16,185,129,0.08) 0px, transparent 50%),
@@ -980,11 +988,47 @@ export default function BasicConsensusMockup() {
           color: #047857; font-size: 11px; font-weight: 900; }
         .bc-clause-note { color: #6366f1; font-size: 13px; font-style: italic; margin-top: 4px; }
 
+        /* ── 태블릿 이하: 사이드바 제거, 카드 풀블리드 ── */
         @media (max-width: 900px) {
           .cq-sidebar { display: none; }
-          .cq-main { padding: 24px 20px 120px; }
+          .cq-shell { width: calc(100% - 24px); margin: 12px auto 116px; border-radius: 20px; }
+          .cq-main { padding: 24px 20px 32px; }
           .cq-title { font-size: 22px; }
+          .cq-card { gap: 22px; }
+          .cq-input-zone { padding: 22px 0; }
+          .cq-choice { padding: 16px 40px 16px 18px; border-radius: 18px; }
+          .cq-paper { padding: 22px 20px; }
+          .cq-preview { padding: 16px; border-radius: 18px; }
+          .bc-scenario { align-items: flex-start; }
+          .bc-scenario-badge { margin-top: 3px; }
           .cq-footer { padding: 0 20px; }
+        }
+
+        /* ── 모바일: 풀블리드 + 컴팩트 푸터 ── */
+        @media (max-width: 640px) {
+          .cq-shell { width: 100%; margin: 0 0 104px; border-radius: 0; border-left: none; border-right: none; }
+          .cq-main { padding: 20px 16px 28px; }
+          .cq-title { font-size: 20px; }
+          .bc-tip-knoty { width: 72px; align-self: flex-end; }
+          .bc-tip-content { padding: 14px 14px 14px 8px; }
+          .cq-footer { height: 80px; padding: 0 12px; gap: 8px; }
+          .cq-back { padding: 8px 10px; font-size: 14px; gap: 6px; }
+          .cq-footer-right { gap: 12px; flex: 1; justify-content: flex-end; min-width: 0; }
+          .cq-progress { gap: 5px; }
+          .cq-progress-meta { gap: 8px; }
+          .cq-progress-label { font-size: 10px; letter-spacing: 0.04em; }
+          .cq-progress-pct { font-size: 12px; }
+          .cq-progress-bar { width: 84px; height: 6px; }
+          .cq-cta { height: 48px; padding: 0 20px; font-size: 15px; border-radius: 16px; }
+        }
+
+        /* ── 초소형 화면: 진행률 텍스트만 ── */
+        @media (max-width: 360px) {
+          .cq-progress-bar { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cq-card, .bc-subchips, .bc-memo-open { animation: none; }
         }
       `}} />
     </div>

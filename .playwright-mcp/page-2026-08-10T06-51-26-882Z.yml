@@ -1,0 +1,135 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "CoSync 홈으로 이동" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - strong [ref=e8]: CoSync
+          - navigation "주 메뉴" [ref=e9]:
+            - link "대시보드" [ref=e10] [cursor=pointer]:
+              - /url: /workspace
+            - link "합의 히스토리" [ref=e11] [cursor=pointer]:
+              - /url: "#"
+            - link "설정" [ref=e12] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e14]:
+          - link "로그인" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "회원가입" [ref=e16] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=e17]:
+      - complementary [ref=e18]:
+        - generic [ref=e19]: Team Consensus
+        - navigation "질문 목록" [ref=e20]:
+          - generic [ref=e21]:
+            - button "역할 & 책임 Roles & Responsibilities 0/6" [ref=e22] [cursor=pointer]:
+              - generic [ref=e23]: 역할 & 책임
+              - generic [ref=e25]: Roles & Responsibilities
+              - generic [ref=e26]: 0/6
+            - list [ref=e27]:
+              - listitem [ref=e28]:
+                - button "회색지대" [ref=e29] [cursor=pointer]:
+                  - generic [ref=e30]: "1"
+              - listitem [ref=e32]:
+                - button "성과 조치" [ref=e33] [cursor=pointer]:
+                  - generic [ref=e34]: "2"
+              - listitem [ref=e36]:
+                - button "헌신 기대치" [ref=e37] [cursor=pointer]:
+                  - generic [ref=e38]: "3"
+              - listitem [ref=e40]:
+                - button "결정 권한" [ref=e41] [cursor=pointer]:
+                  - generic [ref=e42]: "4"
+              - listitem [ref=e44]:
+                - button "역할 진화" [ref=e45] [cursor=pointer]:
+                  - generic [ref=e46]: "5"
+              - listitem [ref=e48]:
+                - button "외부 활동" [ref=e49] [cursor=pointer]:
+                  - generic [ref=e50]: "6"
+          - generic [ref=e52]:
+            - button "비전 & 가치관 Vision & Values 0/6" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: 비전 & 가치관
+              - generic [ref=e56]: Vision & Values
+              - generic [ref=e57]: 0/6
+            - list [ref=e58]:
+              - listitem [ref=e59]:
+                - button "출구 전략" [ref=e60] [cursor=pointer]:
+                  - generic [ref=e61]: "7"
+              - listitem [ref=e63]:
+                - button "피벗 기준" [ref=e64] [cursor=pointer]:
+                  - generic [ref=e65]: "8"
+              - listitem [ref=e67]:
+                - button "갈등 해결" [ref=e68] [cursor=pointer]:
+                  - generic [ref=e69]: "9"
+              - listitem [ref=e71]:
+                - button "딜브레이커" [ref=e72] [cursor=pointer]:
+                  - generic [ref=e73]: "10"
+              - listitem [ref=e75]:
+                - button "성장 방식" [ref=e76] [cursor=pointer]:
+                  - generic [ref=e77]: "11"
+              - listitem [ref=e79]:
+                - button "팀 확장" [ref=e80] [cursor=pointer]:
+                  - generic [ref=e81]: "12"
+          - generic [ref=e83]:
+            - button "자금조달 & 운용 Finance & Operations 0/6" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]: 자금조달 & 운용
+              - generic [ref=e87]: Finance & Operations
+              - generic [ref=e88]: 0/6
+            - list [ref=e89]:
+              - listitem [ref=e90]:
+                - button "자금 위기" [ref=e91] [cursor=pointer]:
+                  - generic [ref=e92]: "13"
+              - listitem [ref=e94]:
+                - button "지출 기준" [ref=e95] [cursor=pointer]:
+                  - generic [ref=e96]: "14"
+              - listitem [ref=e98]:
+                - button "투자 기준" [ref=e99] [cursor=pointer]:
+                  - generic [ref=e100]: "15"
+              - listitem [ref=e102]:
+                - button "계좌 관리" [ref=e103] [cursor=pointer]:
+                  - generic [ref=e104]: "16"
+              - listitem [ref=e106]:
+                - button "창업자 보수" [ref=e107] [cursor=pointer]:
+                  - generic [ref=e108]: "17"
+              - listitem [ref=e110]:
+                - button "수익 정책" [ref=e111] [cursor=pointer]:
+                  - generic [ref=e112]: "18"
+      - main [ref=e114]:
+        - article [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e119]: 역할 & 책임
+              - generic [ref=e120]: 1 / 18
+            - heading "명확한 담당자 없는 업무, 어떻게 처리하나요?" [level=1] [ref=e122]
+            - generic [ref=e123]:
+              - generic [ref=e124]: 합의가 없다면?
+              - generic [ref=e125]: 출시 일주일 전, 고객 문의 담당자가 없었고 둘 다 서로가 맡을 줄 알고 있었습니다.
+          - generic [ref=e127]:
+            - button "순번제 (로테이션) 팀원이 돌아가며 처리합니다. 누군가에게 쏠리지 않도록 공평하게 분담합니다." [ref=e128] [cursor=pointer]:
+              - generic [ref=e129]:
+                - generic [ref=e130]: 순번제 (로테이션)
+                - generic [ref=e131]: 팀원이 돌아가며 처리합니다. 누군가에게 쏠리지 않도록 공평하게 분담합니다.
+            - button "발생 즉시 담당자 고정 생기는 즉시 담당자를 정하고, 이후 동일 업무는 그 사람 몫으로 합니다." [ref=e132] [cursor=pointer]:
+              - generic [ref=e133]:
+                - generic [ref=e134]: 발생 즉시 담당자 고정
+                - generic [ref=e135]: 생기는 즉시 담당자를 정하고, 이후 동일 업무는 그 사람 몫으로 합니다.
+            - button "대표가 기본 처리 명확한 담당이 없는 업무는 기본적으로 대표가 책임지고 처리합니다." [ref=e136] [cursor=pointer]:
+              - generic [ref=e137]:
+                - generic [ref=e138]: 대표가 기본 처리
+                - generic [ref=e139]: 명확한 담당이 없는 업무는 기본적으로 대표가 책임지고 처리합니다.
+            - button "외부 인력에 위임 인턴·파트타임·프리랜서를 활용해 잡무를 외부에 맡깁니다. 창업자가 직접 소모되지 않도록 합니다." [ref=e140] [cursor=pointer]:
+              - generic [ref=e141]:
+                - generic [ref=e142]: 외부 인력에 위임
+                - generic [ref=e143]: 인턴·파트타임·프리랜서를 활용해 잡무를 외부에 맡깁니다. 창업자가 직접 소모되지 않도록 합니다.
+            - button "기타 (직접 입력) 위 보기 외 우리 팀만의 기준을 직접 씁니다" [ref=e144] [cursor=pointer]:
+              - generic [ref=e145]:
+                - generic [ref=e146]: 기타 (직접 입력)
+                - generic [ref=e147]: 위 보기 외 우리 팀만의 기준을 직접 씁니다
+    - contentinfo [ref=e148]:
+      - button "이전" [disabled] [ref=e149]
+      - generic [ref=e152]:
+        - generic [ref=e154]:
+          - generic [ref=e155]: 0/18 완료
+          - generic [ref=e156]: 0%
+        - button "다음" [disabled] [ref=e158]
+  - alert [ref=e161]
