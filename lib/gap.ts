@@ -108,7 +108,7 @@ export function getTeamIssueStatus(values: (string | undefined)[], toxicPairs: [
 }
 
 // 정규화 가중치 (출처: 국내 스타트업 팀 와해 및 분쟁 원인 실증 분석 MVP V3)
-const CAT_WEIGHTS = [0.11, 0.11, 0.11, 0.17, 0.22, 0.28];
+export const CAT_WEIGHTS = [0.11, 0.11, 0.11, 0.17, 0.22, 0.28];
 
 // 한 질문에 대한 두 멤버 답변의 갭(0=일치, |옵션차|=차이, 3=치명적 충돌)
 const pairGap = (v1: string, v2: string, toxicPairs: [string, string][]): number => {

@@ -90,3 +90,28 @@ export function selectDeepQuestions(members: OnboardingAnswers[]): DeepQuestionI
     a.status === b.status ? 0 : a.status === "conflict" ? -1 : 1
   );
 }
+
+export type SplitPoint = { def: QuestionDef; mine: string; theirs: string[] };
+
+// 내 답이 toxicPair의 한쪽이면, 반대쪽을 고른 팀원과 만났을 때 conflict로 분류된다.
+// 팀원 답변 없이도 "어디서 갈릴 수 있는지"만 미리 보여주는 데 쓴다.
+export function splitPointsFor(answers: Partial<OnboardingAnswers>): SplitPoint[] {
+  const out: SplitPoint[] = [];
+  for (const def of QUESTION_DEFS) {
+    const val = answers[def.field];
+    if (!val) continue;
+    const mine = val[0];
+    const theirs = [...new Set(
+      def.toxicPairs.flatMap(([a, b]) => (mine === a ? [b] : mine === b ? [a] : []))
+    )];
+    if (theirs.length) out.push({ def, mine, theirs });
+  }
+  return out;
+}
+
+// 답변 라벨 뒤 조사. "'시장 관행 구조'을" 처럼 어긋나면 읽다가 걸린다.
+export const josa = (w: string, withBatchim: string, without: string): string => {
+  const c = w.charCodeAt(w.length - 1);
+  const has = c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0;
+  return has ? withBatchim : without;
+};

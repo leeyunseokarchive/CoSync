@@ -13,8 +13,8 @@ import { useAuth } from "../../components/AuthContext";
 import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
-import { computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { QUESTION_DEFS, SCRIPTS, generateInsight, type QuestionDef } from "../../lib/deepQuestions";
+import { CAT_LABELS, CAT_WEIGHTS, QUESTION_CONFIGS, computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
+import { QUESTION_DEFS, SCRIPTS, generateInsight, josa, splitPointsFor, type QuestionDef } from "../../lib/deepQuestions";
 import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
@@ -93,6 +93,7 @@ const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[
   { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"],      why: "말 안 해도 서로 기대하고 있는 게 지분과 보상이에요. 초기에 맞춰두지 않으면 매출이 나고 규모가 커질수록 이해관계가 벌어져, 나중엔 조율 비용이 훨씬 더 커집니다." },
 ];
 const FIELD_TO_DEF: Record<string, QuestionDef> = Object.fromEntries(QUESTION_DEFS.map(d => [d.field, d]));
+const FIELD_TO_CAT: Record<string, number> = Object.fromEntries(QUESTION_CONFIGS.map(q => [q.field, q.cat]));
 
 const statusRank = (s: IssueStatus): number => {
   if (s === "conflict") return 3;
@@ -159,6 +160,13 @@ function GapReportPageInner() {
     ? myMemberAnswers
     : firestoreSoloAnswers;
   const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
+  // 팀원 답변 없이도, 내 답이 toxicPair의 한쪽이면 어느 답과 부딪치는지는 지금 말할 수 있다.
+  // 선택지의 61%가 toxicPair에 걸려서 그냥 두면 평균 12개가 뜬다. 경고가 12개면 경고가 아니라
+  // 배경이 되므로, 카테고리 가중치 상위 3개만 남긴다. 나머지 카테고리는 기존 why 문구를 쓴다.
+  // soloAnswers가 매 렌더 새 객체라 useMemo는 안 먹는다. 20문항 루프라 그냥 돈다.
+  const soloSplits = splitPointsFor(soloAnswers)
+    .sort((a, b) => (CAT_WEIGHTS[FIELD_TO_CAT[b.def.field] ?? 0] ?? 0) - (CAT_WEIGHTS[FIELD_TO_CAT[a.def.field] ?? 0] ?? 0))
+    .slice(0, 3);
   const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
 
   useEffect(() => {
@@ -389,7 +397,9 @@ function GapReportPageInner() {
           <div className="card" style={{ width: "100%", maxWidth: "640px", margin: "0 auto", padding: "32px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: "800", color: "#0f172a", marginBottom: "6px" }}>내 창업 기준 요약</h2>
             <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.6" }}>
-              진단에서 선택한 내 기준이에요. 팀원이 완료하면 어떤 항목에서 기준이 다른지 자동으로 분석됩니다.
+              {soloSplits.length > 0
+                ? `진단에서 선택한 내 기준이에요. 그중 팀원과 정면으로 갈릴 수 있는 지점을 ${CAT_LABELS[FIELD_TO_CAT[soloSplits[0].def.field] ?? 0]}부터 짚었습니다.`
+                : "진단에서 선택한 내 기준이에요. 팀원이 완료하면 어떤 항목에서 기준이 다른지 자동으로 분석됩니다."}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               {SOLO_CATEGORIES.map(cat => {
@@ -397,25 +407,45 @@ function GapReportPageInner() {
                   .map(f => ({ field: f, def: FIELD_TO_DEF[f], val: soloAnswers[f] }))
                   .filter(item => Boolean(item.val) && item.def);
                 if (answeredItems.length === 0) return null;
+                const catSplits = soloSplits.filter(sp => (cat.fields as string[]).includes(sp.def.field));
                 return (
                   <div key={cat.label} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
                     <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0" }}>
                       <span style={{ fontSize: "12px", fontWeight: "700", color: "#475569", letterSpacing: "0.04em" }}>{cat.label}</span>
                     </div>
-                    <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {/* 내가 고른 답은 방금 본 내용이라 약하게 둔다. 강조는 아래 갈림 지점이 가져간다. */}
                       {answeredItems.map(item => (
                         <div key={item.field} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                          <span style={{ fontSize: "13px", color: "#64748b" }}>{item.def.label}</span>
-                          <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b", textAlign: "right" }}>
+                          <span style={{ fontSize: "12px", color: "#94a3b8" }}>{item.def.label}</span>
+                          <span style={{ fontSize: "12px", color: "#94a3b8", textAlign: "right" }}>
                             {item.def.optionLabels[item.val!] ?? item.val}
                           </span>
                         </div>
                       ))}
-                      <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px dashed #e2e8f0" }}>
-                        <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: "1.6", margin: 0, display: "flex", gap: "6px" }}>
-                          <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "2px" }} />
-                          <span>{cat.why}</span>
-                        </p>
+                      <div style={{ marginTop: "10px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
+                        {catSplits.length > 0 ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            {catSplits.map(sp => (
+                              <p key={sp.def.id} style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px" }}>
+                                <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#b45309" }} />
+                                <span>
+                                  <strong style={{ fontWeight: 700 }}>{sp.def.label}</strong>에서 나는{" "}
+                                  <strong style={{ fontWeight: 700 }}>&lsquo;{sp.def.optionLabels[sp.mine]}&rsquo;</strong>
+                                  {josa(sp.def.optionLabels[sp.mine], "을", "를")} 골랐어요. 팀원이{" "}
+                                  {sp.theirs.map(t => `‘${sp.def.optionLabels[t]}’`).join(" 또는 ")}
+                                  {josa(sp.def.optionLabels[sp.theirs[sp.theirs.length - 1]], "을", "를")} 고르면
+                                  이 항목에서 기준이 정면으로 갈립니다.
+                                </span>
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px" }}>
+                            <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#64748b" }} />
+                            <span>{cat.why}</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
