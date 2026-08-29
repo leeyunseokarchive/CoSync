@@ -15,8 +15,8 @@ export default function GapReportDetailPage() {
           <div className="modal-grid">
             <div className="modal-user">
               <div className="user-head">
-                <div className="avatar">HJ</div>
-                <div className="user-name">황주명</div>
+                <div className="avatar">KM</div>
+                <div className="user-name">김민준</div>
               </div>
               <div className="quote">“영업 및 마케팅 전체 영역에서 대표가 독점적 결정권을 가져야 한다.”</div>
             </div>
