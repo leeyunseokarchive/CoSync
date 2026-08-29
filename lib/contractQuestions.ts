@@ -66,13 +66,12 @@ export type ContractQuestion = {
 
 // 그룹 이름은 조문 번호가 아니라 사람들이 쓰는 말로 둔다.
 export const QUESTION_GROUPS = [
-  { id: "basics", ko: "계약 기본", en: "Contract Basics" },
-  { id: "decision", ko: "의사 결정 구조", en: "Decision & Deadlock" },
-  { id: "roles", ko: "업무 분담과 역할", en: "Roles" },
-  { id: "equity", ko: "지분 구조", en: "Equity & Vesting" },
-  { id: "tenure", ko: "근무와 퇴사", en: "Tenure & Exit" },
-  { id: "transfer", ko: "지분 양도 제한", en: "Transfer" },
-  { id: "penalty", ko: "위반과 제재", en: "Penalties" },
+  { id: "basics", ko: "기본", en: "Basics" },
+  { id: "roles", ko: "역할&책임", en: "Roles & Responsibilities" },
+  { id: "decision", ko: "의사결정&권한", en: "Decision & Authority" },
+  { id: "equity", ko: "지분&보상", en: "Equity & Compensation" },
+  { id: "tenure", ko: "이탈&정리", en: "Departure & Settlement" },
+  { id: "misc", ko: "기타", en: "Misc" },
 ];
 
 // 제2조 ①항이 전원 동의를 요구하는 7가지. 조문 문구는 원문 그대로 두고,
@@ -547,7 +546,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   },
   {
     id: "lockup",
-    group: "transfer",
+    group: "equity",
     article: "제6조",
     articleTag: "LOCK-UP",
     topic: "주식 매각 제한 기간",
@@ -571,7 +570,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   },
   {
     id: "dragAlong",
-    group: "transfer",
+    group: "equity",
     article: "제7의 2조 ① (신설)",
     articleTag: "DRAG-ALONG",
     topic: "다 같이 팔기 (드래그얼롱)",
@@ -606,7 +605,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   },
   {
     id: "tagAlong",
-    group: "transfer",
+    group: "equity",
     article: "제7조 ①",
     articleTag: "TAG-ALONG",
     topic: "함께 팔 권리 (태그얼롱)",
@@ -631,7 +630,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
   },
   {
     id: "penalty",
-    group: "penalty",
+    group: "misc",
     article: "제8조",
     articleTag: "PENALTIES",
     topic: "위약벌",

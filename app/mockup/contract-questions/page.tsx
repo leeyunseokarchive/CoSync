@@ -303,8 +303,8 @@ export default function ContractQuestionsMockup() {
         .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #10B981; }
         .cq-side-q.current .cq-side-q-text { color: #3730A3; font-weight: 800; }
 
-        .cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 40px 140px; }
-        .cq-card { max-width: 880px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
+        .cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 32px 140px 24px; }
+        .cq-card { max-width: 880px; margin: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(24px);
           border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(79,70,229,0.05);
           border-radius: 40px; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; }
         .cq-card-head { display: flex; flex-direction: column; gap: 14px; }
