@@ -179,10 +179,21 @@ export default function RegisterPage() {
         <form onSubmit={e => { e.preventDefault(); goNext(); }}>
           {step === 1 && (
             <>
-              <h1 className="wizard-question">어떻게 불러드릴까요?</h1>
+              {/* 진단을 마치고 넘어온 사람에겐 "왜 저장해야 하는지"가 먼저다.
+                  "진단 결과를 저장하고 팀원을 초대하세요"는 지시일 뿐 이유가 아니었다.
+                  팀원 얘기는 넣지 않는다 — 이 화면은 진단 직후(팀 없음)와 초대 후
+                  두 경로에서 들어오는데, 전자에선 팀원이 뜬금없이 나온다. */}
               {fromDiagnosis && (
-                <p className="wizard-sub">진단 결과를 저장하고 팀원을 초대하세요.</p>
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px", marginBottom: 20, textAlign: "left" }}>
+                  <p style={{ fontSize: 13.5, fontWeight: 700, color: "#1e293b", margin: "0 0 4px", wordBreak: "keep-all" }}>
+                    지금 결과는 이 브라우저에만 있어요
+                  </p>
+                  <p style={{ fontSize: 12.5, color: "#64748b", margin: 0, lineHeight: 1.6, wordBreak: "keep-all" }}>
+                    저장해두면 기기를 바꿔도 다시 열 수 있어요.
+                  </p>
+                </div>
               )}
+              <h1 className="wizard-question">어떻게 불러드릴까요?</h1>
               <p className="wizard-sub">팀원에게 이 이름으로 표시돼요.</p>
               <input
                 ref={nameRef}
