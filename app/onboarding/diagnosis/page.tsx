@@ -625,6 +625,9 @@ function OnboardingDiagnosisPageInner() {
   }, [user, profile, role, activeTeamId]);
 
   const handleSaveAndProceed = async (destination: string) => {
+    // 익명 로그인이 붙기 전 클릭하면 잘못 튕긴다. 붙는 중이면 아무것도 하지 않는다.
+    if (authLoading) return;
+    // 여기까지 user가 없으면 익명 로그인 자체가 실패한 환경이다. 기존 가입 경로로 보낸다.
     if (!user) { localStorage.setItem("cosync-pending-save", "true"); router.push("/register"); return; }
     const answers = {
       extraWorkPriority, extraWorkPrinciple, underperformanceAction,
@@ -675,6 +678,8 @@ function OnboardingDiagnosisPageInner() {
   };
 
   const handleFinish = async () => {
+    if (authLoading) return;
+    // 익명 uid가 있으면 여기 안 걸린다. 익명 로그인이 막힌 환경에서만 가입으로 보낸다.
     if (!user) {
       localStorage.setItem("cosync-pending-save", "true");
       router.push("/register");

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { EmailAuthProvider, createUserWithEmailAndPassword, linkWithCredential, updateProfile } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
@@ -107,13 +107,27 @@ export default function RegisterPage() {
         router.push("/workspace");
         return;
       }
+      // 익명 세션이면 새 계정을 만들지 않고 그 uid에 이메일을 붙인다(승격).
+      // uid가 유지되므로 가입 전에 푼 진단 답변, 만든 팀, 발급한 초대코드가 그대로 따라온다.
+      // 새로 createUser를 하면 uid가 바뀌어 그동안 쌓인 게 전부 고아가 된다.
+      if (current?.isAnonymous) {
+        const linked = await linkWithCredential(current, EmailAuthProvider.credential(email, password));
+        await updateProfile(linked.user, { displayName: name });
+        const ref = doc(db, "users", linked.user.uid);
+        const snap = await getDoc(ref);
+        // 익명일 때 이미 쌓인 필드(soloAnswers, teamIds 등)를 덮지 않는다.
+        await setDoc(ref, snap.exists() ? { ...profileData, teamIds: snap.data().teamIds ?? [] } : profileData, { merge: true });
+        router.push("/workspace");
+        return;
+      }
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: name });
       await setDoc(doc(db, "users", cred.user.uid), profileData);
       router.push("/workspace");
     } catch (err) {
       const code = (err as { code?: string })?.code;
-      if (code === "auth/email-already-in-use") {
+      // credential-already-in-use: 익명 세션에 이미 가입된 이메일을 붙이려 한 경우
+      if (code === "auth/email-already-in-use" || code === "auth/credential-already-in-use") {
         setError("이미 사용 중인 이메일입니다. 로그인해 주세요.");
       } else if (code === "auth/invalid-email") {
         setError("이메일 형식이 올바르지 않습니다.");

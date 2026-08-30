@@ -13,7 +13,7 @@ import { appendDiagnosisHistory } from "../../../../lib/history";
 
 function DiagnosisCompletePageInner() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile } = useUserProfile();
   const {
     extraWorkPriority, extraWorkPrinciple, underperformanceAction,
@@ -73,7 +73,8 @@ function DiagnosisCompletePageInner() {
   };
 
   const handleSaveAndProceed = async (destination: string) => {
-    if (isSaving) return;
+    if (isSaving || authLoading) return;
+    // 익명 uid가 있으면 여기 안 걸린다. 익명 로그인이 막힌 환경에서만 아래 경로를 탄다.
     if (!user) {
       if (destination === "/gap-report") { router.push("/gap-report"); return; }
       localStorage.setItem("cosync-pending-save", "true");
