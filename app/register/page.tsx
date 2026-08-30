@@ -8,6 +8,7 @@ import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
+import { track } from "../../lib/analytics";
 
 const TOTAL_STEPS = 5;
 
@@ -104,6 +105,7 @@ export default function RegisterPage() {
         if (!(await getDoc(ref)).exists()) {
           await setDoc(ref, profileData);
         }
+        track("signup_completed", { path: "recover" });
         router.push("/workspace");
         return;
       }
@@ -117,12 +119,14 @@ export default function RegisterPage() {
         const snap = await getDoc(ref);
         // 익명일 때 이미 쌓인 필드(soloAnswers, teamIds 등)를 덮지 않는다.
         await setDoc(ref, snap.exists() ? { ...profileData, teamIds: snap.data().teamIds ?? [] } : profileData, { merge: true });
+        track("signup_completed", { path: "linked_anonymous" });
         router.push("/workspace");
         return;
       }
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: name });
       await setDoc(doc(db, "users", cred.user.uid), profileData);
+      track("signup_completed", { path: "new" });
       router.push("/workspace");
     } catch (err) {
       const code = (err as { code?: string })?.code;

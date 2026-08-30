@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { track } from "../../lib/analytics";
 import { Footer } from "../../components/Footer";
 import { useAuth } from "../../components/AuthContext";
 import { useUserProfile } from "../../components/useUserProfile";
@@ -76,6 +77,7 @@ export default function OnboardingIntroPage() {
           </div>
 
           <Link
+            onClick={() => track("diagnosis_start")}
             className="btn btn-primary"
             href={hasCompletedOnboarding ? "/gap-report" : "/onboarding/diagnosis"}
           >

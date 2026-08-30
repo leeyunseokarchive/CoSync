@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { TeamSessionCard } from "../../components/TeamSessionCard";
 import { TeamGapSlot } from "../../components/TeamGapSlot";
 import { computeGapSummary } from "../../lib/gap";
+import { track } from "../../lib/analytics";
 import { useUserProfile } from "../../components/useUserProfile";
 import { computeTeamProgress } from "../../lib/teamProgress";
 
@@ -100,6 +101,7 @@ export default function WorkspaceHubPage() {
       if (code) {
         setTeamCode(code);
         setFromInviteLink(true);
+        track("invite_opened");
         sessionStorage.setItem("pendingInviteCode", code);
         window.history.replaceState({}, "", "/workspace");
       }
@@ -342,6 +344,7 @@ export default function WorkspaceHubPage() {
       setJoinLoading(false);
     }
 
+    track("invite_accepted", { broughtAnswers: Object.keys(finalAnswers).length > 0 });
     setActiveTeams(Math.max(1, activeTeams + 1));
     setActiveSessions(Math.max(1, activeSessions + 1));
     setShowCopyModal(false);

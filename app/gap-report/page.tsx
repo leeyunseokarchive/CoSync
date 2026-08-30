@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState, Suspense, type CSSProperties } from "react";
 import { TopNav } from "../../components/TopNav";
 import { InviteLinkButton } from "../../components/InviteLinkButton";
+import { track } from "../../lib/analytics";
 import { Footer } from "../../components/Footer";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Keyboard } from "swiper/modules";

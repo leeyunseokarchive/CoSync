@@ -10,6 +10,7 @@ import { db } from "../../../../lib/firebase";
 import { computeGapSummary } from "../../../../lib/gap";
 import { computeTeamProgress } from "../../../../lib/teamProgress";
 import { appendDiagnosisHistory, appendSoloHistory } from "../../../../lib/history";
+import { track } from "../../../../lib/analytics";
 
 function DiagnosisCompletePageInner() {
   const router = useRouter();
@@ -74,6 +75,7 @@ function DiagnosisCompletePageInner() {
 
   const handleSaveAndProceed = async (destination: string) => {
     if (isSaving || authLoading) return;
+    track("diagnosis_basic_done", { next: destination });
     // 익명 uid가 있으면 여기 안 걸린다. 익명 로그인이 막힌 환경에서만 아래 경로를 탄다.
     if (!user) {
       if (destination === "/gap-report") { router.push("/gap-report"); return; }

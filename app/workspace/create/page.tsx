@@ -13,6 +13,7 @@ import { useUserProfile } from "../../../components/useUserProfile";
 import { useTeams } from "../../../components/useTeams";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
+import { canShare, track } from "../../../lib/analytics";
 
 const TOTAL_STEPS = 2;
 
@@ -132,9 +133,10 @@ export default function WorkspaceCreatePage() {
   };
 
   const copyInvite = async () => {
+    track("invite_sent", { via: canShare() ? "share" : "clipboard" });
     try {
       // 모바일에선 공유 시트가 열려 카카오톡으로 바로 보낼 수 있다. 없으면 클립보드로 떨어진다.
-      if (navigator.share) {
+      if (canShare()) {
         await navigator.share({ title: `${teamName} 팀 진단`, text: "같은 진단 20문항 풀고 결과 같이 보자", url: inviteLink });
         return;
       }
@@ -245,6 +247,7 @@ export default function WorkspaceCreatePage() {
     setShowCopyModal(false);
 
     // 대시보드로 보내지 않는다. 초대 링크를 이 자리에서 바로 준다.
+    track("team_created");
     setCreatedTeamId(teamRef.id);
     setInviteLink(`${window.location.origin}/workspace?inviteCode=${inviteCode}`);
     setStep(2);

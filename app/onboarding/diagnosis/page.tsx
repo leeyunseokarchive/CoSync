@@ -8,6 +8,7 @@ import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from "fi
 import { db } from "../../../lib/firebase";
 import { computeGapSummary } from "../../../lib/gap";
 import { appendDiagnosisHistory, appendSoloHistory } from "../../../lib/history";
+import { track } from "../../../lib/analytics";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ScenarioIllustration } from "../../../components/ScenarioIllustration";
@@ -680,6 +681,7 @@ function OnboardingDiagnosisPageInner() {
 
   const handleFinish = async () => {
     if (authLoading) return;
+    track("diagnosis_deep_done");
     // 익명 uid가 있으면 여기 안 걸린다. 익명 로그인이 막힌 환경에서만 가입으로 보낸다.
     if (!user) {
       localStorage.setItem("cosync-pending-save", "true");

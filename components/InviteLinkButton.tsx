@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { canShare, track } from "../lib/analytics";
 
 /**
  * 초대 링크를 한 번에 내보내는 버튼.
@@ -26,8 +27,9 @@ export function InviteLinkButton({
 
   const send = async () => {
     const link = `${window.location.origin}/workspace?inviteCode=${inviteCode}`;
+    track("invite_sent", { via: canShare() ? "share" : "clipboard" });
     try {
-      if (navigator.share) {
+      if (canShare()) {
         await navigator.share({
           title: teamName ? `${teamName} 팀 진단` : "CoSync 팀 진단",
           text: "같은 진단 20문항 풀고 결과 같이 보자",
