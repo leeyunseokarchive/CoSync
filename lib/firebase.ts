@@ -9,7 +9,10 @@ const firebaseConfig = {
   projectId: "cosync-d7dd7",
   storageBucket: "cosync-d7dd7.firebasestorage.app",
   messagingSenderId: "542201096247",
-  appId: "1:542201096247:web:864ef9700f0491e92377b2"
+  appId: "1:542201096247:web:864ef9700f0491e92377b2",
+  // GA 속성 cosync-d7dd7 (속성 ID 543348733). 상위 GA 계정(304580556)은 다른
+  // 프로젝트와 공유하지만 속성은 이 프로젝트 전용이라 데이터가 섞이지 않는다.
+  measurementId: "G-YPY0078KFL"
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);

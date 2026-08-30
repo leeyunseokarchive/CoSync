@@ -13,7 +13,9 @@ import type { Analytics } from "firebase/analytics";
  * 지금 Firestore에 남는 건 결과물뿐이라 "3번 문항에서 나갔다" 같은 건 알 방법이 없다.
  * 여기서 재려는 건 오직 이탈 지점이다.
  */
-const MEASUREMENT_ID = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? "";
+// firebaseConfig에 들어간 값과 같다. 환경변수는 덮어쓰기용으로만 남긴다.
+const MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? "G-YPY0078KFL";
 
 // 계측 하나 때문에 화면이 멈추면 안 된다. 전부 실패해도 조용히 넘어간다.
 let analyticsPromise: Promise<Analytics | null> | null = null;
