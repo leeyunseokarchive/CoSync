@@ -16,7 +16,7 @@ import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { CAT_LABELS, CAT_WEIGHTS, QUESTION_CONFIGS, computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { QUESTION_DEFS, SCRIPTS, generateInsight, splitPointsFor, type QuestionDef, type SplitPoint } from "../../lib/deepQuestions";
+import { QUESTION_DEFS, SCRIPTS, generateInsight, type QuestionDef } from "../../lib/deepQuestions";
 import { Check, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
@@ -90,8 +90,8 @@ const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[
   { label: "역할 & 책임",     fields: ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction"],               why: "'이건 내가 해야 해, 네가 해야 해?' — 이 질문이 자주 나온다면 역할 기준이 없는 거예요. 기준이 맞으면 마찰 대신 실행에 에너지를 씁니다." },
   { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"],               why: "팀에서 누군가 떠나는 건 드문 일이 아니에요. 기준이 있으면 그때가 와도 원칙대로 처리할 수 있지만, 없으면 감정이 개입되고 법적 분쟁으로 번질 수 있습니다." },
   { label: "비전 & 가치관",   fields: ["exitVision", "pivotCriteria", "dealbreaker"],                                      why: "좋은 인수 제안이 들어왔을 때, 팀이 같은 답을 할까요? 비전은 평소엔 맞는 것 같다가, 결정적인 순간에 갈립니다." },
-  { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"],                          why: "런웨이 2개월, 투자도 없고 매출도 없다면 — 팀의 첫 번째 결정이 뭔지 지금 말할 수 있나요? 위기가 오기 전에만 이 대화가 쉽습니다." },
-  { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"],  why: "빠른 사람과 신중한 사람이 함께 일하면, 둘 다 상대가 문제라고 느껴요. 결정 방식을 맞춰본 팀과 그렇지 않은 팀은 실행 속도부터 달라집니다." },
+  { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"],                          why: "투자를 어떤 조건이면 받을지, 자금이 마를 때 무엇부터 줄일지 정하는 자리예요. 정해두지 않으면 제안이 온 자리에서 둘의 답이 갈리고, 런웨이가 짧아진 뒤엔 추가 출자 여력 차이까지 드러납니다." },
+  { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"],  why: "어디까지 혼자 정하고 어디부터 같이 정할지, 설득이 안 될 땐 누가 끝을 내는지 정하는 자리예요. 이게 비어 있으면 급할 때마다 한 명이 먼저 움직이고, 반복되면 권한 다툼이 됩니다." },
   { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"],      why: "말 안 해도 서로 기대하고 있는 게 지분과 보상이에요. 초기에 맞춰두지 않으면 매출이 나고 규모가 커질수록 이해관계가 벌어져, 나중엔 조율 비용이 훨씬 더 커집니다." },
 ];
 const FIELD_TO_DEF: Record<string, QuestionDef> = Object.fromEntries(QUESTION_DEFS.map(d => [d.field, d]));
@@ -162,20 +162,6 @@ function GapReportPageInner() {
     ? myMemberAnswers
     : firestoreSoloAnswers;
   const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
-  // 팀원 답변 없이도, 내 답이 toxicPair의 한쪽이면 그 항목을 왜 맞춰야 하는지는 지금 말할 수 있다.
-  // 선택지의 61%가 toxicPair에 걸려서 그냥 두면 평균 12개가 뜬다. 경고가 12개면 경고가 아니다.
-  // 카드 한 장에 한 줄씩만 넣는다(나머지 카테고리의 why 문구와 같은 형식). 가중치 높은
-  // 카테고리 3곳을 골라 각각 한 항목만 남긴다.
-  // soloAnswers가 매 렌더 새 객체라 useMemo는 안 먹는다. 20문항 루프라 그냥 돈다.
-  const soloSplits = Object.values(
-    splitPointsFor(soloAnswers).reduce<Record<number, SplitPoint>>((acc, sp) => {
-      const cat = FIELD_TO_CAT[sp.def.field] ?? 0;
-      if (!acc[cat]) acc[cat] = sp; // 카테고리별 첫 항목만
-      return acc;
-    }, {})
-  )
-    .sort((a, b) => (CAT_WEIGHTS[FIELD_TO_CAT[b.def.field] ?? 0] ?? 0) - (CAT_WEIGHTS[FIELD_TO_CAT[a.def.field] ?? 0] ?? 0))
-    .slice(0, 3);
   const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
   // 이미 팀이 있으면 링크가 벌써 발급돼 있다. 워크스페이스·팀설정까지 걸어가게 하지 않고 여기서 바로 보낸다.
   const myTeam = teams.find(t => t.id === activeTeamId) ?? teams[0];
@@ -408,9 +394,7 @@ function GapReportPageInner() {
           <div className="card" style={{ width: "100%", maxWidth: "640px", margin: "0 auto", padding: "32px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: "800", color: "#0f172a", marginBottom: "6px" }}>내 창업 기준 요약</h2>
             <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "28px", lineHeight: "1.6" }}>
-              {soloSplits.length > 0
-                ? `진단에서 선택한 내 기준이에요. 그중 팀원과 정면으로 갈릴 수 있는 지점을 ${CAT_LABELS[FIELD_TO_CAT[soloSplits[0].def.field] ?? 0]}부터 짚었습니다.`
-                : "진단에서 선택한 내 기준이에요. 팀원이 완료하면 어떤 항목에서 기준이 다른지 자동으로 분석됩니다."}
+              진단에서 선택한 내 기준이에요. 각 영역에서 무엇을 정해둬야 하는지 함께 적었습니다.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               {SOLO_CATEGORIES.map(cat => {
@@ -429,7 +413,6 @@ function GapReportPageInner() {
                     </div>
                   );
                 }
-                const catSplit = soloSplits.find(sp => (cat.fields as string[]).includes(sp.def.field));
                 return (
                   <div key={cat.label} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
                     <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0" }}>
@@ -448,13 +431,12 @@ function GapReportPageInner() {
                         </div>
                       ))}
                       <div style={{ marginTop: "10px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
-                        {/* 카드 6장 전부 같은 모양이다 — 대화 아이콘 하나, 문단 하나.
-                            내 답이 부딪치기 쉬운 항목이 있으면 그 항목의 stake(맞추지 않으면
-                            무슨 일이 생기는지)를 쓰고, 없으면 카테고리 기본 문구를 쓴다.
-                            경고색·경고 아이콘은 쓰지 않는다. 어느 답이 충돌 쌍인지도 말하지 않는다. */}
+                        {/* 카드 6장 전부 같은 문장을 쓴다 — 이 카테고리의 결정 방식을 정해두지
+                            않으면 무슨 피해가 오는지. 문항별 stake를 섞어봤지만 개별 상황 서술이라
+                            카테고리 카드에는 결이 맞지 않았다. */}
                         <p style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px", wordBreak: "keep-all" }}>
                           <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#64748b" }} />
-                          <span>{(catSplit && SCRIPTS[catSplit.def.id]?.stake) || cat.why}</span>
+                          <span>{cat.why}</span>
                         </p>
                       </div>
                     </div>
