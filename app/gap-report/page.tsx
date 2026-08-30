@@ -429,7 +429,9 @@ function GapReportPageInner() {
                         <div key={item.field} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
                           <span style={{ fontSize: "12px", color: "#94a3b8" }}>{item.def.label}</span>
                           <span style={{ fontSize: "12px", color: "#94a3b8", textAlign: "right" }}>
-                            {item.def.optionLabels[item.val!] ?? item.val}
+                            {/* 저장값은 "1. 일단 내가 직접 처리하며…" 원문이라 optionLabels가 안 걸렸다.
+                                아래 갈림 지점과 같은 짧은 라벨로 맞춘다. */}
+                            {item.def.optionLabels[item.val![0]] ?? item.val}
                           </span>
                         </div>
                       ))}
