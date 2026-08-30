@@ -9,7 +9,7 @@ import { collection, doc, getDocs, setDoc, updateDoc } from "firebase/firestore"
 import { db } from "../../../../lib/firebase";
 import { computeGapSummary } from "../../../../lib/gap";
 import { computeTeamProgress } from "../../../../lib/teamProgress";
-import { appendDiagnosisHistory } from "../../../../lib/history";
+import { appendDiagnosisHistory, appendSoloHistory } from "../../../../lib/history";
 
 function DiagnosisCompletePageInner() {
   const router = useRouter();
@@ -116,7 +116,10 @@ function DiagnosisCompletePageInner() {
       } else {
         const filledAnswers = Object.fromEntries(Object.entries(answers).filter(([, v]) => v !== ""));
         if (Object.keys(filledAnswers).length > 0) {
-          await updateDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress });
+          // 익명 사용자는 users 문서가 없다. merge로 만들면서 쓴다.
+          await setDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress }, { merge: true });
+          // 팀이 없으면 이력이 아예 안 남고 있었다. 팀 멤버 문서 대신 users/{uid}에 쌓는다.
+          await appendSoloHistory(user.uid, answers, progress);
         }
       }
       let dest = destination;

@@ -235,9 +235,10 @@ export default function WorkspaceCreatePage() {
       { merge: true }
     );
 
-    await updateDoc(doc(db, "users", user.uid), {
+    // 익명 사용자는 users 문서가 없다. merge로 만들면서 쓴다.
+    await setDoc(doc(db, "users", user.uid), {
       teamIds: arrayUnion(teamRef.id), lastActiveTeamId: teamRef.id,
-    });
+    }, { merge: true });
 
     setActiveTeams(activeTeams + 1);
     setActiveSessions(activeSessions + 1);

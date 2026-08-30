@@ -7,6 +7,7 @@ import { useUserProfile } from "../../../components/useUserProfile";
 import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { computeGapSummary } from "../../../lib/gap";
+import { appendDiagnosisHistory, appendSoloHistory } from "../../../lib/history";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ScenarioIllustration } from "../../../components/ScenarioIllustration";
@@ -736,11 +737,16 @@ function OnboardingDiagnosisPageInner() {
         gapCount,
         gapScore
       });
+      // Q12 체크포인트(complete)에서만 이력이 남고 있었다. 20문항 완성본이 빠지면
+      // 가중치 1·2위(지분&보상, 의사결정&실행) 응답이 통째로 기록에서 사라진다.
+      await appendDiagnosisHistory(activeTeamId, user.uid, answers, progress);
     } else {
       // 팀이 없으면 Q13~Q20이 저장될 곳이 없었다. Q12 지점(complete/page.tsx)과 같은 자리에 쌓는다.
       const filledAnswers = Object.fromEntries(Object.entries(answers).filter(([, v]) => v !== ""));
       if (Object.keys(filledAnswers).length > 0) {
-        await updateDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress });
+        // 익명 사용자는 users 문서가 없다. merge로 만들면서 쓴다.
+        await setDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress }, { merge: true });
+        await appendSoloHistory(user.uid, answers, progress);
       }
     }
     // ponytail: setDoc merge — 프로필 문서가 없는 계정(가입 중 저장 실패)도 여기서 복구
