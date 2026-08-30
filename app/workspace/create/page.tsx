@@ -45,7 +45,7 @@ const chipStyle = (on: boolean): React.CSSProperties => ({
 
 export default function WorkspaceCreatePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, isGuest } = useAuth();
   const {
     activeTeams, activeSessions, setActiveTeams, setActiveSessions,
     progress, department, setDepartment, role, setRole,
@@ -369,6 +369,23 @@ export default function WorkspaceCreatePage() {
                 ))}
               </div>
             </div>
+
+            {/* 가입 유도는 진짜 이유가 생긴 자리에만 둔다. 지금 팀·답변·초대링크가 전부
+                이 브라우저에만 있고, 팀원이 답하면 본인이 다시 들어와서 봐야 한다.
+                알림 기능은 없으므로 알림을 약속하지 않는다. */}
+            {isGuest && (
+              <div style={{ marginTop: 24, paddingTop: 18, borderTop: "1px dashed #e2e8f0", textAlign: "center" }}>
+                <p style={{ fontSize: 13.5, fontWeight: 700, color: "#1e293b", margin: "0 0 4px", wordBreak: "keep-all" }}>
+                  이 결과는 이 브라우저에만 있어요
+                </p>
+                <p style={{ fontSize: 12.5, color: "#64748b", margin: "0 0 14px", wordBreak: "keep-all" }}>
+                  기기를 바꾸면 이 팀을 못 찾아요.
+                </p>
+                <Link className="btn btn-primary" href="/register" style={{ display: "inline-flex" }}>
+                  이메일로 저장해두기
+                </Link>
+              </div>
+            )}
 
             <button
               className="btn btn-ghost full wizard-btn"
