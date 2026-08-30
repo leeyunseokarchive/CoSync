@@ -731,6 +731,12 @@ function OnboardingDiagnosisPageInner() {
         gapCount,
         gapScore
       });
+    } else {
+      // 팀이 없으면 Q13~Q20이 저장될 곳이 없었다. Q12 지점(complete/page.tsx)과 같은 자리에 쌓는다.
+      const filledAnswers = Object.fromEntries(Object.entries(answers).filter(([, v]) => v !== ""));
+      if (Object.keys(filledAnswers).length > 0) {
+        await updateDoc(doc(db, "users", user.uid), { soloAnswers: filledAnswers, soloProgress: progress });
+      }
     }
     // ponytail: setDoc merge — 프로필 문서가 없는 계정(가입 중 저장 실패)도 여기서 복구
     await setDoc(doc(db, "users", user.uid), {
@@ -738,7 +744,8 @@ function OnboardingDiagnosisPageInner() {
       role,
       updatedAt: serverTimestamp()
     }, { merge: true });
-    router.push(activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace");
+    // 20문항을 다 풀고도 결과를 못 보고 팀 생성으로 튕기던 자리. 솔로도 자기 리포트를 먼저 본다.
+    router.push(activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/gap-report");
     } catch (e) {
       console.error(e);
       alert("진단 결과 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");

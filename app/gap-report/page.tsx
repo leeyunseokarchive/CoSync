@@ -406,7 +406,17 @@ function GapReportPageInner() {
                 const answeredItems = cat.fields
                   .map(f => ({ field: f, def: FIELD_TO_DEF[f], val: soloAnswers[f] }))
                   .filter(item => Boolean(item.val) && item.def);
-                if (answeredItems.length === 0) return null;
+                // 안 푼 카테고리를 통째로 지우면 6개 중 5개만 보이는 걸 사용자가 알 방법이 없다.
+                // 하필 가중치 1·2위(지분&보상 0.28, 의사결정&실행 0.22)가 추가 진단에 몰려 있다.
+                if (answeredItems.length === 0) {
+                  return (
+                    <div key={cat.label} style={{ border: "1px dashed #e2e8f0", borderRadius: "12px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Lock size={13} style={{ flexShrink: 0, color: "#cbd5e1" }} />
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.04em" }}>{cat.label}</span>
+                      <span style={{ fontSize: "12px", color: "#cbd5e1", marginLeft: "auto" }}>추가 진단 Q13~Q20에서 채워져요</span>
+                    </div>
+                  );
+                }
                 const catSplits = soloSplits.filter(sp => (cat.fields as string[]).includes(sp.def.field));
                 return (
                   <div key={cat.label} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
@@ -452,15 +462,37 @@ function GapReportPageInner() {
                 );
               })}
             </div>
-            <div style={{ background: "rgba(91,91,231,0.05)", border: "1px solid rgba(91,91,231,0.15)", borderRadius: "12px", padding: "20px 24px", textAlign: "center" }}>
-              <p style={{ fontSize: "13px", color: "#475569", marginBottom: "14px", lineHeight: "1.6" }}>
-                혼자 보는 기준은 <strong>절반의 정보</strong>예요.<br />
-                팀 전체가 완료하면 어디서 인식이 다른지,<br />
-                <strong>갈등이 생기기 전에 미리 확인</strong>할 수 있어요.
+            {/* 위 카드가 말할 수 있는 건 "갈릴 수 있다"까지다. 무엇이 실제로 갈렸는지는
+                팀원 답변이 있어야 정해진다. 그 경계를 CTA에서 분명히 한다. */}
+            <div style={{ background: "rgba(91,91,231,0.05)", border: "1px solid rgba(91,91,231,0.15)", borderRadius: "12px", padding: "22px 24px" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", margin: "0 0 12px", lineHeight: "1.5", textAlign: "center" }}>
+                여기까지는 내 기준 요약이에요
               </p>
-              <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
-                팀 갭 리포트 무료로 받기 →
-              </Link>
+              <p style={{ fontSize: "13px", color: "#475569", margin: "0 0 16px", lineHeight: "1.7", textAlign: "center" }}>
+                {soloSplits.length > 0
+                  ? <>위에서 짚은 갈림 지점은 <strong>&lsquo;그 답을 고른 팀원과 만나면&rsquo;</strong>이라는 가정이에요.<br />실제로 갈렸는지는 팀원이 답해야 정해집니다.</>
+                  : <>내가 무엇을 골랐는지까지만 알 수 있어요.<br />어디서 부딪치는지는 팀원 답변이 있어야 나옵니다.</>}
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 18px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  "20문항을 나란히 놓은 응답 히트맵",
+                  "카테고리별 정렬도와 전체 정렬도(%)",
+                  "치명적 충돌로 분류된 항목과 그 대화 스크립트",
+                ].map(t => (
+                  <li key={t} style={{ display: "flex", gap: "8px", alignItems: "flex-start", fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
+                    <Lock size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#8b8bf0" }} />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <div style={{ textAlign: "center" }}>
+                <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
+                  팀원 초대하고 갭 리포트 열기 →
+                </Link>
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "10px 0 0", lineHeight: "1.5" }}>
+                  팀원이 진단을 마치는 즉시 이 페이지가 팀 리포트로 바뀝니다. 추가 비용 없음.
+                </p>
+              </div>
             </div>
           </div>
         )}
