@@ -6,6 +6,8 @@ import { QuestionInput, formatKoreanAmount, formatNumber } from "../../../compon
 import { PenaltyInput } from "../../../components/PenaltyInput";
 import {
   CONTRACT_QUESTIONS,
+  visibleQuestions,
+  structureOf,
   QUESTION_GROUPS,
   MOCK_MEMBERS,
   INFO_DISCLAIMER,
@@ -30,7 +32,9 @@ export default function ContractQuestionsMockup() {
   const [exceptions, setExceptions] = useState<Record<string, string>>({});
   const [exceptionOpen, setExceptionOpen] = useState(false);
 
-  const q = CONTRACT_QUESTIONS[index];
+  // 구조 선택에 따라 물을 문항이 달라진다. 화면은 전체가 아니라 이 목록을 기준으로 돈다.
+  const questions = visibleQuestions(answers);
+  const q = questions[Math.min(index, questions.length - 1)];
   const value = answers[q.id];
   const setValue = (v: unknown) => setAnswers((prev) => ({ ...prev, [q.id]: v }));
   const exception = exceptions[q.id] ?? "";
@@ -44,7 +48,7 @@ export default function ContractQuestionsMockup() {
 
   // 지분 배분이 미완이어도 사이드바 이동은 막지 않는다. 되돌아와 채우면 된다.
   const jumpTo = (i: number) => {
-    setIndex(Math.min(CONTRACT_QUESTIONS.length - 1, Math.max(0, i)));
+    setIndex(Math.min(questions.length - 1, Math.max(0, i)));
     setExceptionOpen(false);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -59,7 +63,7 @@ export default function ContractQuestionsMockup() {
   };
   const go = (delta: number) => jumpTo(index + delta);
 
-  const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
+  const progress = Math.round(((index + 1) / questions.length) * 100);
 
   return (
     <div className="cq-page">
@@ -77,10 +81,10 @@ export default function ContractQuestionsMockup() {
           <div className="cq-sidebar-label">Team Consensus</div>
           <nav className="cq-sidebar-nav" aria-label="질문 목록">
             {QUESTION_GROUPS.map((g) => {
-              const inGroup = CONTRACT_QUESTIONS.filter((x) => x.group === g.id);
+              const inGroup = questions.filter((x) => x.group === g.id);
               const done = inGroup.filter((x) => answers[x.id] !== undefined).length;
               const active = q.group === g.id;
-              const firstIndex = CONTRACT_QUESTIONS.findIndex((x) => x.group === g.id);
+              const firstIndex = questions.findIndex((x) => x.group === g.id);
               return (
                 <div key={g.id} className={`cq-side-group ${active ? "active" : ""}`}>
                   <button type="button" className="cq-side-head" onClick={() => jumpTo(firstIndex)}>
@@ -95,7 +99,7 @@ export default function ContractQuestionsMockup() {
                   </button>
                   <ul className="cq-side-list">
                     {inGroup.map((item) => {
-                      const idx = CONTRACT_QUESTIONS.indexOf(item);
+                      const idx = questions.indexOf(item);
                       const answered = answers[item.id] !== undefined;
                       return (
                         <li key={item.id}>
@@ -206,6 +210,18 @@ export default function ContractQuestionsMockup() {
         </main>
 
         <aside className="cq-info" aria-label="이 조항에 대한 정보">
+          {/* 2차 변호사 자문: 공평 구조를 고르면 반드시 붙여야 하는 고지.
+              "대표님도 제재 대상이 되고, 퇴사 시 지분이 다른 사람들에게 들어가고,
+               투자 유치 과정에서 다시 수정해야 될 수도 있다. 그럴 때는 전문가를 찾아가라" */}
+          {structureOf(answers) === "fair" && (
+            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>주주 공평 구조를 골랐어요</div>
+              <p style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.7, margin: 0, wordBreak: "keep-all" }}>
+                대표도 이 계약의 제재 대상이 되고, 대표가 퇴사하면 그 지분이 다른 주주들에게 넘어갑니다.
+                나중에 투자를 유치할 때 이 계약서를 다시 손봐야 할 수 있고, 그 시점에는 전문가의 검토를 받으세요.
+              </p>
+            </div>
+          )}
           <div className="cq-info-label">알아두면 좋은 것</div>
 
           <section className="cq-info-card">
@@ -248,7 +264,7 @@ export default function ContractQuestionsMockup() {
           <div className="cq-team"><Users size={14} /> 3명 중 2명 응답</div>
           <div className="cq-progress">
             <div className="cq-progress-meta">
-              <span className="cq-progress-label">{index + 1} / {CONTRACT_QUESTIONS.length}</span>
+              <span className="cq-progress-label">{index + 1} / {questions.length}</span>
               <span className="cq-progress-pct">{progress}%</span>
             </div>
             <div className="cq-progress-bar"><span style={{ width: `${progress}%` }} /></div>
@@ -256,7 +272,7 @@ export default function ContractQuestionsMockup() {
           <button
             className="cq-cta"
             type="button"
-            disabled={blocked || index === CONTRACT_QUESTIONS.length - 1}
+            disabled={blocked || index === questions.length - 1}
             onClick={() => go(1)}
           >
             다음 <ArrowRight size={20} />

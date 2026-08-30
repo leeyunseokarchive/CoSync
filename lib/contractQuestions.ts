@@ -57,6 +57,10 @@ export type ContractQuestion = {
   topic: string;        // 조문 번호 대신 화면에 세우는 우리말 주제목 (ex. 지분 배분)
   proposed: boolean;    // true면 `제안` 배지 — 사용자 확정 전 후보 문항
   consensus: boolean;   // false면 합의 대상 아닌 사실정보
+  // 대표자 중심 구조를 고르면 이 문항은 묻지 않는다. 그 구조에서는 답이 이미
+  // "대표가 결정한다"로 정해져 있어서 물어봐야 선택지가 하나뿐이다.
+  // (2차 변호사 자문: "대표자 중심 구조를 만들었다면 많은 부분이 생략될 수도 있고")
+  skipWhenLeaderLed?: boolean;
   title: string;
   desc: string;
   template?: QuestionTemplate;
@@ -139,6 +143,48 @@ export function fillPreview(template: string, values: (string | null)[]) {
 
 
 export const CONTRACT_QUESTIONS: ContractQuestion[] = [
+  {
+    // 2차 변호사 자문에서 가장 강조된 갈래. 이 선택 하나가 이후 문항의 절반을 좌우한다.
+    // "그 선택 여부를 ... 가장 초기 당사자 세팅하기 전에 어딘가에 넣어서 고르게 만드는 게 어떨까"
+    id: "structure",
+    group: "basics",
+    article: "전문 · 계약 성격",
+    articleTag: "STRUCTURE",
+    topic: "계약 성격",
+    proposed: true,
+    consensus: true,
+    title: "어떤 성격의 계약을 만드나요?",
+    desc: "대표에게 권한을 모을지, 주주 모두에게 같은 규칙을 적용할지 정합니다. 이 선택에 따라 뒤에 묻는 항목이 달라집니다.",
+    template: {
+      type: "choice",
+      options: [
+        {
+          id: "leader",
+          label: "대표자 중심",
+          desc: "결정이 막히면 대표가 정하고, 근속 의무와 지분 회수는 대표를 제외한 주주에게 적용됩니다. 외부 투자를 계획한다면 이 구조를 쓰는 경우가 많습니다.",
+        },
+        {
+          id: "fair",
+          label: "주주 공평",
+          desc: "대표를 포함한 모든 주주에게 같은 규칙이 적용됩니다. 투자 유치 계획이 없고 매출로 운영할 때 선택하는 경우가 많습니다.",
+        },
+      ],
+    },
+    preview: {
+      article: "계약 전문 (당사자와 계약 성격)",
+      blocks: [
+        { kind: "para", text: "주주 [ ], [ ], [ ](이하 '주주들'이라 한다)은 회사의 설립 및 운영에 관하여 다음과 같이 합의한다." },
+        { kind: "para", text: "본 계약은 {0} 구조를 전제로 한다." },
+        { kind: "ellipsis" },
+      ],
+    },
+    info: {
+      what: "계약 전체의 성격을 정하는 선택입니다. 대표자 중심은 최종 결정권과 지분 회수권을 대표에게 모으고, 근속 의무를 대표 외 주주에게만 지웁니다. 주주 공평은 대표를 포함한 전원에게 같은 규칙을 적용하며, 시중에 도는 표준 주주간계약서 대부분이 이 형태입니다.",
+      ifUnset: "정하지 않으면 뒤에 나오는 결정권·회수·근속 관련 조항이 서로 다른 전제로 채워질 수 있습니다.",
+      low: "주주 공평 구조에서는 대표도 계약의 제재 대상이 되고, 대표가 퇴사하면 그 지분이 다른 주주들에게 넘어갑니다. 투자 유치 단계에서 계약서를 다시 손봐야 하는 경우가 있습니다.",
+      high: "대표자 중심 구조에서는 대표에게 결정권이 모이는 대신 나머지 주주의 재량이 줄어듭니다. 소수 주주가 받아들일 수 있는 범위인지 함께 확인해야 합니다.",
+    },
+  },
   {
     id: "identity",
     group: "basics",
@@ -261,6 +307,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     topic: "큰 투자의 기준 금액",
     proposed: false,
     consensus: true,
+    skipWhenLeaderLed: true,
     title: "얼마를 넘는 투자부터 전원 동의가 필요한가요?",
     desc: "이 금액을 넘는 투자는 주주 전원이 동의해야 진행할 수 있습니다.",
     template: {
@@ -295,6 +342,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     topic: "결정이 막혔을 때",
     proposed: false,
     consensus: true,
+    skipWhenLeaderLed: true,
     title: "전원 동의가 안 되면 며칠 더 이야기하고, 누가 결정하나요?",
     desc: "아래 7가지는 주주 전원이 동의해야 정할 수 있습니다. 한 명이라도 반대해 결정이 멈췄을 때, 며칠을 더 이야기하고 그래도 안 되면 누가 끝을 낼지 정합니다.",
     template: {
@@ -654,3 +702,21 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     },
   },
 ];
+
+/** 구조 선택 답. 고르기 전에는 null. */
+export const structureOf = (answers: Record<string, unknown>): "leader" | "fair" | null => {
+  const v = answers.structure;
+  const id = typeof v === "string" ? v : (v as { id?: string } | undefined)?.id;
+  return id === "leader" || id === "fair" ? id : null;
+};
+
+/**
+ * 지금 물어야 할 문항만 남긴다.
+ * 대표자 중심을 고르면 결정권 관련 문항이 빠진다 — 그 구조에선 답이 "대표가 결정"으로
+ * 이미 정해져 있어 선택지가 하나뿐이다. 고르기 전에는 전부 보여준다(개수가 줄어드는
+ * 모습을 보여주는 편이 갑자기 늘어나는 것보다 덜 혼란스럽다).
+ */
+export function visibleQuestions(answers: Record<string, unknown>): ContractQuestion[] {
+  if (structureOf(answers) !== "leader") return CONTRACT_QUESTIONS;
+  return CONTRACT_QUESTIONS.filter((q) => !q.skipWhenLeaderLed);
+}

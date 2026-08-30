@@ -11,17 +11,17 @@ import {
   type QuestionTemplate,
 } from "./contractQuestions.ts";
 
-test("질문은 15개이고 id가 중복되지 않는다", () => {
-  assert.equal(CONTRACT_QUESTIONS.length, 15);
+test("질문은 16개이고 id가 중복되지 않는다", () => {
+  assert.equal(CONTRACT_QUESTIONS.length, 16);
   const ids = CONTRACT_QUESTIONS.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("확정 9개 / 제안 6개로 나뉜다", () => {
+test("확정 9개 / 제안 7개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
   assert.deepEqual(
     proposed.map((q) => q.id),
-    ["identity", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
+    ["structure", "identity", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
   );
   assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 9);
 });
