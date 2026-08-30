@@ -438,7 +438,7 @@ export default function ContractResultsMockup() {
 
       <footer className="cq-footer">
         <button className="cq-back" type="button" disabled={index === 0} onClick={() => go(-1)}>
-          <ArrowLeft size={18} /> 이전
+          <ArrowLeft size={20} /> 이전
         </button>
         <div className="cq-footer-right">
           <div className="cq-team"><Users size={14} /> 3명 중 2명 응답</div>
@@ -803,16 +803,16 @@ const CSS = `
 .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
 
 .cq-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226,232,240,0.5); z-index: 100; }
-.cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .cq-back:hover:not(:disabled) { color: #4F46E5; background: #f8fafc; }
 .cq-back:disabled { opacity: 0.4; cursor: not-allowed; }
-.cq-footer-right { display: flex; align-items: center; gap: 32px; }
+.cq-footer-right { display: flex; align-items: center; gap: 44px; }
 .cq-team { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #94a3b8; }
 .cq-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .cq-progress-meta { display: flex; align-items: center; gap: 14px; }
 .cq-progress-label { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; }
 .cq-progress-pct { font-size: 14px; font-weight: 900; color: #4F46E5; font-variant-numeric: tabular-nums; }
-.cq-progress-bar { width: 224px; height: 8px; background: rgba(241,245,249,0.8); border-radius: 999px; overflow: hidden; }
+.cq-progress-bar { width: 320px; height: 8px; background: rgba(241,245,249,0.8); border-radius: 999px; overflow: hidden; }
 .cq-progress-bar span { display: block; height: 100%; background: #4F46E5; border-radius: 999px; transition: width 0.2s; }
 .cq-cta { height: 56px; padding: 0 40px; background: #4F46E5; color: #fff; font: inherit; font-size: 16px; font-weight: 900; border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(79,70,229,0.3); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; }
 .cq-cta:hover:not(:disabled) { background: #4338CA; }
