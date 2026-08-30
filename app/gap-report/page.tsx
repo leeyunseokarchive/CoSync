@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState, Suspense, type CSSProperties } from "react";
 import { TopNav } from "../../components/TopNav";
+import { InviteLinkButton } from "../../components/InviteLinkButton";
 import { Footer } from "../../components/Footer";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Keyboard } from "swiper/modules";
@@ -14,8 +15,8 @@ import { useUserProfile } from "../../components/useUserProfile";
 import { useTeams } from "../../components/useTeams";
 import { useTeamMembers } from "../../components/useTeamMembers";
 import { CAT_LABELS, CAT_WEIGHTS, QUESTION_CONFIGS, computeGapSummary, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "../../lib/gap";
-import { QUESTION_DEFS, SCRIPTS, generateInsight, josa, splitPointsFor, type QuestionDef } from "../../lib/deepQuestions";
-import { AlertTriangle, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
+import { QUESTION_DEFS, SCRIPTS, generateInsight, splitPointsFor, type QuestionDef, type SplitPoint } from "../../lib/deepQuestions";
+import { Check, TrendingUp, MessageCircle, Lock, ShieldAlert, Compass, FileText, RefreshCw, Star, Scale, Lightbulb } from "lucide-react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useAppState } from "../../components/AppState";
@@ -160,14 +161,23 @@ function GapReportPageInner() {
     ? myMemberAnswers
     : firestoreSoloAnswers;
   const hasSoloAnswers = members.length < 2 && Object.values(soloAnswers).some(Boolean);
-  // 팀원 답변 없이도, 내 답이 toxicPair의 한쪽이면 어느 답과 부딪치는지는 지금 말할 수 있다.
-  // 선택지의 61%가 toxicPair에 걸려서 그냥 두면 평균 12개가 뜬다. 경고가 12개면 경고가 아니라
-  // 배경이 되므로, 카테고리 가중치 상위 3개만 남긴다. 나머지 카테고리는 기존 why 문구를 쓴다.
+  // 팀원 답변 없이도, 내 답이 toxicPair의 한쪽이면 그 항목을 왜 맞춰야 하는지는 지금 말할 수 있다.
+  // 선택지의 61%가 toxicPair에 걸려서 그냥 두면 평균 12개가 뜬다. 경고가 12개면 경고가 아니다.
+  // 카드 한 장에 한 줄씩만 넣는다(나머지 카테고리의 why 문구와 같은 형식). 가중치 높은
+  // 카테고리 3곳을 골라 각각 한 항목만 남긴다.
   // soloAnswers가 매 렌더 새 객체라 useMemo는 안 먹는다. 20문항 루프라 그냥 돈다.
-  const soloSplits = splitPointsFor(soloAnswers)
+  const soloSplits = Object.values(
+    splitPointsFor(soloAnswers).reduce<Record<number, SplitPoint>>((acc, sp) => {
+      const cat = FIELD_TO_CAT[sp.def.field] ?? 0;
+      if (!acc[cat]) acc[cat] = sp; // 카테고리별 첫 항목만
+      return acc;
+    }, {})
+  )
     .sort((a, b) => (CAT_WEIGHTS[FIELD_TO_CAT[b.def.field] ?? 0] ?? 0) - (CAT_WEIGHTS[FIELD_TO_CAT[a.def.field] ?? 0] ?? 0))
     .slice(0, 3);
   const inviteHref = activeTeamId ? `/workspace?teamId=${activeTeamId}` : "/workspace/create";
+  // 이미 팀이 있으면 링크가 벌써 발급돼 있다. 워크스페이스·팀설정까지 걸어가게 하지 않고 여기서 바로 보낸다.
+  const myTeam = teams.find(t => t.id === activeTeamId) ?? teams[0];
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -410,14 +420,15 @@ function GapReportPageInner() {
                 // 하필 가중치 1·2위(지분&보상 0.28, 의사결정&실행 0.22)가 추가 진단에 몰려 있다.
                 if (answeredItems.length === 0) {
                   return (
-                    <div key={cat.label} style={{ border: "1px dashed #e2e8f0", borderRadius: "12px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Lock size={13} style={{ flexShrink: 0, color: "#cbd5e1" }} />
-                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.04em" }}>{cat.label}</span>
-                      <span style={{ fontSize: "12px", color: "#cbd5e1", marginLeft: "auto" }}>추가 진단 Q13~Q20에서 채워져요</span>
+                    <div key={cat.label} style={{ border: "1px dashed #cbd5e1", background: "#f8fafc", borderRadius: "12px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "nowrap" }}>
+                      <Lock size={13} style={{ flexShrink: 0, color: "#64748b" }} />
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#475569", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>{cat.label}</span>
+                      {/* 카테고리 이름 길이가 제각각이라 한쪽만 두 줄로 접혔다. 줄바꿈을 막고 폭에 맞춰 줄인다. */}
+                      <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Q13~Q20에서 채워져요</span>
                     </div>
                   );
                 }
-                const catSplits = soloSplits.filter(sp => (cat.fields as string[]).includes(sp.def.field));
+                const catSplit = soloSplits.find(sp => (cat.fields as string[]).includes(sp.def.field));
                 return (
                   <div key={cat.label} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
                     <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0" }}>
@@ -436,63 +447,61 @@ function GapReportPageInner() {
                         </div>
                       ))}
                       <div style={{ marginTop: "10px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
-                        {catSplits.length > 0 ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                            {catSplits.map(sp => (
-                              <p key={sp.def.id} style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px" }}>
-                                <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#b45309" }} />
-                                <span>
-                                  <strong style={{ fontWeight: 700 }}>{sp.def.label}</strong>에서 나는{" "}
-                                  <strong style={{ fontWeight: 700 }}>&lsquo;{sp.def.optionLabels[sp.mine]}&rsquo;</strong>
-                                  {josa(sp.def.optionLabels[sp.mine], "을", "를")} 골랐어요. 팀원이{" "}
-                                  {sp.theirs.map(t => `‘${sp.def.optionLabels[t]}’`).join(" 또는 ")}
-                                  {josa(sp.def.optionLabels[sp.theirs[sp.theirs.length - 1]], "을", "를")} 고르면
-                                  이 항목에서 기준이 정면으로 갈립니다.
-                                </span>
-                              </p>
-                            ))}
-                          </div>
-                        ) : (
-                          <p style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px" }}>
-                            <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#64748b" }} />
-                            <span>{cat.why}</span>
-                          </p>
-                        )}
+                        {/* 카드 6장 전부 같은 모양이다 — 대화 아이콘 하나, 문단 하나.
+                            내 답이 부딪치기 쉬운 항목이 있으면 그 항목의 stake(맞추지 않으면
+                            무슨 일이 생기는지)를 쓰고, 없으면 카테고리 기본 문구를 쓴다.
+                            경고색·경고 아이콘은 쓰지 않는다. 어느 답이 충돌 쌍인지도 말하지 않는다. */}
+                        <p style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.65", margin: 0, display: "flex", gap: "6px", wordBreak: "keep-all" }}>
+                          <MessageCircle size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#64748b" }} />
+                          <span>{(catSplit && SCRIPTS[catSplit.def.id]?.stake) || cat.why}</span>
+                        </p>
                       </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-            {/* 위 카드가 말할 수 있는 건 "갈릴 수 있다"까지다. 무엇이 실제로 갈렸는지는
-                팀원 답변이 있어야 정해진다. 그 경계를 CTA에서 분명히 한다. */}
+            {/* 여기서 약속하는 셋은 결제 없이 실제로 열리는 것만이다.
+                히트맵·정렬도는 무료, 대화 스크립트는 상위 3개까지 무료.
+                합의 조항 생성은 /agreement/preview 결제 동선이라 여기서 말하지 않는다.
+                또 "충돌을 찾아준다"고만 하면 받는 팀원 입장에서 평가받는 걸로 읽힌다.
+                맞는 곳을 먼저 두고, 양쪽이 같이 답하고 같이 본다는 걸 분명히 한다. */}
             <div style={{ background: "rgba(91,91,231,0.05)", border: "1px solid rgba(91,91,231,0.15)", borderRadius: "12px", padding: "22px 24px" }}>
-              <p style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", margin: "0 0 12px", lineHeight: "1.5", textAlign: "center" }}>
-                여기까지는 내 기준 요약이에요
+              <p style={{ fontSize: "15px", fontWeight: 800, color: "#0f172a", margin: "0 0 10px", lineHeight: "1.5", textAlign: "center", wordBreak: "keep-all" }}>
+                지금은 나 혼자 답한 결과예요
               </p>
-              <p style={{ fontSize: "13px", color: "#475569", margin: "0 0 16px", lineHeight: "1.7", textAlign: "center" }}>
-                {soloSplits.length > 0
-                  ? <>위에서 짚은 갈림 지점은 <strong>&lsquo;그 답을 고른 팀원과 만나면&rsquo;</strong>이라는 가정이에요.<br />실제로 갈렸는지는 팀원이 답해야 정해집니다.</>
-                  : <>내가 무엇을 골랐는지까지만 알 수 있어요.<br />어디서 부딪치는지는 팀원 답변이 있어야 나옵니다.</>}
+              <p style={{ fontSize: "13px", color: "#475569", margin: "0 auto 18px", lineHeight: "1.7", textAlign: "center", wordBreak: "keep-all", maxWidth: "30em" }}>
+                팀원도 같은 20문항에 답하면 이런 게 나와요.
               </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 18px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {/* 한 줄에 하나씩, 화면에 실제로 뜨는 것만. 라벨은 제품이 쓰는 말 그대로("인식 일치율"). */}
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 18px", display: "flex", flexDirection: "column", gap: "10px" }}>
                 {[
-                  "20문항을 나란히 놓은 응답 히트맵",
-                  "카테고리별 정렬도와 전체 정렬도(%)",
-                  "치명적 충돌로 분류된 항목과 그 대화 스크립트",
+                  "우리 팀 인식 일치율이 몇 %인지",
+                  "20문항 중 어느 답이 갈렸는지 한 표에",
+                  "갈린 것 중 급한 3개는 무슨 말로 꺼낼지까지",
                 ].map(t => (
-                  <li key={t} style={{ display: "flex", gap: "8px", alignItems: "flex-start", fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
-                    <Lock size={13} style={{ flexShrink: 0, marginTop: "3px", color: "#8b8bf0" }} />
+                  <li key={t} style={{ display: "flex", gap: "9px", alignItems: "flex-start", fontSize: "13.5px", color: "#1e293b", lineHeight: "1.6", wordBreak: "keep-all" }}>
+                    <Check size={15} style={{ flexShrink: 0, marginTop: "3px", color: "#2fb9a7" }} />
                     <span>{t}</span>
                   </li>
                 ))}
               </ul>
               <div style={{ textAlign: "center" }}>
-                <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
-                  팀원 초대하고 갭 리포트 열기 →
-                </Link>
-                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "10px 0 0", lineHeight: "1.5" }}>
-                  팀원이 진단을 마치는 즉시 이 페이지가 팀 리포트로 바뀝니다. 추가 비용 없음.
+                {myTeam?.inviteCode ? (
+                  <InviteLinkButton
+                    inviteCode={myTeam.inviteCode}
+                    teamName={myTeam.name}
+                    label="팀원에게 진단 보내기 →"
+                    style={{ display: "inline-flex" }}
+                  />
+                ) : (
+                  <Link href={inviteHref} className="btn btn-primary" style={{ display: "inline-flex" }}>
+                    팀원에게 진단 보내기 →
+                  </Link>
+                )}
+                <p style={{ fontSize: "12.5px", color: "#64748b", margin: "10px auto 0", lineHeight: "1.65", wordBreak: "keep-all", maxWidth: "26em" }}>
+                  <span style={{ display: "block" }}>서로의 답은 둘 다 진단을 마칠 때까지 못 봐요.</span>
+                  <span style={{ display: "block" }}><strong style={{ color: "#5b5be7", fontWeight: 700 }}>팀원이 마치는 순간 팀 리포트가 바로 열립니다.</strong></span>
                 </p>
               </div>
             </div>
