@@ -6,6 +6,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
+import { GoogleAuthButton } from "../../components/GoogleAuthButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,6 +53,13 @@ export default function LoginPage() {
           <br />
           아직 계정이 없으신가요? <Link href="/register">회원가입</Link>
         </p>
+
+        <GoogleAuthButton label="Google로 로그인" />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+          <span style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+          <span style={{ fontSize: 12, color: "#94a3b8" }}>또는 이메일로 로그인</span>
+          <span style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+        </div>
 
         <form className="form-grid" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
           <label className="label" htmlFor="email-input">이메일 주소</label>

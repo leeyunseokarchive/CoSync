@@ -8,6 +8,7 @@ import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
+import { GoogleAuthButton } from "../../components/GoogleAuthButton";
 import { track } from "../../lib/analytics";
 
 const TOTAL_STEPS = 5;
@@ -196,6 +197,13 @@ export default function RegisterPage() {
               {/* "어떻게 불러드릴까요?"는 닉네임을 부르는 질문이다. 이 이름은 팀원 목록과
                   합의 문서 언저리까지 따라가므로 장난스러운 값이 들어오면 곤란하다.
                   "팀원에게 이 이름으로 표시돼요"도 뺀다 — 팀이 없는 사람에겐 맥락이 없다. */}
+              {/* 5단계 위저드를 통과하지 않고 한 번에 끝내는 길. 익명 세션이면 같은 uid에 붙는다. */}
+              <GoogleAuthButton />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+                <span style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>또는 이메일로 가입</span>
+                <span style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+              </div>
               <h1 className="wizard-question">이름을 입력해주세요</h1>
               <input
                 ref={nameRef}
