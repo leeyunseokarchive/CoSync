@@ -381,8 +381,15 @@ export default function WorkspaceCreatePage() {
                 <p style={{ fontSize: 12.5, color: "#64748b", margin: "0 0 14px", wordBreak: "keep-all" }}>
                   기기를 바꾸면 이 팀을 못 찾아요.
                 </p>
-                <Link className="btn btn-primary" href="/register" style={{ display: "inline-flex" }}>
-                  이메일로 저장해두기
+                <Link
+                  className="btn btn-primary"
+                  href="/register"
+                  style={{ display: "inline-flex" }}
+                  // /register가 이 플래그를 보고 "진단 결과를 저장하고 팀원을 초대하세요"로
+                  // 문구를 바꾼다. 이미 있는 분기라 세워주기만 하면 된다.
+                  onClick={() => localStorage.setItem("cosync-pending-save", "true")}
+                >
+                  저장해두기
                 </Link>
               </div>
             )}
