@@ -117,7 +117,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "deadlock" && deadlockDays) {
     out.push({
       id: "deadlock",
-      plain: `${deadlockDays}일 동안 이야기해 보고, 그래도 안 정해지면 대표가 정해요.`,
+      plain: `${deadlockDays}일 동안 이야기해 보고, 그래도 안 정해지면 대표가 정해요. 이 절차가 없으면 한 명만 반대해도 안건이 멈추고, 투자 유치도 같이 막힙니다.`,
       formal: `제2조 ③항에 따라 합의가 이루어지지 않으면 ${deadlockDays}일간 성실히 협의하고, 그 기간이 지나도 합의에 이르지 못한 사항은 대표이사인 주주의 의사에 따라 결정됩니다.`,
       figure: {
         shape: "timeline",

@@ -151,16 +151,6 @@ export default function ContractQuestionsMockup() {
 
             {(q.id === "penalty" || q.template) && (
               <section className="cq-input-zone">
-                {/* 값을 미리 채워둔 문항에는 왜 그렇게 채웠는지 알린다. 모르고 지나가면
-                    "내가 언제 이걸 골랐지"가 된다. */}
-                {structureOf(answers) === "leader" && LEADER_LED_DEFAULTS[q.id] !== undefined && (
-                  <div style={{ display: "flex", gap: 7, alignItems: "flex-start", background: "#f0f0fe", border: "1px solid #e0e0fb", borderRadius: 10, padding: "10px 12px", marginBottom: 16 }}>
-                    <Scale size={14} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
-                    <span style={{ fontSize: 12.5, color: "#3730a3", lineHeight: 1.6, wordBreak: "keep-all" }}>
-                      투자를 고려한다고 답해서 미리 채웠어요. 그대로 둬도 되고 바꿔도 됩니다.
-                    </span>
-                  </div>
-                )}
                 {q.id === "penalty" ? (
                   <PenaltyInput
                     value={value as { base?: number; rate?: number } | undefined}
