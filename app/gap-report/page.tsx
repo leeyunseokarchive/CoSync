@@ -88,11 +88,11 @@ const CLAUSE_DEFS: Record<string, ClauseDef> = {
 
 const SOLO_CATEGORIES: Array<{ label: string; fields: (keyof OnboardingAnswers)[]; why: string }> = [
   { label: "역할 & 책임",     fields: ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction"],               why: "'이건 내가 해야 해, 네가 해야 해?' — 이 질문이 자주 나온다면 역할 기준이 없는 거예요. 기준이 맞으면 마찰 대신 실행에 에너지를 씁니다." },
-  { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"],               why: "팀에서 누군가 떠나는 건 드문 일이 아니에요. 기준이 있으면 그때가 와도 원칙대로 처리할 수 있지만, 없으면 감정이 개입되고 법적 분쟁으로 번질 수 있습니다." },
+  { label: "이탈 & 회수",    fields: ["exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution"],               why: "누가 나갈 때 권한을 어떤 순서로 회수할지, 지분은 무엇을 기준으로 정리할지 미리 정하는 자리예요. 그때 가서 정하면 이미 감정이 들어가 있어서 계좌·코드·지분 하나하나가 협상 대상이 됩니다." },
   { label: "비전 & 가치관",   fields: ["exitVision", "pivotCriteria", "dealbreaker"],                                      why: "좋은 인수 제안이 들어왔을 때, 팀이 같은 답을 할까요? 비전은 평소엔 맞는 것 같다가, 결정적인 순간에 갈립니다." },
   { label: "조달 & 운용",    fields: ["fundingRunway", "spendingApproval", "investmentCriteria"],                          why: "투자를 어떤 조건이면 받을지, 자금이 마를 때 무엇부터 줄일지 정하는 자리예요. 정해두지 않으면 제안이 온 자리에서 둘의 답이 갈리고, 런웨이가 짧아진 뒤엔 추가 출자 여력 차이까지 드러납니다." },
   { label: "의사결정 & 실행", fields: ["decisionStructure", "decisionFailure", "actionVsConsensus", "deadlockTolerance"],  why: "어디까지 혼자 정하고 어디부터 같이 정할지, 설득이 안 될 땐 누가 끝을 내는지 정하는 자리예요. 이게 비어 있으면 급할 때마다 한 명이 먼저 움직이고, 반복되면 권한 다툼이 됩니다." },
-  { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"],      why: "말 안 해도 서로 기대하고 있는 게 지분과 보상이에요. 초기에 맞춰두지 않으면 매출이 나고 규모가 커질수록 이해관계가 벌어져, 나중엔 조율 비용이 훨씬 더 커집니다." },
+  { label: "지분 & 보상",     fields: ["salaryStructure", "equityStructure", "profitDistribution", "growthStrategy"],      why: "말 안 해도 서로 기대하고 있는 게 지분과 보상이에요. 기준 없이 시작하면 기여가 벌어져도 숫자는 그대로라, 매출이 나거나 투자를 받는 시점에 한꺼번에 터집니다." },
 ];
 const FIELD_TO_DEF: Record<string, QuestionDef> = Object.fromEntries(QUESTION_DEFS.map(d => [d.field, d]));
 const FIELD_TO_CAT: Record<string, number> = Object.fromEntries(QUESTION_CONFIGS.map(q => [q.field, q.cat]));
