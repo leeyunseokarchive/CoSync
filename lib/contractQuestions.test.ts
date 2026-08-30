@@ -21,7 +21,7 @@ test("확정 9개 / 제안 7개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
   assert.deepEqual(
     proposed.map((q) => q.id),
-    ["structure", "identity", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
+    ["identity", "structure", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
   );
   assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 9);
 });
