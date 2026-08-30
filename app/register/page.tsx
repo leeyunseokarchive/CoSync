@@ -193,12 +193,14 @@ export default function RegisterPage() {
                   </p>
                 </div>
               )}
-              <h1 className="wizard-question">어떻게 불러드릴까요?</h1>
-              <p className="wizard-sub">팀원에게 이 이름으로 표시돼요.</p>
+              {/* "어떻게 불러드릴까요?"는 닉네임을 부르는 질문이다. 이 이름은 팀원 목록과
+                  합의 문서 언저리까지 따라가므로 장난스러운 값이 들어오면 곤란하다.
+                  "팀원에게 이 이름으로 표시돼요"도 뺀다 — 팀이 없는 사람에겐 맥락이 없다. */}
+              <h1 className="wizard-question">이름을 입력해주세요</h1>
               <input
                 ref={nameRef}
                 className="input wizard-input"
-                placeholder="이름 또는 닉네임"
+                placeholder="이름"
                 value={name}
                 autoComplete="name"
                 onChange={e => setName(e.target.value)}
