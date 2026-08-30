@@ -84,8 +84,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const A = answers;
 
   const decisionAmount = num(A.decisionAmount);
-  const deadlockDays = num(part(A.deadlock, "days"));
-  const decider = nameOf(str(part(A.deadlock, "decider")));
+  const deadlockDays = num(A.deadlock);
   const equity = alloc(A.equity);
   const noncompete = num(A.noncompete);
   const tenure = num(A.tenure);
@@ -115,34 +114,21 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   }
 
   // ── 제2조 ③ · 데드락 ──
-  if (qid === "deadlock" && deadlockDays && decider) {
+  if (qid === "deadlock" && deadlockDays) {
     out.push({
       id: "deadlock",
-      plain: `${deadlockDays}일 동안 이야기해 보고, 그래도 안 정해지면 ${ga(decider)} 정해요.`,
-      formal: `제2조 ③항에 따라 합의가 이루어지지 않으면 ${deadlockDays}일간 성실히 협의하고, 그 기간이 지나도 합의에 이르지 못한 사항은 ${decider}의 의사에 따라 결정됩니다.`,
+      plain: `${deadlockDays}일 동안 이야기해 보고, 그래도 안 정해지면 대표가 정해요.`,
+      formal: `제2조 ③항에 따라 합의가 이루어지지 않으면 ${deadlockDays}일간 성실히 협의하고, 그 기간이 지나도 합의에 이르지 못한 사항은 대표이사인 주주의 의사에 따라 결정됩니다.`,
       figure: {
         shape: "timeline",
         unit: "일",
         bars: [{ label: "협의 기간", from: 0, to: deadlockDays }],
-        gap: { from: deadlockDays, to: deadlockDays + Math.max(2, Math.round(deadlockDays * 0.4)), label: `${decider} 결정` },
+        gap: { from: deadlockDays, to: deadlockDays + Math.max(2, Math.round(deadlockDays * 0.4)), label: "대표 결정" },
       },
     });
   }
-  if (qid === "deadlock" && decider && equity) {
-    const mine = equity.find((e) => e.name === decider)?.value ?? 0;
-    const others = equity.reduce((s, e) => s + e.value, 0) - mine;
-    out.push({
-      id: "deadlock-equity",
-      from: ["equity"],
-      plain: `지분은 ${mine} 대 ${others}인데, 마지막엔 ${ga(decider)} 정해요.`,
-      formal: `제2조 ③항의 최종 결정권은 지분율이 아니라 지정된 사람에게 있습니다. ${decider}(${mine}%)과 나머지 주주 합계(${others}%)의 비율과 관계없이 협의 기간 경과 후 결정 권한이 ${decider}에게 귀속됩니다.`,
-      figure: {
-        shape: "balance",
-        left: { label: `${decider} (결정권)`, value: mine },
-        right: { label: "나머지 주주", value: others },
-      },
-    });
-  }
+  // deadlock-equity 조합 결과는 뺐다. 최종 결정권자를 대표로 고정하면서
+  // "지분율과 무관하게 지정된 사람이 정한다"는 전제 자체가 사라졌다.
 
   // ── 전문·제3의 3조 · 지분 배분 ──
   if (qid === "equity" && equity) {

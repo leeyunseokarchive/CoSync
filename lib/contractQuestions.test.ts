@@ -11,17 +11,17 @@ import {
   type QuestionTemplate,
 } from "./contractQuestions.ts";
 
-test("질문은 16개이고 id가 중복되지 않는다", () => {
-  assert.equal(CONTRACT_QUESTIONS.length, 16);
+test("질문은 15개이고 id가 중복되지 않는다", () => {
+  assert.equal(CONTRACT_QUESTIONS.length, 15);
   const ids = CONTRACT_QUESTIONS.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("확정 9개 / 제안 7개로 나뉜다", () => {
+test("확정 9개 / 제안 6개로 나뉜다", () => {
   const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
   assert.deepEqual(
     proposed.map((q) => q.id),
-    ["identity", "structure", "shareType", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
+    ["identity", "structure", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
   );
   assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 9);
 });
@@ -99,14 +99,6 @@ test("멤버별 입력 질문은 팀원 수만큼의 표 행을 가진다", () =
   }
 });
 
-test("종류주식은 고른 내용을 괄호로 덧붙여 조문에 들어간다", () => {
-  const t = CONTRACT_QUESTIONS.find((q) => q.id === "shareType")!
-    .template as Extract<QuestionTemplate, { type: "choice" }>;
-  assert.equal(choiceLabel(t, "common"), "보통주식");
-  assert.equal(choiceLabel(t, { id: "preferred", sub: [] }), "종류주식");
-  assert.equal(choiceLabel(t, { id: "preferred", sub: ["redeemable", "convertible"] }), "종류주식 (상환주식·전환주식)");
-  assert.equal(choiceLabel(t, "없는값"), null);
-});
 
 
 test("지분 합계가 100이면 통과한다", () => {

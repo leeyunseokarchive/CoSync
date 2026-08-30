@@ -391,7 +391,8 @@ export default function ContractQuestionsMockup() {
         .cq-mark-v { font-size: 12px; font-weight: 800; color: #475569; font-variant-numeric: tabular-nums; }
         .cq-mark-l { font-size: 11px; font-weight: 700; color: #94a3b8; }
 
-        .cq-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+        /* 설명 길이가 달라 카드 높이가 제각각이었다. 한 행 안에서는 같은 높이로 늘린다. */
+.cq-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
         .cq-choice { position: relative; display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 20px 44px 20px 22px; border-radius: 24px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font: inherit; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
         .cq-choice:hover { border-color: #c7d2fe; }
         .cq-choice:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
@@ -525,10 +526,13 @@ export default function ContractQuestionsMockup() {
           .cq-matrix-row { grid-template-columns: 1fr; }
           .cq-matrix-row.text { grid-template-columns: 1fr; grid-template-areas: "name" "chips" "input"; }
           .cq-matrix-row.text .cq-matrix-name { padding-top: 0; }
-          .cq-footer { height: auto; padding: 12px 20px; flex-wrap: wrap; gap: 12px; }
-          .cq-footer-right { gap: 16px; width: 100%; justify-content: space-between; }
-          .cq-progress-bar { width: 120px; }
-          .cq-cta { padding: 0 24px; }
+          /* 좁은 화면에서는 응답 현황을 숨기고 이전·진행바·다음을 한 줄에 둔다.
+             현황은 사이드바에도 있어서 여기서 빠져도 정보가 사라지지 않는다. */
+          .cq-footer { height: auto; padding: 12px 16px; gap: 12px; }
+          .cq-team { display: none; }
+          .cq-footer-right { gap: 12px; }
+          .cq-progress-bar { width: 100px; }
+          .cq-cta { padding: 0 20px; }
         }
 
         @media (prefers-reduced-motion: reduce) {

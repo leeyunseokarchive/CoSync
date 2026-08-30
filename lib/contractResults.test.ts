@@ -5,7 +5,7 @@ import { resultsFor, won } from "./contractResults.ts";
 // 승인된 설계의 기준 답변. 조합 규칙이 전부 걸리도록 채워 둔다.
 const FULL = {
   decisionAmount: 100_000_000,
-  deadlock: { days: 7, decider: "m1" },
+  deadlock: 7,
   equity: { m1: 50, m2: 30, m3: 20 },
   noncompete: 1,
   tenure: 3,
@@ -49,7 +49,6 @@ test("조합 결과 6개는 두 문항이 다 있을 때만 붙는다", () => {
     ["dragAlong", ["dragAlong", "equity"], "drag-equity"],
     // TODO: resultsFor에 위약벌 결과 블록이 아직 없다. 구현되면 되살린다.
     // ["penalty", ["penalty", "equity"], "penalty-equity"],
-    ["deadlock", ["deadlock", "equity"], "deadlock-equity"],
     ["noncompete", ["noncompete", "buybackPrice"], "noncompete-buyback"],
     ["lockup", ["lockup", "dragAlong"], "lockup-drag"],
   ];
@@ -107,6 +106,7 @@ test("도형은 4종뿐이다", () => {
   }
   assert.deepEqual(
     [...shapes].sort(),
-    ["balance", "magnitude", "threshold", "timeline"]
+    // balance는 deadlock-equity가 유일한 사용처였고 그 블록을 뺐다. 규칙이 늘면 다시 쓴다.
+    ["magnitude", "threshold", "timeline"]
   );
 });
