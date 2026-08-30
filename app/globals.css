@@ -5426,19 +5426,25 @@ img {
   .onboarding-hero h1 {
     font-size: clamp(22px, 6vw, 30px);
   }
+  /* 2열이면 3번째가 혼자 아래로 떨어져 가운데 뜬다. 셋을 나란히 두고 같이 좁힌다. */
   .step-cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
     flex-wrap: unset;
   }
   .step-card {
     width: 100%;
-    min-width: 140px;
+    min-width: 0;
+    padding: 14px 14px;
   }
-  .step-card:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-    max-width: calc(50% - 6px);
-    margin: 0 auto;
+  .step-card h3 {
+    font-size: 15px;
+    word-break: keep-all;
+  }
+  .step-card p {
+    font-size: 13px;
+    word-break: keep-all;
   }
 
   /* 랜딩 */
@@ -6003,4 +6009,56 @@ button[disabled]:focus-visible {
   .wizard-card {
     min-height: unset;
   }
+}
+
+/* ── 모바일 UX 보정 ─────────────────────────────────
+   측정 기준: 터치 타겟 44x44 (Apple HIG), 본문 12px 이상.
+   실측에서 걸린 것만 고친다. 보조 라벨(STEP 01, QUESTION 1/20)의 11px는
+   본문이 아니라 그대로 둔다. */
+@media (max-width: 768px) {
+  /* 폼 입력 34px → 손가락으로 정확히 찍기 어렵다.
+     .auth-card .input이 기본값을 덮어써 14px로 내려놨는데, 이건 위 171행 주석이
+     경고하는 iOS 자동 확대 조건(16px 미만)에 그대로 걸린다. 로그인/가입 입력칸을
+     누르면 화면이 확대되고 나면 원래 배율로 돌아오지 않는다. */
+  .input,
+  .auth-card .input {
+    font-size: 16px;
+    padding-top: 14px;
+    padding-bottom: 12px;
+  }
+
+  /* 아이콘만 있는 버튼은 보이는 크기는 두고 눌리는 면적만 넓힌다. */
+  .eye-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .hamburger-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 헤더/보조 링크가 15~35px라 서로 오탭하기 쉽다. */
+  .auth-links a,
+  .auth-sub a,
+  .footer-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* 랜딩의 갭리포트 프리뷰: 데스크톱에선 축소 카드지만 모바일에선 전체 폭을
+     차지하면서 7~8px 글씨만 남는다. 폭이 남으니 읽을 수 있는 크기로 올린다. */
+  .grp-header-sub   { font-size: 11px; }
+  .grp-header-team  { font-size: 12px; }
+  .grp-status-label { font-size: 11px; }
+  .grp-status-value { font-size: 13px; }
+  .grp-status-note span:last-child { font-size: 11px; }
+  .grp-section-title{ font-size: 13px; }
+  .grp-badge        { font-size: 10px; }
+  .grp-text-lead    { font-size: 12px; }
+  .grp-text-sub     { font-size: 11px; }
+  .grp-stat-label   { font-size: 10px; }
+  .grp-stat-unit    { font-size: 11px; }
+  .grp-cat-label,
+  .grp-cat-status   { font-size: 11px; }
 }
