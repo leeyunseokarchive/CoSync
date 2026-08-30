@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Check } from "lucide-react";
 import { TopNav } from "../../components/TopNav";
 import { Footer } from "../../components/Footer";
 import { useAppState } from "../../components/AppState";
@@ -62,7 +63,10 @@ export default function WorkspaceHubPage() {
     industry?: string;
     stage?: string;
     inviteCode?: string;
+    createdByName?: string;
   } | null>(null);
+  // 링크를 타고 온 경우. 일반 대시보드 대신 초대 전용 화면을 보여준다.
+  const [fromInviteLink, setFromInviteLink] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [isExistingMember, setIsExistingMember] = useState(false);
   const [showCopyModal, setShowCopyModal] = useState(false);
@@ -95,6 +99,7 @@ export default function WorkspaceHubPage() {
       const code = params.get("inviteCode");
       if (code) {
         setTeamCode(code);
+        setFromInviteLink(true);
         sessionStorage.setItem("pendingInviteCode", code);
         window.history.replaceState({}, "", "/workspace");
       }
@@ -150,6 +155,7 @@ export default function WorkspaceHubPage() {
         industry?: string;
         stage?: string;
         inviteCode?: string;
+        createdByName?: string;
         members?: string[];
         status?: string;
       };
@@ -159,7 +165,8 @@ export default function WorkspaceHubPage() {
       }
       setFoundTeam({ id: teamId, ...teamData });
       setIsExistingMember((teamData.members ?? []).includes(user.uid));
-      setShowJoinModal(true);
+      // 링크로 온 사람에겐 모달을 겹치지 않는다. 아래 전용 화면이 대신 뜬다.
+      if (!fromInviteLink) setShowJoinModal(true);
     } catch (e) {
       console.error(e);
       setJoinHint("팀 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
@@ -283,9 +290,25 @@ export default function WorkspaceHubPage() {
       };
       finalProgress = progress;
     } else {
-      finalAnswers = {};
-      finalProgress = 0;
-      resetAnswers();
+      // 초대받기 전에 이미 진단을 푼 사람이 많다. 그걸 버리고 20문항을 다시 시키면 안 된다.
+      // 답이 하나라도 있으면 그대로 팀에 들고 들어간다.
+      const solo = {
+        extraWorkPriority, extraWorkPrinciple, underperformanceAction,
+        exitRecoveryPriority, exitCleanupTiming, exitDisputeResolution, exitVision,
+        pivotCriteria, dealbreaker, fundingRunway, spendingApproval,
+        investmentCriteria, decisionStructure, decisionFailure, actionVsConsensus,
+        deadlockTolerance, salaryStructure, equityStructure, profitDistribution,
+        growthStrategy,
+      };
+      const answered = Object.fromEntries(Object.entries(solo).filter(([, v]) => v !== "" && v != null));
+      if (Object.keys(answered).length > 0) {
+        finalAnswers = answered;
+        finalProgress = progress;
+      } else {
+        finalAnswers = {};
+        finalProgress = 0;
+        resetAnswers();
+      }
     }
 
     try {
@@ -324,12 +347,70 @@ export default function WorkspaceHubPage() {
     setShowCopyModal(false);
     setShowJoinModal(false);
 
-    if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
-      router.push(`/onboarding/diagnosis?teamId=${targetTeam.id}`);
-    } else {
-      router.push(`/workspace?teamId=${targetTeam.id}`);
-    }
+    // 기본 12문항이 다 차 있으면 리포트로, 아니면 남은 문항을 이어서 풀게 한다.
+    // 이전 조건은 "다른 팀이 있었나"를 봐서, 처음 초대받은 사람이 빈손으로 대시보드에 떨어졌다.
+    const BASIC = ["extraWorkPriority","extraWorkPrinciple","underperformanceAction","exitRecoveryPriority",
+      "exitCleanupTiming","exitDisputeResolution","exitVision","pivotCriteria","dealbreaker",
+      "fundingRunway","spendingApproval","investmentCriteria"];
+    const basicDone = BASIC.every(f => Boolean((finalAnswers as Record<string, unknown>)[f]));
+    router.push(basicDone
+      ? `/gap-report?teamId=${targetTeam.id}`
+      : `/onboarding/diagnosis?teamId=${targetTeam.id}`);
   };
+
+  // 초대 링크로 들어온 사람에게는 대시보드를 보여주지 않는다. 왜 여기 왔는지가 먼저다.
+  if (fromInviteLink && foundTeam && !isExistingMember) {
+    return (
+      <main className="page">
+        <TopNav links={[{ label: "대시보드", href: "/workspace" }]} active="대시보드" />
+        <section className="container" style={{ maxWidth: 480, margin: "0 auto", padding: "48px 20px 64px" }}>
+          <div className="card" style={{ padding: "32px 28px", textAlign: "center" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#5b5be7", letterSpacing: "0.05em", marginBottom: 10 }}>
+              팀 진단 초대
+            </div>
+            <h1 style={{ fontSize: 21, fontWeight: 800, color: "#0f172a", lineHeight: 1.45, margin: "0 0 12px", wordBreak: "keep-all" }}>
+              {foundTeam.createdByName
+                ? `${foundTeam.createdByName}님이 「${foundTeam.name}」 팀으로 초대했어요`
+                : `「${foundTeam.name}」 팀에 초대받았어요`}
+            </h1>
+            <p style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.7, margin: "0 auto 24px", maxWidth: "26em", wordBreak: "keep-all" }}>
+              같은 20문항에 답하면 서로의 답을 나란히 놓고 볼 수 있어요.
+              누가 맞는지 가리는 게 아니라, 같은 곳과 다른 곳을 구분하는 일입니다.
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 26px", display: "flex", flexDirection: "column", gap: 10, textAlign: "left" }}>
+              {[
+                "약 3분, 시나리오 20문항",
+                "서로 답은 둘 다 마칠 때까지 안 보여요",
+                "둘 다 마치면 팀 리포트가 바로 열립니다",
+              ].map(t => (
+                <li key={t} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: 13, color: "#1e293b", lineHeight: 1.6, wordBreak: "keep-all" }}>
+                  <Check size={15} style={{ flexShrink: 0, marginTop: 3, color: "#2fb9a7" }} />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              className="btn btn-primary full"
+              type="button"
+              onClick={handleJoinConfirm}
+              disabled={joinLoading}
+            >
+              {joinLoading ? "참가 중..." : "참가하고 진단 시작하기 →"}
+            </button>
+            <button
+              className="btn btn-ghost full"
+              type="button"
+              style={{ marginTop: 10 }}
+              onClick={() => { setFromInviteLink(false); setFoundTeam(null); }}
+            >
+              나중에 할게요
+            </button>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="page">
