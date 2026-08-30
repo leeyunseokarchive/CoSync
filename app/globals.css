@@ -3134,6 +3134,11 @@ img {
   font-weight: 600;
 }
 
+/* 선택된 항목은 텍스트만 바뀌고 왼쪽 점은 회색으로 남아 있었다. */
+.nav-item.active .nav-dot {
+  background: var(--brand);
+}
+
 .nav-dot {
   width: 22px;
   height: 22px;
@@ -3145,6 +3150,13 @@ img {
 .settings-content {
   display: grid;
   gap: 20px;
+  /* 그리드 자식은 min-width가 auto라 내용만큼 늘어난다. 그대로 두면 멤버 표의
+     min-width 600px이 카드를 밀어내 스크롤이 아니라 잘림이 된다. */
+  min-width: 0;
+}
+
+.settings-content > * {
+  min-width: 0;
 }
 
 .settings-head {
@@ -3167,6 +3179,12 @@ img {
 .settings-card {
   padding: 22px 26px;
   border-radius: 24px;
+}
+
+/* margin-top이 .btn-danger에만 붙어 있어 "팀 삭제"만 여유가 있고 "팀 나가기"는
+   설명 문구에 붙어 있었다. 카드 안 버튼은 종류와 무관하게 같은 간격을 준다. */
+.settings-card > .btn {
+  margin-top: 12px;
 }
 
 .settings-toggle {
@@ -3343,10 +3361,15 @@ img {
 .member-table {
   display: grid;
   gap: 10px;
+  /* 열 최소 폭 합이 600px이라 좁은 화면에선 카드 밖으로 잘려 나갔다.
+     페이지 전체를 가로로 밀지 않고 표 안에서만 스크롤되게 한다. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .member-table .member-row {
   display: grid;
+  min-width: 600px;
   grid-template-columns: minmax(180px, 1.5fr) minmax(140px, 1.1fr) minmax(90px, 0.8fr) minmax(80px, 0.8fr) minmax(70px, 0.6fr);
   align-items: center;
   gap: 10px;
