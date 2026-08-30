@@ -3,6 +3,7 @@
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
+import { onListenError } from "../lib/listenError";
 import type { AgreementDoc } from "../lib/consensus";
 
 export function useAgreements(teamId: string | undefined) {
@@ -22,7 +23,7 @@ export function useAgreements(teamId: string | undefined) {
       );
       setLoading(false);
     }, (err) => {
-      console.error("Agreements listen error:", err);
+      onListenError("Agreements")(err);
       setLoading(false);
     });
     return () => unsubscribe();

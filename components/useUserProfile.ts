@@ -3,6 +3,7 @@
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
+import { onListenError } from "../lib/listenError";
 import { useAuth } from "./AuthContext";
 
 type UserProfile = {
@@ -49,7 +50,7 @@ export function useUserProfile() {
       }
       setLoading(false);
     }, (err) => {
-      console.error("Profile listen error:", err);
+      onListenError("Profile")(err);
       setLoading(false);
     });
 

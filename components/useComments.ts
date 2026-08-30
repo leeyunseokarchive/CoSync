@@ -3,6 +3,7 @@
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
+import { onListenError } from "../lib/listenError";
 import type { ConsensusComment } from "../lib/consensus";
 
 export function useComments(teamId: string | undefined, field: string | null) {
@@ -26,7 +27,7 @@ export function useComments(teamId: string | undefined, field: string | null) {
         setLoading(false);
       },
       (err) => {
-        console.error("Comments listen error:", err);
+        onListenError("Comments")(err);
         setLoading(false);
       }
     );

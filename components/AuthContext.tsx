@@ -39,7 +39,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         // 익명 로그인이 막힌 환경(콘솔에서 비활성화 등)에서도 앱은 계속 돌아야 한다.
         // user는 null로 남고, 기존의 "로그인 필요" 경로가 그대로 동작한다.
-        console.error("익명 로그인 실패", e);
+        // console.error를 쓰면 Next 개발 오버레이가 빨갛게 뜬다. 처리된 폴백이라 warn으로 둔다.
+        const code = (e as { code?: string })?.code;
+        if (code === "auth/admin-restricted-operation") {
+          console.warn("익명 로그인이 꺼져 있습니다. Firebase 콘솔 → Authentication → Sign-in method → 익명 사용 설정");
+        } else {
+          console.warn("익명 로그인 실패", e);
+        }
         signingIn.current = false;
         setUser(null);
         setLoading(false);

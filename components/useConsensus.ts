@@ -3,6 +3,7 @@
 import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
+import { onListenError } from "../lib/listenError";
 import type { ConsensusDoc } from "../lib/consensus";
 
 export function useConsensus(teamId: string | undefined) {
@@ -24,7 +25,7 @@ export function useConsensus(teamId: string | undefined) {
       setItems(next);
       setLoading(false);
     }, (err) => {
-      console.error("Consensus listen error:", err);
+      onListenError("Consensus")(err);
       setLoading(false);
     });
     return () => unsubscribe();
