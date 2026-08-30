@@ -245,10 +245,12 @@ export default function WorkspaceHubPage() {
           throw new Error("이미 삭제된 팀입니다. 팀 코드를 다시 확인해주세요.");
         }
         tx.update(teamRef, { members: arrayUnion(user.uid) });
-        tx.update(doc(db, "users", user.uid), {
+        // 익명으로 초대를 받은 사람은 users/{uid} 문서가 아직 없다. update는 없는 문서에
+        // 실패하므로(가입 플로우 전체가 403으로 막힌다) merge로 만들면서 쓴다.
+        tx.set(doc(db, "users", user.uid), {
           teamIds: arrayUnion(targetTeam.id),
           lastActiveTeamId: targetTeam.id,
-        });
+        }, { merge: true });
       });
     } catch (e) {
       console.error(e);

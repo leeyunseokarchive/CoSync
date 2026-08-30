@@ -20,11 +20,13 @@ export function TopNav({
   active?: string;
   hideAuthLinks?: boolean;
 }) {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { profile } = useUserProfile();
   const { resetState } = useAppState();
   const router = useRouter();
-  const isAuthed = Boolean(user);
+  // 익명 세션도 user는 존재한다. 이름 없는 방문자에게 "김리더 / 로그아웃"을 보여주면
+  // 로그인한 적 없는 사람이 로그인된 것처럼 읽힌다. 진짜 계정일 때만 계정 UI를 낸다.
+  const isAuthed = Boolean(user) && !isGuest;
 
   // P1-#5: 모바일 햄버거 메뉴 상태
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,9 +87,10 @@ export function TopNav({
           {isAuthed ? (
             <>
               <div style={{ fontSize: 12, color: "#1f2430", fontWeight: 600 }}>
-                {user?.displayName || "김리더"}
+                {/* 하드코딩된 "김리더"가 폴백이었다. 이름 없는 계정에 남의 이름이 뜬다. */}
+                {user?.displayName || "내 계정"}
               </div>
-              <CircleAvatar label={(user?.displayName || "김리더").slice(0, 1)} />
+              <CircleAvatar label={(user?.displayName || "?").slice(0, 1)} />
               <button className="logout-link" type="button" onClick={handleLogout}>
                 로그아웃
               </button>
