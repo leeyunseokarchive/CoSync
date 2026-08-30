@@ -57,10 +57,7 @@ export type ContractQuestion = {
   topic: string;        // 조문 번호 대신 화면에 세우는 우리말 주제목 (ex. 지분 배분)
   proposed: boolean;    // true면 `제안` 배지 — 사용자 확정 전 후보 문항
   consensus: boolean;   // false면 합의 대상 아닌 사실정보
-  // 대표자 중심 구조를 고르면 이 문항은 묻지 않는다. 그 구조에서는 답이 이미
-  // "대표가 결정한다"로 정해져 있어서 물어봐야 선택지가 하나뿐이다.
-  // (2차 변호사 자문: "대표자 중심 구조를 만들었다면 많은 부분이 생략될 수도 있고")
-  skipWhenLeaderLed?: boolean;
+
   title: string;
   desc: string;
   template?: QuestionTemplate;
@@ -153,20 +150,20 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     topic: "계약 성격",
     proposed: true,
     consensus: true,
-    title: "어떤 성격의 계약을 만드나요?",
-    desc: "대표에게 권한을 모을지, 주주 모두에게 같은 규칙을 적용할지 정합니다. 이 선택에 따라 뒤에 묻는 항목이 달라집니다.",
+    title: "외부 투자를 적극적으로 고려하고 있나요?",
+    desc: "투자 계획에 따라 뒤에 나오는 결정권·회수 조항의 기본값이 달라집니다. 어느 쪽이든 나중에 바꿀 수 있어요.",
     template: {
       type: "choice",
       options: [
         {
           id: "leader",
-          label: "대표자 중심",
-          desc: "결정이 막히면 대표가 정하고, 근속 의무와 지분 회수는 대표를 제외한 주주에게 적용됩니다. 외부 투자를 계획한다면 이 구조를 쓰는 경우가 많습니다.",
+          label: "투자 유치를 고려 중이에요",
+          desc: "VC·팁스 등 외부 투자를 받으려면 투자자가 대표에게 결정권이 모인 구조를 요구하는 경우가 많습니다.",
         },
         {
           id: "fair",
-          label: "주주 공평",
-          desc: "대표를 포함한 모든 주주에게 같은 규칙이 적용됩니다. 투자 유치 계획이 없고 매출로 운영할 때 선택하는 경우가 많습니다.",
+          label: "매출로 운영할 계획이에요",
+          desc: "투자자를 염두에 두지 않으면 모든 주주에게 같은 규칙을 적용하는 합의안을 씁니다. 나중에 투자를 받게 되면 그때 다시 봅니다.",
         },
       ],
     },
@@ -179,10 +176,10 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       ],
     },
     info: {
-      what: "계약 전체의 성격을 정하는 선택입니다. 대표자 중심은 최종 결정권과 지분 회수권을 대표에게 모으고, 근속 의무를 대표 외 주주에게만 지웁니다. 주주 공평은 대표를 포함한 전원에게 같은 규칙을 적용하며, 시중에 도는 표준 주주간계약서 대부분이 이 형태입니다.",
-      ifUnset: "정하지 않으면 뒤에 나오는 결정권·회수·근속 관련 조항이 서로 다른 전제로 채워질 수 있습니다.",
-      low: "주주 공평 구조에서는 대표도 계약의 제재 대상이 되고, 대표가 퇴사하면 그 지분이 다른 주주들에게 넘어갑니다. 투자 유치 단계에서 계약서를 다시 손봐야 하는 경우가 있습니다.",
-      high: "대표자 중심 구조에서는 대표에게 결정권이 모이는 대신 나머지 주주의 재량이 줄어듭니다. 소수 주주가 받아들일 수 있는 범위인지 함께 확인해야 합니다.",
+      what: "투자 계획이 합의안의 기본 얼개를 정합니다. 투자를 받는 구조에서는 최종 결정권과 지분 회수권을 대표에게 모으고 근속 의무를 대표 외 주주에게 지우는 형태를 씁니다. 투자를 염두에 두지 않으면 대표를 포함한 전원에게 같은 규칙을 적용하며, 시중에 도는 표준 주주간계약서 대부분이 이 형태입니다.",
+      ifUnset: "정하지 않으면 뒤에 나오는 결정권·회수·근속 항목이 서로 다른 전제로 채워질 수 있습니다.",
+      low: "전원에게 같은 규칙을 적용하면 대표도 이 합의안의 제재 대상이 되고, 대표가 퇴사하면 그 지분이 다른 주주들에게 넘어갑니다.",
+      high: "대표에게 결정권이 모이면 나머지 주주의 재량이 줄어듭니다. 소수 주주가 받아들일 수 있는 범위인지 함께 확인해야 합니다.",
     },
   },
   {
@@ -307,7 +304,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     topic: "큰 투자의 기준 금액",
     proposed: false,
     consensus: true,
-    skipWhenLeaderLed: true,
     title: "얼마를 넘는 투자부터 전원 동의가 필요한가요?",
     desc: "이 금액을 넘는 투자는 주주 전원이 동의해야 진행할 수 있습니다.",
     template: {
@@ -342,7 +338,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     topic: "결정이 막혔을 때",
     proposed: false,
     consensus: true,
-    skipWhenLeaderLed: true,
     title: "전원 동의가 안 되면 며칠 더 이야기하고, 누가 결정하나요?",
     desc: "아래 7가지는 주주 전원이 동의해야 정할 수 있습니다. 한 명이라도 반대해 결정이 멈췄을 때, 며칠을 더 이야기하고 그래도 안 되면 누가 끝을 낼지 정합니다.",
     template: {
@@ -711,12 +706,21 @@ export const structureOf = (answers: Record<string, unknown>): "leader" | "fair"
 };
 
 /**
- * 지금 물어야 할 문항만 남긴다.
- * 대표자 중심을 고르면 결정권 관련 문항이 빠진다 — 그 구조에선 답이 "대표가 결정"으로
- * 이미 정해져 있어 선택지가 하나뿐이다. 고르기 전에는 전부 보여준다(개수가 줄어드는
- * 모습을 보여주는 편이 갑자기 늘어나는 것보다 덜 혼란스럽다).
+ * 투자를 고려한다고 답했을 때 미리 채워두는 값.
+ *
+ * 문항을 숨기지 않는 이유: 안 물어도 그 조항은 합의안에 그대로 들어간다. 숨기면
+ * 서명할 문서의 내용을 모르고 넘어가고, 변호사가 요구한 리스크 고지를 붙일 자리도
+ * 사라진다. 무엇보다 팀원끼리 답을 비교하는 제품이라 숨겨진 항목은 비교에서 빠진다.
+ * 그래서 값만 채우고 화면에는 그대로 둔다. 사용자가 언제든 바꿀 수 있다.
  */
-export function visibleQuestions(answers: Record<string, unknown>): ContractQuestion[] {
-  if (structureOf(answers) !== "leader") return CONTRACT_QUESTIONS;
-  return CONTRACT_QUESTIONS.filter((q) => !q.skipWhenLeaderLed);
-}
+export const LEADER_LED_DEFAULTS: Record<string, unknown> = {
+  // 교착 시 최종 결정권자를 대표로. 변호사: "교착 상태 해결을 꼭 대표가 결정권을
+  // 내리게 만드는 것을 일단 고를 권고라도 해야 된다"
+  deadlock: { days: 7, decider: "m1" },
+  // 변호사: "10억 미만인 경우에는 대표자 혼자 투자를 받을 수 있고, 10억 이상인
+  // 경우에는 ... 의사 합치가 안 되는 경우에는 그래도 대표자가 단독으로 결정"
+  decisionAmount: 1_000_000_000,
+};
+
+/** 기본값이 채워진 문항인지. 화면에서 "이래서 채웠어요" 배지를 띄우는 데 쓴다. */
+export const isLeaderLedDefault = (qid: string) => qid in LEADER_LED_DEFAULTS;
