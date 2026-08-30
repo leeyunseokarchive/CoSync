@@ -61,6 +61,8 @@ export type QuestionConfig = {
   cat: number;
 };
 
+// toxicPairs = 두 사람의 답이 이 조합이면 치명적 충돌(갭 3점, 최대치)로 처리한다.
+// 이 배열이 유일한 출처다. deepQuestions.ts의 QUESTION_DEFS가 여기서 끌어다 쓴다.
 export const QUESTION_CONFIGS: QuestionConfig[] = [
   // 역할 & 책임 (cat 0) — 기본 진단 3q
   { field: "extraWorkPriority", toxicPairs: [["3","4"]], cat: 0 },
@@ -82,10 +84,10 @@ export const QUESTION_CONFIGS: QuestionConfig[] = [
   { field: "decisionStructure", toxicPairs: [["1","3"]], cat: 4 },
   { field: "decisionFailure", toxicPairs: [["1","4"]], cat: 4 },
   { field: "actionVsConsensus", toxicPairs: [["1","2"]], cat: 4 },
-  { field: "deadlockTolerance", toxicPairs: [["1","4"]], cat: 4 },
+  { field: "deadlockTolerance", toxicPairs: [["1","4"]], cat: 4 }, // 담당 영역 존중 ↔ 완전 설득 후 진행
   // 지분 & 보상 (cat 5) — 심화 진단 4q
   { field: "salaryStructure", toxicPairs: [["1","2"]], cat: 5 },
-  { field: "equityStructure", toxicPairs: [["2","4"]], cat: 5 },
+  { field: "equityStructure", toxicPairs: [["1","4"]], cat: 5 }, // 시장 관행 구조 ↔ 비슷한 비율로 나눔
   { field: "profitDistribution", toxicPairs: [["1","2"],["2","4"]], cat: 5 },
   { field: "growthStrategy", toxicPairs: [["1","2"]], cat: 5 },
 ];

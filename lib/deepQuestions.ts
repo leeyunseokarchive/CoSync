@@ -1,4 +1,4 @@
-import { getIssueStatus, type IssueStatus, type OnboardingAnswers } from "./gap.ts";
+import { QUESTION_CONFIGS, getIssueStatus, type IssueStatus, type OnboardingAnswers } from "./gap.ts";
 
 export type QuestionDef = {
   id: string;
@@ -11,28 +11,40 @@ export type QuestionDef = {
 
 // Q1~Q12: 기본 진단 (역할3 + 이탈3 + 비전3 + 조달3)
 // Q13~Q20: 심화 진단 (의사결정4 + 지분4)
-export const QUESTION_DEFS: QuestionDef[] = [
-  { id: "q1",  label: "회색지대 업무 배정",   field: "extraWorkPriority",    toxicPairs: [["3","4"]],          optionLabels: {"1":"일단 직접 처리","2":"담당자 정해 역할 나눔","3":"현재 우선순위 유지","4":"구조적으로 해결"}, question: "회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?" },
-  { id: "q2",  label: "업무 몰입 시간 기대",   field: "extraWorkPrinciple",   toxicPairs: [["1","3"],["1","4"]], optionLabels: {"1":"초기엔 당연히 해야지","2":"하되 미리 알려줘야","3":"개인 시간은 지켜야","4":"업무 외 시간 요청은 거절"}, question: "서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?" },
-  { id: "q3",  label: "퍼포먼스 조치",         field: "underperformanceAction",toxicPairs: [["1","4"],["3","4"]], optionLabels: {"1":"즉시 역할 조정","2":"기준·타임라인 설정","3":"원인 파악 후 지원","4":"구조 변경 논의"}, question: "성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?" },
-  { id: "q4",  label: "우선 정리 권한",         field: "exitRecoveryPriority", toxicPairs: [["1","2"],["2","4"]], optionLabels: {"1":"시스템 권한 회수 우선","2":"고객 관계 인수인계 우선","3":"운영 문서 정리 우선","4":"법적 처리 우선"}, question: "이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?" },
-  { id: "q5",  label: "권한 차단 타이밍",       field: "exitCleanupTiming",    toxicPairs: [["1","3"],["1","4"]], optionLabels: {"1":"즉시 모든 권한 차단","2":"인수인계 후 단계적 차단","3":"2~4주 순차 처리","4":"절차 완료 후 차단"}, question: "퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?" },
-  { id: "q6",  label: "이탈 시 지분 정리",      field: "exitDisputeResolution",toxicPairs: [["1","4"],["2","4"]], optionLabels: {"1":"등기 지분 그대로 인정","2":"기여도 기준 재산정","3":"제3자 통해 결정","4":"직접 협의"}, question: "이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?" },
-  { id: "q7",  label: "회사 출구 전략",          field: "exitVision",           toxicPairs: [["1","3"]],          optionLabels: {"1":"M&A 엑싯","2":"IPO","3":"수익성 독립 운영","4":"아직 미정"}, question: "3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?" },
-  { id: "q8",  label: "피벗/중단 기준",          field: "pivotCriteria",        toxicPairs: [["1","2"]],          optionLabels: {"1":"자금 고갈 시","2":"시장 반응 없을 때","3":"핵심 팀원 이탈 시","4":"파트너 합의 불가 시"}, question: "방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?" },
-  { id: "q9",  label: "절대 용납 못하는 것",     field: "dealbreaker",          toxicPairs: [["1","4"]],          optionLabels: {"1":"결정 미루거나 느리게 움직임","2":"말한 것 지키지 않음","3":"결과 없이 이유만 댐","4":"방향 불일치 시 맞추지 않음"}, question: "서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?" },
-  { id: "q10", label: "런웨이 위기 대응",         field: "fundingRunway",        toxicPairs: [["1","4"],["2","3"]], optionLabels: {"1":"인원 감축 포함 비용 절감","2":"브릿지 투자 유치","3":"매출로 자체 생존","4":"급여 유예로 버팀"}, question: "런웨이 X개월 이하가 되면 어떤 순서로 대응할지 기준이 있나요?" },
-  { id: "q11", label: "지출 승인 기준",           field: "spendingApproval",     toxicPairs: [["1","4"]],          optionLabels: {"1":"역할 범위 내 단독 결정","2":"금액 기준 사전 협의","3":"항목별 자율/협의 구분","4":"금액 무관 공동 승인"}, question: "단독 집행 가능한 금액 기준이 지금 합의되어 있나요?" },
-  { id: "q12", label: "투자 조건 수락 기준",      field: "investmentCriteria",   toxicPairs: [["1","4"],["1","2"]], optionLabels: {"1":"밸류에이션 최우선","2":"투자자 전략적 가치 우선","3":"런웨이 확보 여부 기준","4":"속도 우선"}, question: "투자 수락/거절의 최우선 기준이 맞춰진 적 있나요?" },
-  { id: "q13", label: "단독 결정권 범위",         field: "decisionStructure",    toxicPairs: [["1","3"]],          optionLabels: {"1":"내 영역이면 바로 실행","2":"알림만 보내고 진행","3":"의견 맞추고 진행","4":"함께 검토 후 결정"}, question: "각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?" },
-  { id: "q14", label: "실패 후 반응",             field: "decisionFailure",      toxicPairs: [["1","4"]],          optionLabels: {"1":"즉시 전략 변경","2":"원인 분석 후 논의","3":"데이터 더 수집 후 판단","4":"전략 유지 방식만 수정"}, question: "실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?" },
-  { id: "q15", label: "반대 의견 처리",           field: "actionVsConsensus",    toxicPairs: [["1","2"]],          optionLabels: {"1":"결정된 이상 최선","2":"계속 재검토 요청","3":"실행하되 이견 기록","4":"언급 않고 결과 지켜봄"}, question: "결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?" },
-  { id: "q16", label: "결정 속도 vs 확신",        field: "deadlockTolerance",    toxicPairs: [["1","2"]],          optionLabels: {"1":"담당 영역 결정 존중","2":"실험으로 데이터 판단","3":"외부 멘토 판단 위임","4":"완전한 설득 후 진행"}, question: "중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?" },
-  { id: "q17", label: "급여 구조",                field: "salaryStructure",      toxicPairs: [["1","2"]],          optionLabels: {"1":"스톡옵션으로 유치","2":"성과 기반 현금 인센티브","3":"안정 후 보상 구조 설정","4":"급여만으로 운영"}, question: "파트너 간 급여 차등 기준이 지금 합의되어 있나요?" },
-  { id: "q18", label: "지분 구조 철학",           field: "equityStructure",      toxicPairs: [["1","2"]],          optionLabels: {"1":"시장 관행 구조","2":"기여도·역할 비례","3":"핵심인력 외 최소화","4":"비슷한 비율로 나눔"}, question: "지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?" },
-  { id: "q19", label: "창업자 보상 기준",         field: "profitDistribution",   toxicPairs: [["1","2"],["2","4"]], optionLabels: {"1":"전액 재투자","2":"보상이 먼저","3":"재투자·인상 병행","4":"투자 전까지 현금 절약"}, question: "흑자 전환 시 창업자 급여 인상 기준이 미리 합의되어 있나요?" },
-  { id: "q20", label: "성장 전략",                field: "growthStrategy",       toxicPairs: [["1","2"]],          optionLabels: {"1":"외부 투자로 빠른 성장","2":"수익으로 지분 지킴","3":"선택적 투자 유치","4":"비희석 자금 우선"}, question: "외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?" },
+// toxicPairs는 gap.ts의 QUESTION_CONFIGS 하나만 출처로 둔다. 예전엔 두 파일에 각각
+// 적어두고 있었고 q16·q18 두 건이 서로 어긋나, 같은 답 조합이 히트맵에선 충돌인데
+// 점수엔 반영되지 않는(또는 그 반대) 상태였다.
+const RAW_DEFS: Omit<QuestionDef, "toxicPairs">[] = [
+  { id: "q1",  label: "회색지대 업무 배정",   field: "extraWorkPriority",    optionLabels: {"1":"일단 직접 처리","2":"담당자 정해 역할 나눔","3":"현재 우선순위 유지","4":"구조적으로 해결"}, question: "회색지대 업무를 누가 어떤 기준으로 결정할지 정해둔 게 있나요?" },
+  { id: "q2",  label: "업무 몰입 시간 기대",   field: "extraWorkPrinciple",   optionLabels: {"1":"초기엔 당연히 해야지","2":"하되 미리 알려줘야","3":"개인 시간은 지켜야","4":"업무 외 시간 요청은 거절"}, question: "서로에게 기대하는 '최소 가용 시간' 기준이 말로 맞춰진 적 있나요?" },
+  { id: "q3",  label: "퍼포먼스 조치",         field: "underperformanceAction",optionLabels: {"1":"즉시 역할 조정","2":"기준·타임라인 설정","3":"원인 파악 후 지원","4":"구조 변경 논의"}, question: "성과 부진이 몇 달 지속될 때 역할 조정을 논의하기로 할까요?" },
+  { id: "q4",  label: "우선 정리 권한",         field: "exitRecoveryPriority", optionLabels: {"1":"시스템 권한 회수 우선","2":"고객 관계 인수인계 우선","3":"운영 문서 정리 우선","4":"법적 처리 우선"}, question: "이탈 발생 시 첫 24시간 안에 처리할 권한 회수 순서가 정해져 있나요?" },
+  { id: "q5",  label: "권한 차단 타이밍",       field: "exitCleanupTiming",    optionLabels: {"1":"즉시 모든 권한 차단","2":"인수인계 후 단계적 차단","3":"2~4주 순차 처리","4":"절차 완료 후 차단"}, question: "퇴사 의사 확인 시점부터 권한 단계별 차단 절차가 문서로 있나요?" },
+  { id: "q6",  label: "이탈 시 지분 정리",      field: "exitDisputeResolution",optionLabels: {"1":"등기 지분 그대로 인정","2":"기여도 기준 재산정","3":"제3자 통해 결정","4":"직접 협의"}, question: "이탈 시 지분 정리의 최우선 기준이 지금 당장 합의되어 있나요?" },
+  { id: "q7",  label: "회사 출구 전략",          field: "exitVision",           optionLabels: {"1":"M&A 엑싯","2":"IPO","3":"수익성 독립 운영","4":"아직 미정"}, question: "3~5년 후 이 회사의 이상적인 결말을 한 번이라도 맞춰본 적 있나요?" },
+  { id: "q8",  label: "피벗/중단 기준",          field: "pivotCriteria",        optionLabels: {"1":"자금 고갈 시","2":"시장 반응 없을 때","3":"핵심 팀원 이탈 시","4":"파트너 합의 불가 시"}, question: "방향 전환 또는 중단을 논의하는 기준이 지금 합의되어 있나요?" },
+  { id: "q9",  label: "절대 용납 못하는 것",     field: "dealbreaker",          optionLabels: {"1":"결정 미루거나 느리게 움직임","2":"말한 것 지키지 않음","3":"결과 없이 이유만 댐","4":"방향 불일치 시 맞추지 않음"}, question: "서로가 절대 용납 못하는 것을 한 번이라도 직접 말한 적 있나요?" },
+  { id: "q10", label: "런웨이 위기 대응",         field: "fundingRunway",        optionLabels: {"1":"인원 감축 포함 비용 절감","2":"브릿지 투자 유치","3":"매출로 자체 생존","4":"급여 유예로 버팀"}, question: "런웨이 X개월 이하가 되면 어떤 순서로 대응할지 기준이 있나요?" },
+  { id: "q11", label: "지출 승인 기준",           field: "spendingApproval",     optionLabels: {"1":"역할 범위 내 단독 결정","2":"금액 기준 사전 협의","3":"항목별 자율/협의 구분","4":"금액 무관 공동 승인"}, question: "단독 집행 가능한 금액 기준이 지금 합의되어 있나요?" },
+  { id: "q12", label: "투자 조건 수락 기준",      field: "investmentCriteria",   optionLabels: {"1":"밸류에이션 최우선","2":"투자자 전략적 가치 우선","3":"런웨이 확보 여부 기준","4":"속도 우선"}, question: "투자 수락/거절의 최우선 기준이 맞춰진 적 있나요?" },
+  { id: "q13", label: "단독 결정권 범위",         field: "decisionStructure",    optionLabels: {"1":"내 영역이면 바로 실행","2":"알림만 보내고 진행","3":"의견 맞추고 진행","4":"함께 검토 후 결정"}, question: "각자 단독으로 최종 결정할 수 있는 범위나 기준이 있나요?" },
+  { id: "q14", label: "실패 후 반응",             field: "decisionFailure",      optionLabels: {"1":"즉시 전략 변경","2":"원인 분석 후 논의","3":"데이터 더 수집 후 판단","4":"전략 유지 방식만 수정"}, question: "실패 후 다음 결정까지 최소한 어떤 과정을 거치기로 할까요?" },
+  { id: "q15", label: "반대 의견 처리",           field: "actionVsConsensus",    optionLabels: {"1":"결정된 이상 최선","2":"계속 재검토 요청","3":"실행하되 이견 기록","4":"언급 않고 결과 지켜봄"}, question: "결정 후 반대 의견을 다시 꺼낼 수 있는 조건이 있나요?" },
+  { id: "q16", label: "결정 속도 vs 확신",        field: "deadlockTolerance",    optionLabels: {"1":"담당 영역 결정 존중","2":"실험으로 데이터 판단","3":"외부 멘토 판단 위임","4":"완전한 설득 후 진행"}, question: "중요한 결정에서 '충분한 확신'의 기준이 맞춰진 적 있나요?" },
+  { id: "q17", label: "급여 구조",                field: "salaryStructure",      optionLabels: {"1":"스톡옵션으로 유치","2":"성과 기반 현금 인센티브","3":"안정 후 보상 구조 설정","4":"급여만으로 운영"}, question: "파트너 간 급여 차등 기준이 지금 합의되어 있나요?" },
+  { id: "q18", label: "지분 구조 철학",           field: "equityStructure",      optionLabels: {"1":"시장 관행 구조","2":"기여도·역할 비례","3":"핵심인력 외 최소화","4":"비슷한 비율로 나눔"}, question: "지분 조정 가능성에 대해 서로 입장을 명확히 말한 적 있나요?" },
+  { id: "q19", label: "창업자 보상 기준",         field: "profitDistribution",   optionLabels: {"1":"전액 재투자","2":"보상이 먼저","3":"재투자·인상 병행","4":"투자 전까지 현금 절약"}, question: "흑자 전환 시 창업자 급여 인상 기준이 미리 합의되어 있나요?" },
+  { id: "q20", label: "성장 전략",                field: "growthStrategy",       optionLabels: {"1":"외부 투자로 빠른 성장","2":"수익으로 지분 지킴","3":"선택적 투자 유치","4":"비희석 자금 우선"}, question: "외부 투자와 지분 희석에 대한 입장이 맞춰진 적 있나요?" },
 ];
+
+const TOXIC_BY_FIELD = Object.fromEntries(
+  QUESTION_CONFIGS.map((q) => [q.field, q.toxicPairs])
+) as Record<string, [string, string][]>;
+
+export const QUESTION_DEFS: QuestionDef[] = RAW_DEFS.map((d) => ({
+  ...d,
+  toxicPairs: TOXIC_BY_FIELD[d.field] ?? [],
+}));
 
 export type ScriptEntry = { topic: string; open: string; steps: { title: string; qs: string[] }[]; keywords: string[]; stat: string; stake: string; dispute: string; guide: string };
 
