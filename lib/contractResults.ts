@@ -74,7 +74,7 @@ export function won(n: number): string {
 // "값을 넣으면 나온다"는 잘못된 안내가 된다.
 export const RESULT_QUESTION_IDS = new Set([
   "decisionAmount", "deadlock", "equity", "noncompete",
-  "tenure", "vesting", "buybackPrice", "lockup", "dragAlong",
+  "tenure", "vesting", "buybackPrice", "lockup", "dragAlong", "penalty",
 ]);
 
 // ── 규칙 ─────────────────────────────────────────────────────
@@ -95,6 +95,8 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const buyback = str(A.buybackPrice);
   const lockup = num(A.lockup);
   const dragAlong = num(A.dragAlong);
+  const penaltyBase = num(part(A.penalty, "base"));
+  const penaltyRate = num(part(A.penalty, "rate"));
 
   // ── 제2조 ①7호 · 전원 합의 금액 ──
   if (qid === "decisionAmount" && decisionAmount) {
@@ -372,6 +374,55 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
           { label: "드래그얼롱 (다수 → 소수)", value: 1, text: `${dragAlong}% 기준` },
           { label: "태그얼롱 (소수 → 대주주)", value: 1, text: "항시 보장" },
         ],
+      },
+    });
+  }
+
+  // ── 제8조 · 위약벌 ──
+  // "각 {base}원"이라 다른 주주 수만큼 곱해진다. 1억을 적었는데 3인 팀이면 2억이 된다.
+  // 조문을 그대로 읽은 산수이고, 사람들이 가장 자주 놓치는 지점이다.
+  if (qid === "penalty" && penaltyBase) {
+    const others = MOCK_MEMBERS.length - 1;
+    const total = penaltyBase * others;
+    out.push({
+      id: "penalty",
+      plain: `한 사람이 어기면 나머지 ${others}명에게 각각 ${won(penaltyBase)}씩, 합쳐서 ${won(total)}을 냅니다.`,
+      formal: `제8조 ①항은 위반 당사자가 다른 당사자들에게 "각 ${penaltyBase.toLocaleString()}원"을 지급하도록 정합니다. 현재 ${MOCK_MEMBERS.length}인 구성에서 위반자를 제외한 ${others}명에게 각각 지급되므로 합계는 ${total.toLocaleString()}원입니다. 같은 금액이 제8조 ③항의 손해배상예정액으로도 쓰이며, 이 경우 다른 주주들은 실제 손해액을 증명하지 않고 청구할 수 있습니다(민법 제398조 ②항).`,
+      figure: {
+        shape: "magnitude",
+        bars: [
+          { label: "적어 넣은 금액 (1인당)", value: penaltyBase, text: won(penaltyBase) },
+          { label: `실제 지급 합계 (${others}명분)`, value: total, text: won(total) },
+        ],
+      },
+    });
+  }
+
+  // ⑤항은 비율과 정액 중 큰 금액을 지급하게 하는데, "각"이 정액에만 붙어 있다.
+  // 1인당끼리 비교하는지 총액과 비교하는지 문구만으로는 정해지지 않고, 그에 따라
+  // 갈림 지점이 인원수만큼 벌어진다. 한쪽을 골라 단정하지 않고 두 경우를 다 적는다.
+  if (qid === "penalty" && penaltyBase && penaltyRate) {
+    const others = MOCK_MEMBERS.length - 1;
+    // 나눗셈이라 딱 떨어지지 않는다. 화면엔 만 원 단위로 끊어 "약"을 붙이고,
+    // 정식 문장에는 원 단위 그대로 둔다.
+    const perPersonExact = Math.round(penaltyBase / (penaltyRate / 100));
+    const asTotalExact = Math.round((penaltyBase * others) / (penaltyRate / 100));
+    const round만 = (n: number) => Math.floor(n / 10_000) * 10_000;
+    const perPerson = round만(perPersonExact);
+    const asTotal = round만(asTotalExact);
+    const approx = (r: number, e: number) => (r === e ? won(e) : `약 ${won(r)}`);
+    out.push({
+      id: "penalty-threshold",
+      plain: `⑤항은 "처분 금액의 ${penaltyRate}%"와 "각 ${won(penaltyBase)}" 중 큰 쪽을 냅니다. 정액에만 "각"이 붙어 있어, 1인당끼리 비교하면 ${approx(perPerson, perPersonExact)}, 합계와 비교하면 ${approx(asTotal, asTotalExact)}부터 비율이 커집니다.`,
+      formal: `제8조 ⑤항은 처분 금액의 ${penaltyRate}%와 "각 ${penaltyBase.toLocaleString()}원" 중 큰 금액을 지급하도록 정합니다. 비율 부분에는 "각"이 없고 정액 부분에만 있어, 두 값을 1인당 기준으로 비교하는지 합계 기준으로 비교하는지가 문구로 확정되지 않습니다. 1인당 기준이면 처분 금액 ${perPersonExact.toLocaleString()}원, ${others}명 합계 기준이면 ${asTotalExact.toLocaleString()}원에서 비율이 정액을 넘어섭니다.`,
+      figure: {
+        shape: "threshold",
+        blocks: [
+          { label: "1인당 기준", value: perPersonExact },
+          { label: `${others}명 합계 기준`, value: asTotalExact },
+        ],
+        line: perPersonExact,
+        lineLabel: `${penaltyRate}%가 정액을 넘는 지점`,
       },
     });
   }

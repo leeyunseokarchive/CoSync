@@ -34,7 +34,6 @@ test("한 문항만 답하면 조합 결과가 섞이지 않는다", () => {
   const only = (qid: string, key: string) =>
     resultsFor(qid, { [key]: FULL[key as keyof typeof FULL] });
   for (const qid of Object.keys(FULL)) {
-    if (qid === "penalty") continue; // TODO: resultsFor에 위약벌 결과 블록 미구현
     const blocks = only(qid, qid);
     assert.ok(blocks.length >= 1, `단독 결과가 없음: ${qid}`);
     for (const b of blocks) {
