@@ -14,7 +14,7 @@ import { useTeams } from "../../../components/useTeams";
 import { computeGapSummary } from "../../../lib/gap";
 import { computeTeamProgress } from "../../../lib/teamProgress";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 2;
 
 const ROLE_OPTIONS: Record<string, string[]> = {
   "경영/대표": ["CEO", "공동대표", "COO"],
@@ -27,13 +27,20 @@ const ROLE_OPTIONS: Record<string, string[]> = {
 };
 
 const INDUSTRIES = ["SaaS", "핀테크", "커머스", "콘텐츠", "바이오/헬스", "기타"];
-const MEMBER_OPTIONS = ["2명", "3-5명", "6-10명", "11명 이상"];
 const STAGE_OPTIONS = [
   { value: "아이디어 단계", sub: "제품이 아직 없어요" },
   { value: "초기 단계", sub: "제품을 만들거나 첫 고객을 찾고 있어요" },
   { value: "성장 단계", sub: "고객이 늘고 매출이 나오고 있어요" },
   { value: "스케일업", sub: "본격적으로 사업을 키우고 있어요" },
 ];
+
+const chipStyle = (on: boolean): React.CSSProperties => ({
+  padding: "9px 14px", borderRadius: 999, cursor: "pointer", fontSize: 13, fontWeight: 600,
+  border: `1.5px solid ${on ? "#5b5be7" : "#e2e8f0"}`,
+  background: on ? "#f0f0fe" : "#fff",
+  color: on ? "#5b5be7" : "#64748b",
+  whiteSpace: "nowrap",
+});
 
 export default function WorkspaceCreatePage() {
   const router = useRouter();
@@ -55,8 +62,12 @@ export default function WorkspaceCreatePage() {
   const [teamName, setTeamName] = useState("");
   const [industry, setIndustry] = useState("");
   const [industryCustom, setIndustryCustom] = useState("");
-  const [members, setMembers] = useState("");
   const [stage, setStage] = useState("");
+  // 생성 직후 초대 링크를 이 화면에서 바로 준다. 대시보드·팀설정까지 걸어가지 않는다.
+  const [createdTeamId, setCreatedTeamId] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [savingMeta, setSavingMeta] = useState(false);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [selectedSourceTeamId, setSelectedSourceTeamId] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
@@ -80,12 +91,25 @@ export default function WorkspaceCreatePage() {
     setError("");
   }, [step]);
 
-  const goBack = () => setStep(s => s - 1);
 
+  // 이름만 받고 곧바로 만든다. 분야·단계는 링크를 손에 쥔 뒤에 묻는다(2단계).
   const handleNameNext = () => {
     if (!teamName.trim()) { setError("팀 이름을 입력해주세요."); return; }
     setError("");
-    setStep(2);
+    handleCreate();
+  };
+
+  // 팀은 이미 만들어졌다. 고른 값을 그 문서에 바로 얹는다. 실패해도 초대는 이미 성공이므로 막지 않는다.
+  const saveMeta = async (patch: Record<string, string>) => {
+    if (!createdTeamId) return;
+    setSavingMeta(true);
+    try {
+      await updateDoc(doc(db, "teams", createdTeamId), patch);
+    } catch (e) {
+      console.error("팀 정보 저장 실패", e);
+    } finally {
+      setSavingMeta(false);
+    }
   };
 
   const selectIndustry = (val: string) => {
@@ -94,22 +118,32 @@ export default function WorkspaceCreatePage() {
       setTimeout(() => industryCustomRef.current?.focus(), 60);
       return;
     }
-    setTimeout(() => setStep(3), 220);
+    saveMeta({ industry: val });
   };
 
   const confirmIndustryCustom = () => {
     if (!industryCustom.trim()) return;
-    setStep(3);
-  };
-
-  const selectMembers = (val: string) => {
-    setMembers(val);
-    setTimeout(() => setStep(4), 220);
+    saveMeta({ industry: industryCustom.trim() });
   };
 
   const selectStage = (val: string) => {
     setStage(val);
-    setTimeout(() => setStep(5), 220);
+    saveMeta({ stage: val });
+  };
+
+  const copyInvite = async () => {
+    try {
+      // 모바일에선 공유 시트가 열려 카카오톡으로 바로 보낼 수 있다. 없으면 클립보드로 떨어진다.
+      if (navigator.share) {
+        await navigator.share({ title: `${teamName} 팀 진단`, text: "같은 진단 20문항 풀고 결과 같이 보자", url: inviteLink });
+        return;
+      }
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 사용자가 공유 시트를 닫은 경우 등 — 아무것도 하지 않는다.
+    }
   };
 
   const rolesForDepartment = ROLE_OPTIONS[department] ?? ["CEO", "CPO", "CTO", "COO", "CDO"];
@@ -177,7 +211,11 @@ export default function WorkspaceCreatePage() {
 
     const finalIndustry = industry === "기타" && industryCustom ? industryCustom : industry;
     const teamRef = await addDoc(collection(db, "teams"), {
-      name: teamName, industry: finalIndustry, memberCount: members, stage,
+      // memberCount는 자기신고값이라 실제와 어긋났다. 참가한 멤버 수로 대신한다(참가 시 갱신).
+      name: teamName, industry: finalIndustry, memberCount: 1, stage,
+      // 초대받은 사람에게 "누가 불렀는지"를 보여주려면 팀 문서에 이름이 있어야 한다.
+      // firestore.rules가 users/{uid} 읽기를 본인으로만 제한해서 초대자 프로필은 못 읽는다.
+      createdByName: profile?.name || user.displayName || "",
       inviteCode, createdBy: user.uid, members: [user.uid],
       createdAt: serverTimestamp(), progress: teamProgress, gapCount, gapScore,
     });
@@ -205,11 +243,10 @@ export default function WorkspaceCreatePage() {
     setActiveSessions(activeSessions + 1);
     setShowCopyModal(false);
 
-    if (!copyAnswers && profile?.teamIds && profile.teamIds.length > 0) {
-      router.push(`/onboarding/diagnosis?teamId=${teamRef.id}`);
-    } else {
-      router.push(`/workspace?teamId=${teamRef.id}`);
-    }
+    // 대시보드로 보내지 않는다. 초대 링크를 이 자리에서 바로 준다.
+    setCreatedTeamId(teamRef.id);
+    setInviteLink(`${window.location.origin}/workspace?inviteCode=${inviteCode}`);
+    setStep(2);
     } catch (e) {
       console.error(e);
       alert("팀 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
@@ -222,19 +259,12 @@ export default function WorkspaceCreatePage() {
     <main className="page auth-page">
       <section className="center-card auth-card wizard-card">
         <div className="wizard-header">
-          {step > 1 ? (
-            <button className="wizard-back-btn" type="button" onClick={goBack} aria-label="이전 단계">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          ) : (
-            <Link className="wizard-back-btn" href="/workspace" aria-label="워크스페이스로 이동">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-                <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-          )}
+          {/* 2단계에선 팀이 이미 만들어져 되돌아갈 곳이 없다. 항상 워크스페이스로 나간다. */}
+          <Link className="wizard-back-btn" href="/workspace" aria-label="워크스페이스로 이동">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+              <path d="M14.75 5.75 8.5 12l6.25 6.25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
           <div className="wizard-progress">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
@@ -267,157 +297,83 @@ export default function WorkspaceCreatePage() {
 
         {step === 2 && (
           <>
-            <h1 className="wizard-question">어떤 분야에서 창업하셨나요?</h1>
-            <div className="wizard-choice-grid cols-2">
-              {INDUSTRIES.map(opt => (
-                <button
-                  key={opt}
-                  type="button"
-                  className={`wizard-choice-btn${industry === opt ? " selected" : ""}`}
-                  onClick={() => selectIndustry(opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-            {industry === "기타" && (
-              <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-                <input
-                  ref={industryCustomRef}
-                  className="input wizard-input"
-                  placeholder="분야를 직접 입력해주세요"
-                  value={industryCustom}
-                  onChange={e => setIndustryCustom(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && confirmIndustryCustom()}
-                  style={{ flex: 1 }}
-                />
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  onClick={confirmIndustryCustom}
-                  disabled={!industryCustom.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
-                  다음 →
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <h1 className="wizard-question">팀 구성원이 몇 명인가요?</h1>
-            <div className="wizard-choice-grid cols-2">
-              {MEMBER_OPTIONS.map(opt => (
-                <button
-                  key={opt}
-                  type="button"
-                  className={`wizard-choice-btn${members === opt ? " selected" : ""}`}
-                  onClick={() => selectMembers(opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {step === 4 && (
-          <>
-            <h1 className="wizard-question">현재 어떤 단계에 있나요?</h1>
-            <div className="wizard-choice-grid cols-2">
-              {STAGE_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className={`wizard-choice-btn${stage === opt.value ? " selected" : ""}`}
-                  onClick={() => selectStage(opt.value)}
-                >
-                  {opt.value}
-                  <span className="choice-sub">{opt.sub}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {step === 5 && (
-          <>
-            <h1 className="wizard-question">팀에서 맡은 역할이 어떻게 되나요?</h1>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 4 }}>
-              <select
-                className="input wizard-input"
-                value={department}
-                onChange={e => { setDepartment(e.target.value); setRole(""); }}
-              >
-                <option value="">부서 선택</option>
-                <option value="경영/대표">경영/대표</option>
-                <option value="제품/기획">제품/기획</option>
-                <option value="기술/개발">기술/개발</option>
-                <option value="디자인">디자인</option>
-                <option value="비즈니스">비즈니스</option>
-                <option value="마케팅">마케팅</option>
-                <option value="운영/지원">운영/지원</option>
-              </select>
-              <select
-                className="input wizard-input"
-                value={role}
-                onChange={e => setRole(e.target.value)}
-                disabled={!department}
-                style={{ color: !role ? "var(--text-3)" : undefined }}
-              >
-                <option value="">직책 선택</option>
-                {rolesForDepartment.map(item => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
-              </select>
-            </div>
-            <button
-              className="btn btn-primary full wizard-btn"
-              type="button"
-              onClick={() => setStep(6)}
-              disabled={!department}
-            >
-              다음 →
-            </button>
-            <p
-              style={{ textAlign: "center", marginTop: 12, fontSize: 13, color: "var(--text-3)", cursor: "pointer" }}
-              onClick={() => setStep(6)}
-            >
-              건너뛰기
+            <h1 className="wizard-question">팀이 만들어졌어요</h1>
+            <p className="wizard-sub" style={{ wordBreak: "keep-all" }}>
+              이 링크를 받은 사람은 같은 20문항에 답하게 돼요. 둘 다 마치면 팀 리포트가 열립니다.
             </p>
-          </>
-        )}
 
-        {step === 6 && (
-          <>
-            <h1 className="wizard-question">이대로 팀을 생성할게요</h1>
-            <div className="wizard-summary">
-              <div className="wizard-summary-row">
-                <span className="summary-label">팀 이름</span>
-                <span className="summary-value">{teamName}</span>
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 14px", margin: "4px 0 12px", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>
+                {inviteLink}
+              </span>
+            </div>
+            <button className="btn btn-primary full wizard-btn" type="button" onClick={copyInvite}>
+              {copied ? "복사됐어요" : "초대 링크 보내기"}
+            </button>
+
+            {/* 링크는 이미 손에 있다. 여기서 안 고르고 나가도 초대는 성공이다. */}
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px dashed #e2e8f0", textAlign: "left" }}>
+              <p style={{ fontSize: 13.5, fontWeight: 700, color: "#1e293b", margin: "0 0 4px", wordBreak: "keep-all" }}>
+                팀원이 답하는 동안 두 가지만 알려주세요
+              </p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 14px" }}>
+                리포트 기준을 팀 상황에 맞추는 데 씁니다. 나중에 팀 설정에서 바꿀 수 있어요.
+              </p>
+
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#64748b", margin: "0 0 8px" }}>어떤 분야인가요?</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                {INDUSTRIES.map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => selectIndustry(opt)}
+                    style={chipStyle(industry === opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
               </div>
-              <div className="wizard-summary-row">
-                <span className="summary-label">비즈니스 분야</span>
-                <span className="summary-value">{industry === "기타" && industryCustom ? industryCustom : industry}</span>
-              </div>
-              <div className="wizard-summary-row">
-                <span className="summary-label">구성원 수</span>
-                <span className="summary-value">{members}</span>
-              </div>
-              <div className="wizard-summary-row">
-                <span className="summary-label">단계</span>
-                <span className="summary-value">{stage}</span>
+              {industry === "기타" && (
+                <div className="code-input-row" style={{ marginBottom: 8 }}>
+                  <input
+                    ref={industryCustomRef}
+                    className="input"
+                    placeholder="분야를 직접 입력"
+                    value={industryCustom}
+                    onChange={e => setIndustryCustom(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && confirmIndustryCustom()}
+                  />
+                  <button className="code-input-btn" type="button" onClick={confirmIndustryCustom} disabled={!industryCustom.trim()} aria-label="분야 저장">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#64748b", margin: "16px 0 8px" }}>지금 어느 단계인가요?</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {STAGE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => selectStage(opt.value)}
+                    style={chipStyle(stage === opt.value)}
+                  >
+                    {opt.value}
+                  </button>
+                ))}
               </div>
             </div>
+
             <button
-              className="btn btn-primary full wizard-btn"
+              className="btn btn-ghost full wizard-btn"
               type="button"
-              onClick={handleCreate}
-              disabled={createLoading}
+              style={{ marginTop: 22 }}
+              disabled={savingMeta}
+              onClick={() => router.push(`/workspace?teamId=${createdTeamId}`)}
             >
-              {createLoading ? "생성 중..." : "팀 생성하기 →"}
+              대시보드로 가기 →
             </button>
           </>
         )}

@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import { CircleAvatar } from "./Brand";
 import { useTeamMembers } from "./useTeamMembers";
 import { useAuth } from "./AuthContext";
+import { InviteLinkButton } from "./InviteLinkButton";
 import type { OnboardingAnswers } from "../lib/gap";
 
 type Team = {
   id: string;
   name: string;
   progress?: number;
+  inviteCode?: string;
 };
 
 const BASIC_FIELDS: (keyof OnboardingAnswers)[] = ["extraWorkPriority", "extraWorkPrinciple", "underperformanceAction", "exitRecoveryPriority", "exitCleanupTiming", "exitDisputeResolution", "exitVision", "pivotCriteria", "dealbreaker", "fundingRunway", "spendingApproval", "investmentCriteria"];
@@ -98,20 +100,27 @@ export function TeamSessionCard({ team }: { team: Team }) {
             >
               내 결과 먼저 보기
             </Link>
-            <Link
-              className="btn btn-primary full"
-              href={`/team-setting?teamId=${team.id}`}
-              onClick={(event) => event.stopPropagation()}
-            >
-              팀원 초대하기
-            </Link>
+            {/* 팀설정까지 들어가지 않고 카드에서 바로 링크를 보낸다. */}
+            <div onClick={(event) => event.stopPropagation()} style={{ display: "contents" }}>
+              <InviteLinkButton
+                inviteCode={team.inviteCode}
+                teamName={team.name}
+                className="btn btn-primary full"
+                label="팀원 초대하기"
+              />
+            </div>
           </>
         ) : (
           <>
             {iMyComplete ? (
-              <Link className="btn btn-ghost full" href={`/team-setting?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
-                팀원 초대하기
-              </Link>
+              <div onClick={(event) => event.stopPropagation()} style={{ display: "contents" }}>
+                <InviteLinkButton
+                  inviteCode={team.inviteCode}
+                  teamName={team.name}
+                  className="btn btn-ghost full"
+                  label="팀원 초대하기"
+                />
+              </div>
             ) : (
               <Link className="btn btn-ghost full" href={`/onboarding/diagnosis?teamId=${team.id}`} onClick={(event) => event.stopPropagation()}>
                 내 진단 이어서 하기
