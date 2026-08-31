@@ -11,6 +11,8 @@ const FULL = {
   tenure: 3,
   vesting: { apply: "yes", vestingYears: 4, cliffYears: 1 },
   buybackPrice: true,
+  ipTransfer: true,
+  tagAlong: "yes",
   lockup: 5,
   dragAlong: { apply: "yes", ratio: 67 },
   penalty: { base: 100_000_000, rate: 30 },

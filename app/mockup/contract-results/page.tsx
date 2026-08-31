@@ -43,6 +43,7 @@ const PREFILL: Record<string, unknown> = {
   decisionAmount: 100_000_000,
   deadlock: 7,
   ipTransfer: true,
+  tagAlong: "yes",
   equity: { m1: 50, m2: 30, m3: 20 },
   noncompete: 1,
   tenure: 3,
@@ -700,11 +701,12 @@ const CSS = `
 .cq-range::-moz-range-track { height: 14px; border-radius: 999px; background: #E2E8F0; }
 .cq-range::-moz-range-progress { height: 14px; border-radius: 999px; background: #4F46E5; }
 .cq-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; border: none; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
-.cq-marks { display: flex; justify-content: space-between; gap: 8px; }
-.cq-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
+.cq-marks { position: relative; height: 46px; }
+.cq-mark { position: absolute; top: 0; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
 .cq-mark:hover { background: #f8fafc; }
 .cq-mark:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
 .cq-mark-v { font-size: 12px; font-weight: 800; color: #475569; font-variant-numeric: tabular-nums; }
+.cq-mark.on .cq-mark-v { color: #4338CA; }
 .cq-mark-l { font-size: 11px; font-weight: 700; color: #94a3b8; }
 
 /* 설명 길이가 달라 카드 높이가 제각각이었다. 한 행 안에서는 같은 높이로 늘린다. */
@@ -853,13 +855,20 @@ const CSS = `
 /* 회색 점선만으로는 본문 글자와 구분되지 않아 눌러볼 것이 있다는 걸 알 수 없다.
    링크색을 입혀 "여기 뭔가 있다"를 색으로 알린다. */
 .cq-term { position: relative; color: #4338CA; border-bottom: 1px dashed #a5b4fc; cursor: help; }
-.cq-term-pop { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60; width: max-content; max-width: 240px;
+/* 화면을 좁히면 말풍선이 지면 밖으로 나가 글자가 잘린다. 너비를 뷰포트에 묶어둔다. */
+.cq-term-pop { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60; width: max-content;
+  max-width: min(240px, calc(100vw - 32px));
   padding: 10px 12px; border-radius: 10px; background: #1e293b; color: #fff;
   font-size: 12px; font-weight: 500; line-height: 1.6; letter-spacing: 0; text-align: left; word-break: keep-all;
   opacity: 0; visibility: hidden; transition: opacity 0.12s; pointer-events: none; }
 .cq-term:hover .cq-term-pop, .cq-term:focus .cq-term-pop { opacity: 1; visibility: visible; }
 .cq-term:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; border-radius: 3px; }
 .cq-info .cq-term-pop { left: auto; right: 0; }
+/* 정보 열이 본문 아래로 내려오면 열이 화면 왼쪽에 붙는다. 그대로 오른쪽 정렬하면
+   말풍선이 왼쪽으로 밀려 나가 잘린다. 이때는 용어 왼쪽에 맞춘다. */
+@media (max-width: 1100px) {
+  .cq-info .cq-term-pop { left: 0; right: auto; }
+}
 
 /* 값을 모르는 항목은 크기를 지어내지 않고 점선 블록으로 둔다. */
 .cr-mag { display: flex; flex-wrap: wrap; gap: 12px; padding: 2px 0; }

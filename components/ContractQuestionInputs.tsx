@@ -145,9 +145,20 @@ function PercentInput({ tpl, value, onChange, id }: {
         style={{ "--pct": `${v}%` } as React.CSSProperties}
         onChange={(e) => onChange(Number(e.target.value))}
       />
+      {/* 눈금을 균등 간격으로 늘어놓으면 슬라이더 위치와 어긋난다 — 35%인데 "50%" 글자가
+          손잡이 왼쪽에 있으면 이미 넘긴 것처럼 읽힌다. 트랙 위 실제 자리에 세운다. */}
       <div className="cq-marks">
         {tpl.marks.map((m) => (
-          <button key={m.value} type="button" className="cq-mark" onClick={() => onChange(m.value)}>
+          <button
+            key={m.value}
+            type="button"
+            className={`cq-mark ${v === m.value ? "on" : ""}`}
+            style={{
+              left: `${m.value}%`,
+              transform: `translateX(${m.value <= 5 ? "0%" : m.value >= 95 ? "-100%" : "-50%"})`,
+            }}
+            onClick={() => onChange(m.value)}
+          >
             <span className="cq-mark-v">{m.value}%</span>
             {m.label && <span className="cq-mark-l">{m.label}</span>}
           </button>

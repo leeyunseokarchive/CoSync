@@ -378,11 +378,12 @@ export default function ContractQuestionsMockup() {
         .cq-range::-moz-range-track { height: 14px; border-radius: 999px; background: #E2E8F0; }
         .cq-range::-moz-range-progress { height: 14px; border-radius: 999px; background: #4F46E5; }
         .cq-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #4F46E5; border: none; box-shadow: 0 1px 4px rgba(79,70,229,0.25); }
-        .cq-marks { display: flex; justify-content: space-between; gap: 8px; }
-        .cq-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
+        .cq-marks { position: relative; height: 46px; }
+        .cq-mark { position: absolute; top: 0; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font: inherit; padding: 6px 8px; border-radius: 10px; }
         .cq-mark:hover { background: #f8fafc; }
         .cq-mark:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
         .cq-mark-v { font-size: 12px; font-weight: 800; color: #475569; font-variant-numeric: tabular-nums; }
+.cq-mark.on .cq-mark-v { color: #4338CA; }
         .cq-mark-l { font-size: 11px; font-weight: 700; color: #94a3b8; }
 
         /* 설명 길이가 달라 카드 높이가 제각각이었다. 한 행 안에서는 같은 높이로 늘린다. */

@@ -77,6 +77,7 @@ export function won(n: number): string {
 export const RESULT_QUESTION_IDS = new Set([
   "decisionAmount", "deadlock", "equity", "noncompete",
   "tenure", "vesting", "buybackPrice", "lockup", "dragAlong", "penalty",
+  "ipTransfer", "tagAlong",
 ]);
 
 // ── 규칙 ─────────────────────────────────────────────────────
@@ -99,6 +100,8 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const buybackYears = tenure ?? 3;
   const buyback = typeof A.buybackPrice === "boolean" ? (A.buybackPrice ? "agree" : "hold") : null;
   const lockup = num(A.lockup);
+  const ipTransfer = typeof A.ipTransfer === "boolean" ? A.ipTransfer : null;
+  const tagAlong = str(A.tagAlong);
   // 도입 여부와 비율을 한 문항에서 받는다. 넣지 않기로 했으면 비율은 의미가 없다.
   const dragOn = str(part(A.dragAlong, "apply")) === "yes";
   const dragAlong = dragOn ? num(part(A.dragAlong, "ratio")) : null;
@@ -117,6 +120,55 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
           { label: "전원 동의 없이 집행", value: 1, text: `${won(decisionAmount)}까지` },
           { label: "전원 동의 필요", value: 1, text: `${won(decisionAmount)} 초과`, outline: true },
         ],
+      },
+    });
+  }
+
+  // ── 제3조 · 기술·지식재산 이전 ──
+  // 제8조 ①③이 이름을 부르는 조항이라 위반의 대가가 있다. 그 사실이 화면에 없었다.
+  if (qid === "ipTransfer" && ipTransfer !== null) {
+    out.push({
+      id: "ipTransfer",
+      plain: ipTransfer
+        ? "법인을 세우는 순간 내 이름으로 된 것이 회사 것이 돼요. 넘기지 않으면 위약벌을 물어요."
+        : "넘길 것이 없다고 답했어요. 나중에 내 이름으로 된 것이 나오면 그때 넘겨야 하고, 안 넘기면 위약벌을 물어요.",
+      formal: ipTransfer
+        ? "제3조에 따라 설립 전 주주들에게 권리가 있던 비즈니스·기술·지식재산권은 회사 설립과 동시에 회사로 이전됩니다. 이전하지 않는 경우 제8조 ①·③항의 위약벌 및 손해배상예정액 대상이 됩니다."
+        : "제3조는 이전 대상을 유형이 아니라 \"사업과 관련하여 권리가 있었던\" 것으로 정합니다. 해당 없음으로 답해도 실제로 해당하는 권리가 확인되면 이전 의무가 발생하며, 제8조 ①·③항이 그대로 적용됩니다.",
+      figure: {
+        shape: "magnitude",
+        bars: ipTransfer
+          ? [
+              { label: "지금", value: 1, text: "내 이름", outline: true },
+              { label: "법인 설립과 동시에", value: 1, text: "회사 것" },
+            ]
+          : [{ label: "이전할 권리", value: 1, text: "없다고 답함", outline: true }],
+      },
+    });
+  }
+
+  // ── 제7조 ① · 공동매도참여권(태그얼롱) ──
+  if (qid === "tagAlong" && tagAlong) {
+    const on = tagAlong === "yes";
+    out.push({
+      id: "tagAlong",
+      plain: on
+        ? "다른 주주가 자기 지분을 팔 때, 나도 같은 값에 함께 팔 수 있어요. 이걸 무시하고 판 거래는 위약벌 대상이고, 다른 주주들에게 통하지 않아요."
+        : "다른 주주는 자기 지분만 팔고 나갈 수 있고, 나는 새 주주와 함께 남아요.",
+      formal: on
+        ? "제7조 ①항의 공동매도참여권이 유지됩니다. 매도주주는 30일 전 서면 통지 의무를 지고, 이를 위반해 처분한 경우 제8조 ⑤항에 따라 위약벌을 지급하며 그 처분행위로써 다른 주주들에게 대항할 수 없습니다."
+        : "제7조 ①항에서 공동매도참여권을 제외합니다. 우선매수권은 남지만, 다른 주주의 매각에 동일 조건으로 참여할 통로가 없어집니다.",
+      figure: {
+        shape: "magnitude",
+        bars: on
+          ? [
+              { label: "다른 주주가 팔 때", value: 1, text: "판다" },
+              { label: "나는", value: 1, text: "같은 값에 함께" },
+            ]
+          : [
+              { label: "다른 주주가 팔 때", value: 1, text: "판다" },
+              { label: "나는", value: 1, text: "새 주주와 남는다", outline: true },
+            ],
       },
     });
   }
@@ -373,11 +425,19 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       plain:
         dragAlong >= 100
           ? "한 명이라도 반대하면 안 돼요. 제6조의 전원 동의와 사실상 같아요."
-          : `지분 ${dragAlong}%가 팔자고 하면, 나머지도 같은 조건으로 따라 팔아야 해요.`,
-      formal: `제7의 2조 ①항의 발동 지분율이 ${dragAlong}%로 정해집니다. 이 비율 이상의 찬성이 모이면 반대한 주주도 동일한 조건으로 주식을 매도해야 합니다.`,
+          : `지분 ${dragAlong}%가 팔자고 하면, 나머지도 같은 조건으로 따라 팔아야 해요. 안 따르면 위약벌을 물어요.`,
+      formal: `제7의 2조 ①항의 발동 지분율이 ${dragAlong}%로 정해집니다. 이 비율 이상의 찬성이 모이면 반대한 주주도 동일한 조건으로 주식을 매도해야 하며, 이에 응하지 않으면 제8조 ⑥항의 위약벌 대상이 됩니다.`,
+      // 빈 트랙에 선만 그으면 볼 것이 없다. 지분 배분을 몰라도 이 답만으로 두 쪽이 나온다 —
+      // 기준을 채우는 쪽과, 반대해도 끌려가는 쪽. 선은 정확히 그 경계에 선다.
       figure: {
         shape: "threshold",
-        blocks: [],
+        blocks:
+          dragAlong >= 100
+            ? [{ label: "전원 찬성해야", value: 100 }]
+            : [
+                { label: "팔자는 쪽", value: dragAlong },
+                { label: "반대해도 따라감", value: 100 - dragAlong },
+              ],
         line: dragAlong,
         lineLabel: `발동 ${dragAlong}%`,
       },
