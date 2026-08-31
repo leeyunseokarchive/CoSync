@@ -470,7 +470,8 @@ export default function ContractQuestionsMockup() {
         .cq-info-card { background: rgba(255,255,255,0.7); border: 1px solid rgba(226,232,240,0.7); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
         .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
         .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
-        .cq-info-card p { font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
+        /* info 문구에 줄바꿈(\n)이 들어간다. 목록형 설명이 한 줄로 붙지 않게 한다. */
+        .cq-info-card p { white-space: pre-line; font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
         .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
         .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
         .cq-info-side-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; }

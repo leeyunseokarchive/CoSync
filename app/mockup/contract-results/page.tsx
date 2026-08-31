@@ -780,7 +780,8 @@ const CSS = `
 .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
 .cq-info-head .cq-info-chev { margin-left: auto; color: #cbd5e1; transition: transform 0.15s; }
 .cq-info-card[open] .cq-info-chev { transform: rotate(180deg); }
-.cq-info-body { padding: 0 4px 16px; display: flex; flex-direction: column; gap: 10px; }
+/* info 문구에 줄바꿈(\n)이 들어간다. 목록형 설명이 한 줄로 붙지 않게 한다. */
+.cq-info-body { white-space: pre-line; padding: 0 4px 16px; display: flex; flex-direction: column; gap: 10px; }
 .cq-info-card p { font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
 .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
 .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
