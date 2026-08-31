@@ -231,15 +231,15 @@ export default function ContractQuestionsMockup() {
               </p>
             </div>
           )}
-          {/* 2차 변호사 자문: 차등 구조는 여기서 만들지 않고 전문가로 넘긴다.
-              "액면가로 하고, 만약에 차등을 두고 싶은 경우에는 별도 자문을 받아라라고
-               넘기는 게 제일 안전할 것으로 보여요." */}
-          {q.id === "buybackPrice" && (answers.buybackPrice === "consult" || (answers.buybackPrice as { id?: string })?.id === "consult") && (
-            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>여기서는 정하지 않습니다</div>
-              <p style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.7, margin: 0, wordBreak: "keep-all" }}>
-                어떤 경우를 어떻게 나눌지는 노무사·변호사와, 주식 가치 산정은 회계사와 함께 정하세요.
-                합의안에는 액면가로 남고, 선택하신 뜻은 메모로 기록됩니다.
+          {/* 접지 않는 안내. "여기서 정하지 말고 전문가에게 가라" 같은, 항상 읽혀야 하는 것.
+              접힌 정보 카드에 넣으면 안 펼치는 사람에게는 없는 것과 같다. */}
+          {q.info.advisory && (
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 800, color: "#475569", marginBottom: 6 }}>
+                <Scale size={14} /> 짚고 갈 것
+              </div>
+              <p style={{ fontSize: 12.5, color: "#475569", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>
+                {q.info.advisory}
               </p>
             </div>
           )}
