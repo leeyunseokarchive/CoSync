@@ -160,11 +160,11 @@ export default function ContractQuestionsMockup() {
             {/* 「이렇게 됩니다」 바로 위에 둔다. 이 안내는 결과를 뒤집는 성격이라
                 ("여기서 정하지 마세요") 결과와 붙어 있어야 한 흐름으로 읽힌다. */}
             {q.info.advisory && (
-              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
+              <div style={{ border: "1px solid #FCD34D", background: "none", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#B45309" }} />
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
-                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.info.advisory}</p>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#92400E", marginBottom: 5 }}>짚고 갈 것</div>
+                  <p style={{ fontSize: 13, color: "#334155", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.info.advisory}</p>
                 </div>
               </div>
             )}
@@ -479,14 +479,14 @@ export default function ContractQuestionsMockup() {
         .cq-info-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; padding-left: 2px; }
         .cq-info-card { background: rgba(255,255,255,0.7); border: 1px solid rgba(226,232,240,0.7); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
         .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
-        .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
+        .cq-info-head svg { color: #334155; flex-shrink: 0; }
         /* info 문구에 줄바꿈(\n)이 들어간다. 목록형 설명이 한 줄로 붙지 않게 한다. */
         .cq-info-card p { white-space: pre-line; font-size: 13px; line-height: 1.75; color: #475569; font-weight: 500; }
         .cq-info-side { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
         .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
         .cq-info-side-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .cq-info-side-tag.low { background: rgba(148,163,184,0.14); color: #475569; }
-        .cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
+        .cq-info-side-tag.high { background: rgba(51,65,85,0.1); color: #334155; }
         .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 0 4px; }
 
         .cq-composite { display: flex; flex-direction: column; gap: 22px; }
@@ -531,8 +531,8 @@ export default function ContractQuestionsMockup() {
              현황은 사이드바에도 있어서 여기서 빠져도 정보가 사라지지 않는다. */
           .cq-footer { height: auto; padding: 12px 16px; gap: 12px; }
           .cq-team { display: none; }
-          .cq-footer-right { gap: 12px; }
-          .cq-progress-bar { width: 100px; }
+          .cq-footer-right { gap: 24px; }
+          .cq-progress-bar { width: 88px; }
           .cq-cta { padding: 0 20px; }
         }
 

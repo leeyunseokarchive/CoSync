@@ -295,15 +295,18 @@ const PEN_CSS = `
 }
 
 /* ── SVG 경로 ──
-   정액(제8조 ①③)은 남색, 비율(②)은 에메랄드. 두 갈래가 ⑤에서 만난다.
-   전에는 둘 다 보라 계열이라 색이 갈래를 구분해 주지 못했다. */
+   정액(제8조 ①③)은 보라, 비율(②)은 짙은 슬레이트. 두 갈래가 ⑤에서 만난다.
+   전에는 둘 다 보라 계열이라 색이 갈래를 구분해 주지 못했다. 색을 하나 더 들이는
+   대신 무채색을 쓴다 — 입력 카드의 ①③⑤ / ②⑤ 배지가 이미 어느 조항으로 가는지
+   글자로 말하고 있어, 색은 선을 눈으로 따라갈 수 있게만 하면 된다.
+   옅은 회색이 아니라 짙은 슬레이트라 두 갈래의 무게가 대등하다. */
 .pen-path {
   fill: none; stroke-width: 1.5;
   transition: stroke 0.3s, stroke-dasharray 0.3s;
 }
 .pen-path-off { stroke: #d1d5db; stroke-dasharray: 4 3; }
 .pen-path-base { stroke: #818CF8; stroke-dasharray: none; }
-.pen-path-rate { stroke: #34D399; stroke-dasharray: none; }
+.pen-path-rate { stroke: #475569; stroke-dasharray: none; }
 .pen-path-base.pen-path-dashed { stroke-dasharray: 5 3; stroke: #a5b4fc; }
 
 /* ── 입력 카드 ── */
@@ -315,14 +318,14 @@ const PEN_CSS = `
   transition: border-color 0.18s, background 0.18s;
 }
 .pen-icard-base { border-color: #c7d2fe; background: #F5F6FF; }
-.pen-icard-rate { border-color: #A7F3D0; background: #F0FDF9; }
+.pen-icard-rate { border-color: #cbd5e1; background: #F8FAFC; }
 .pen-icard-meta { display: flex; align-items: baseline; justify-content: space-between; }
 .pen-icard-label { font-size: 13px; font-weight: 800; color: #475569; }
 .pen-icard-applies { font-size: 11px; font-weight: 900; color: #a5b4fc; letter-spacing: 0.04em; }
 .pen-icard-base .pen-icard-label { color: #3730A3; }
 .pen-icard-base .pen-icard-applies { color: #818CF8; }
-.pen-icard-rate .pen-icard-label { color: #047857; }
-.pen-icard-rate .pen-icard-applies { color: #34D399; }
+.pen-icard-rate .pen-icard-label { color: #334155; }
+.pen-icard-rate .pen-icard-applies { color: #94a3b8; }
 
 /* ── 조항 박스 ── */
 .pen-clause {
@@ -335,16 +338,16 @@ const PEN_CSS = `
 }
 .pen-clause-5 { flex: none; min-height: 88px; }
 .pen-clause-base { border-color: #c7d2fe; background: #fff; }
-.pen-clause-rate { border-color: #A7F3D0; background: #fff; }
+.pen-clause-rate { border-color: #cbd5e1; background: #fff; }
 .pen-clause-both { border-color: #cbd5e1; background: #fff; }
 .pen-clause-art { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: 0.06em; }
 .pen-clause-base .pen-clause-art { color: #4338CA; }
-.pen-clause-rate .pen-clause-art { color: #047857; }
+.pen-clause-rate .pen-clause-art { color: #334155; }
 .pen-clause-both .pen-clause-art { color: #4338CA; }
 .pen-clause-name { font-size: 13px; font-weight: 700; color: #64748b; line-height: 1.4; }
 .pen-clause-val { font-size: 15px; font-weight: 900; color: #94a3b8; font-variant-numeric: tabular-nums; margin-top: 2px; }
 .pen-clause-base .pen-clause-val { color: #3730A3; }
-.pen-clause-rate .pen-clause-val { color: #065F46; }
+.pen-clause-rate .pen-clause-val { color: #1e293b; }
 .pen-dash { color: #cbd5e1; font-style: normal; }
 
 /* ── MAX 비교 (⑤) ── */
@@ -356,13 +359,13 @@ const PEN_CSS = `
   transition: border-color 0.15s, background 0.15s;
 }
 .pen-max-base { border: 1px solid #a5b4fc; border-style: solid; background: #EEF2FF; }
-.pen-max-rate { border: 1px solid #A7F3D0; border-style: solid; background: #F0FDF9; }
+.pen-max-rate { border: 1px solid #cbd5e1; border-style: solid; background: #F8FAFC; }
 .pen-max-lbl { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
 .pen-max-base .pen-max-lbl { color: #6366f1; }
-.pen-max-rate .pen-max-lbl { color: #059669; }
+.pen-max-rate .pen-max-lbl { color: #475569; }
 .pen-max-v { font-size: 12px; font-weight: 900; color: #94a3b8; text-align: center; line-height: 1.3; font-variant-numeric: tabular-nums; }
 .pen-max-base .pen-max-v { color: #3730A3; }
-.pen-max-rate .pen-max-v { color: #065F46; }
+.pen-max-rate .pen-max-v { color: #1e293b; }
 .pen-max-vs { font-size: 10px; font-weight: 900; color: #cbd5e1; letter-spacing: 0.05em; flex-shrink: 0; }
 .pen-clause-both .pen-max-vs { color: #818CF8; }
 
@@ -394,8 +397,8 @@ const PEN_CSS = `
   font-size: 14px; font-weight: 700; line-height: 1.4;
 }
 .pen-ctx-chip-base { background: #EEF2FF; color: #3730A3; }
-.pen-ctx-chip-rate { background: #ECFDF5; color: #065F46; }
-.pen-ctx-chip-both { background: linear-gradient(90deg,#EEF2FF,#ECFDF5); color: #334155; }
+.pen-ctx-chip-rate { background: #F1F5F9; color: #334155; }
+.pen-ctx-chip-both { background: linear-gradient(90deg,#EEF2FF,#F1F5F9); color: #334155; }
 .pen-ctx-empty { font-size: 14px; font-weight: 600; color: #cbd5e1; font-style: italic; }
 .pen-ctx-empty-sm { font-size: 13px; font-weight: 600; color: #d1d5db; font-style: italic; }
 .pen-ctx-summary {

@@ -265,11 +265,11 @@ export default function ContractResultsMockup() {
             {/* 「이렇게 됩니다」 바로 위에 둔다. 이 안내는 결과를 뒤집는 성격이라
                 ("여기서 정하지 마세요") 결과와 붙어 있어야 한 흐름으로 읽힌다. */}
             {q.info.advisory && (
-              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
+              <div style={{ border: "1px solid #FCD34D", background: "none", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#B45309" }} />
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
-                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}><Gloss text={q.info.advisory} /></p>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#92400E", marginBottom: 5 }}>짚고 갈 것</div>
+                  <p style={{ fontSize: 13, color: "#334155", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}><Gloss text={q.info.advisory} /></p>
                 </div>
               </div>
             )}
@@ -639,9 +639,9 @@ const CSS = `
 .cq-fold > summary::-webkit-details-marker { display: none; }
 .cq-fold > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; border-radius: 16px; }
 .cq-fold-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #334155; }
-.cq-fold-head svg { color: #4F46E5; flex-shrink: 0; }
-.cq-fold-head .cq-info-chev { color: #4F46E5; }
-.cq-open-label { margin-left: auto; font-size: 11.5px; font-weight: 800; color: #4F46E5; letter-spacing: 0.02em; }
+.cq-fold-head svg { color: #334155; flex-shrink: 0; }
+.cq-fold-head .cq-info-chev { color: #334155; }
+.cq-open-label { margin-left: auto; font-size: 11.5px; font-weight: 800; color: #334155; letter-spacing: 0.02em; }
 .cq-open-label::after { content: "펼치기"; }
 details[open] .cq-open-label::after { content: "접기"; }
 .cq-fold-head:hover .cq-open-label, .cq-info-head:hover .cq-open-label { text-decoration: underline; }
@@ -815,8 +815,8 @@ details[open] .cq-open-label::after { content: "접기"; }
 .cq-info-card > summary::-webkit-details-marker { display: none; }
 .cq-info-card > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
-.cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
-.cq-info-head .cq-info-chev { color: #4F46E5; transition: transform 0.15s; }
+.cq-info-head svg { color: #334155; flex-shrink: 0; }
+.cq-info-head .cq-info-chev { color: #334155; transition: transform 0.15s; }
 .cq-info-card[open] .cq-info-chev { transform: rotate(180deg); }
 /* info 문구에 줄바꿈(\n)이 들어간다. 목록형 설명이 한 줄로 붙지 않게 한다. */
 .cq-info-body { white-space: pre-line; padding: 0 4px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -825,7 +825,7 @@ details[open] .cq-open-label::after { content: "접기"; }
 .cq-info-side + .cq-info-side { border-top: 1px solid #f1f5f9; padding-top: 12px; }
 .cq-info-side-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; }
 .cq-info-side-tag.low { background: rgba(148,163,184,0.14); color: #475569; }
-.cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
+.cq-info-side-tag.high { background: rgba(51,65,85,0.1); color: #334155; }
 .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 16px 4px 0; }
 
 .cq-composite { display: flex; flex-direction: column; gap: 22px; }
@@ -862,8 +862,8 @@ details[open] .cq-open-label::after { content: "접기"; }
 .cr-rows { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 2px; padding-top: 14px; border-top: 1px solid #f1f5f9; }
 .cr-row { display: flex; flex-direction: column; gap: 6px; }
 .cr-from { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.cr-from-tag { padding: 3px 9px; border-radius: 999px; border: 1px solid #c7d2fe; background: #EEF2FF; color: #4338CA; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
-.cr-from-tag:hover { background: #E0E7FF; }
+.cr-from-tag { padding: 3px 9px; border-radius: 999px; border: 1px solid #e2e8f0; background: none; color: #475569; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
+.cr-from-tag:hover { border-color: #a5b4fc; color: #4338CA; }
 .cr-from-tag:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
 .cr-from-with { font-size: 11px; font-weight: 800; color: #94a3b8; }
 .cr-row-text { font-size: 14.5px; line-height: 1.7; font-weight: 700; color: #1e293b; word-break: keep-all; }
@@ -967,8 +967,8 @@ details[open] .cq-open-label::after { content: "접기"; }
      현황은 사이드바에도 있어서 여기서 빠져도 정보가 사라지지 않는다. */
   .cq-footer { height: auto; padding: 12px 16px; gap: 12px; }
   .cq-team { display: none; }
-  .cq-footer-right { gap: 12px; }
-  .cq-progress-bar { width: 100px; }
+  .cq-footer-right { gap: 24px; }
+  .cq-progress-bar { width: 88px; }
   .cq-cta { padding: 0 20px; }
 }
 
