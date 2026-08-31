@@ -3,6 +3,7 @@
 import React from "react";
 import type { Figure } from "../lib/contractResults";
 import { GLOSSARY } from "../lib/glossary";
+import { keepInView } from "./Gloss";
 
 // 도형 4종. 규칙마다 SVG를 그리지 않고, 형태에 값을 넣는다.
 // 기존 화면과 같은 평면 스타일로 그린다 — 그라디언트·그림자·하이라이트 없이 면과 선만 쓴다.
@@ -202,6 +203,9 @@ function AccrualFigure({ figure }: { figure: Extract<Figure, { shape: "accrual" 
       <span
         className="cq-term"
         tabIndex={0}
+        onMouseEnter={(e) => keepInView(e.currentTarget)}
+        onFocus={(e) => keepInView(e.currentTarget)}
+        onPointerDown={(e) => keepInView(e.currentTarget)}
         style={{
           position: "absolute",
           left: `${(x(c) / 520) * 100}%`,

@@ -26,6 +26,8 @@ function ContextPanel({
   const noncompete = answers?.noncompete as number | undefined;
   const tenure = answers?.tenure as number | undefined;
   const lockup = answers?.lockup as number | undefined;
+  const tagAlong = answers?.tagAlong as string | undefined;
+  const drag = answers?.dragAlong as { apply?: string; ratio?: number } | undefined;
   const hasSummary = baseTxt || rateTxt;
 
   return (
@@ -69,6 +71,25 @@ function ContextPanel({
             {lockup
               ? <span className="pen-ctx-chip pen-ctx-chip-both">{lockup}년간 주식 처분 제한</span>
               : <span className="pen-ctx-empty">아직 정하지 않음</span>}
+          </div>
+        </div>
+
+        {/* 제7조·제7의 2조 → 제8조 ⑤ ⑥. ⑥항을 새로 넣으면서 이 표가 따라오지 않아
+            드래그·태그얼롱만 제재와 연결이 끊겨 보였다. */}
+        <div className="pen-ctx-row">
+          <span className="pen-ctx-art">제7조 · 제7의 2조</span>
+          <span className="pen-ctx-label">함께 팔기</span>
+          <div className="pen-ctx-chips">
+            {tagAlong === "yes"
+              ? <span className="pen-ctx-chip pen-ctx-chip-both">태그얼롱</span>
+              : tagAlong === "no"
+              ? <span className="pen-ctx-empty pen-ctx-empty-sm">태그얼롱 빼기로 함</span>
+              : <span className="pen-ctx-empty pen-ctx-empty-sm">미설정</span>}
+            {drag?.apply === "yes" && drag?.ratio
+              ? <span className="pen-ctx-chip pen-ctx-chip-both">드래그얼롱 {drag.ratio}%</span>
+              : drag?.apply === "no"
+              ? <span className="pen-ctx-empty pen-ctx-empty-sm">드래그얼롱 안 넣음</span>
+              : <span className="pen-ctx-empty pen-ctx-empty-sm">미설정</span>}
           </div>
         </div>
       </div>
@@ -317,8 +338,8 @@ const PEN_CSS = `
   display: flex; flex-direction: column; gap: 8px;
   transition: border-color 0.18s, background 0.18s;
 }
-.pen-icard-base { border-color: #c7d2fe; background: #F5F6FF; }
-.pen-icard-rate { border-color: #cbd5e1; background: #F8FAFC; }
+.pen-icard-base { border-color: #c7d2fe; background: #fff; }
+.pen-icard-rate { border-color: #cbd5e1; background: #fff; }
 .pen-icard-meta { display: flex; align-items: baseline; justify-content: space-between; }
 .pen-icard-label { font-size: 13px; font-weight: 800; color: #475569; }
 .pen-icard-applies { font-size: 11px; font-weight: 900; color: #a5b4fc; letter-spacing: 0.04em; }
@@ -343,7 +364,7 @@ const PEN_CSS = `
 .pen-clause-art { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: 0.06em; }
 .pen-clause-base .pen-clause-art { color: #4338CA; }
 .pen-clause-rate .pen-clause-art { color: #334155; }
-.pen-clause-both .pen-clause-art { color: #4338CA; }
+.pen-clause-both .pen-clause-art { color: #334155; }
 .pen-clause-name { font-size: 13px; font-weight: 700; color: #64748b; line-height: 1.4; }
 .pen-clause-val { font-size: 15px; font-weight: 900; color: #94a3b8; font-variant-numeric: tabular-nums; margin-top: 2px; }
 .pen-clause-base .pen-clause-val { color: #3730A3; }

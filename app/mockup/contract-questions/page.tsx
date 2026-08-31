@@ -160,8 +160,8 @@ export default function ContractQuestionsMockup() {
             {/* 「이렇게 됩니다」 바로 위에 둔다. 이 안내는 결과를 뒤집는 성격이라
                 ("여기서 정하지 마세요") 결과와 붙어 있어야 한 흐름으로 읽힌다. */}
             {q.info.advisory && (
-              <div style={{ border: "1px solid #FCD34D", background: "none", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#B45309" }} />
+              <div style={{ border: "1px solid rgba(146,64,14,0.28)", background: "none", borderRadius: 24, padding: "18px 20px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#92400E" }} />
                 <div>
                   <div style={{ fontSize: 12.5, fontWeight: 800, color: "#92400E", marginBottom: 5 }}>짚고 갈 것</div>
                   <p style={{ fontSize: 13, color: "#334155", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.info.advisory}</p>
@@ -327,10 +327,10 @@ export default function ContractQuestionsMockup() {
         .cq-side-q:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
         .cq-side-q.current { background: rgba(79,70,229,0.09); }
         .cq-side-mark { width: 17px; height: 17px; flex-shrink: 0; border-radius: 999px; border: 1px solid #e2e8f0; background: #fff; color: #94a3b8; font-size: 9px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
-        .cq-side-mark.done { background: #10B981; border-color: #10B981; color: #fff; }
+        .cq-side-mark.done { background: #4F46E5; border-color: #4F46E5; color: #fff; }
         .cq-side-q.current .cq-side-mark:not(.done) { border-color: #4F46E5; color: #4F46E5; }
         .cq-side-q-text { font-size: 12px; font-weight: 600; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #10B981; }
+        .cq-side-exc { width: 5px; height: 5px; flex-shrink: 0; border-radius: 999px; background: #94a3b8; }
         .cq-side-q.current .cq-side-q-text { color: #3730A3; font-weight: 800; }
 
         .cq-main { flex: 1 1 520px; min-width: 0; padding: 32px 32px 140px 24px; }
@@ -353,7 +353,8 @@ export default function ContractQuestionsMockup() {
 @media (max-width: 860px) { .cq-direct { flex-basis: 100%; } }
         .cq-field-row { display: flex; flex-direction: column; gap: 8px; }
         .cq-label { font-size: 13px; font-weight: 800; color: #475569; }
-.cq-hint-label { font-size: 11px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.08em; align-self: center; }
+.cq-hint-label { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 0.08em; align-self: flex-start; }
+.cq-duration > .cq-hint-label, .cq-direct > .cq-hint-label { align-self: center; }
         .cq-help { font-size: 13px; color: #94a3b8; font-weight: 600; }
         .cq-input { min-height: 44px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 600; color: #1e293b; }
         .cq-input:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
@@ -361,7 +362,7 @@ export default function ContractQuestionsMockup() {
 
         .cq-chips { display: flex; flex-wrap: wrap; gap: 10px; }
         /* 테두리 폭을 항상 2px 로 두고 색만 바꾼다. 선택할 때 1px 씩 밀리지 않게. */
-        .cq-chip { position: relative; min-height: 44px; padding: 0 18px; border-radius: 16px; border: 2px solid #e2e8f0; background: #fff; font: inherit; font-size: 14px; font-weight: 700; color: #475569; cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+        .cq-chip { position: relative; min-height: 44px; padding: 0 18px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; font: inherit; font-size: 14px; font-weight: 700; color: #475569; cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
         .cq-chip:hover { border-color: #c7d2fe; }
         .cq-chip:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
         .cq-chip.on { border-color: #4F46E5; background: rgba(79,70,229,0.06); color: #4338CA; }
@@ -393,14 +394,14 @@ export default function ContractQuestionsMockup() {
 
         /* 설명 길이가 달라 카드 높이가 제각각이었다. 한 행 안에서는 같은 높이로 늘린다. */
 .cq-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
-        .cq-choice { position: relative; display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 20px 44px 20px 22px; border-radius: 24px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font: inherit; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+        .cq-choice { position: relative; display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 20px 22px; border-radius: 24px; border: 1.5px solid #e2e8f0; background: #fff; cursor: pointer; font: inherit; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
         .cq-choice:hover { border-color: #c7d2fe; }
         .cq-choice:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
-        .cq-choice.on { border-color: #4F46E5; background: rgba(79,70,229,0.04); box-shadow: 0 16px 30px -12px rgba(79,70,229,0.25); }
+        .cq-choice.on { padding-right: 44px; border-color: #4F46E5; background: rgba(79,70,229,0.04); box-shadow: 0 16px 30px -12px rgba(79,70,229,0.25); }
         .cq-choice-body { display: flex; flex-direction: column; gap: 6px; }
         .cq-choice-label { font-size: 16px; font-weight: 900; color: #0f172a; }
         .cq-choice-desc { font-size: 13px; color: #64748b; font-weight: 500; line-height: 1.5; }
-        .cq-choice-check { position: absolute; top: 18px; right: 18px; color: #10B981; }
+        .cq-choice-check { position: absolute; top: 18px; right: 18px; color: #4F46E5; }
         .cq-avatar { width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; background: rgba(79,70,229,0.1); color: #4F46E5; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; }
 
         .cq-matrix-row { display: grid; grid-template-columns: 160px 140px 1fr; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
@@ -450,8 +451,8 @@ export default function ContractQuestionsMockup() {
         .cq-textarea { width: 100%; min-height: 88px; resize: vertical; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 14px; font-weight: 500; line-height: 1.7; color: #1e293b; }
         .cq-textarea:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
         .cq-textarea::placeholder { color: #cbd5e1; }
-        .cq-paper-exception { position: relative; margin-top: 4px; padding: 14px 16px; border-radius: 10px; background: rgba(16,185,129,0.06); border-left: 3px solid #10B981; }
-        .cq-paper-exception-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #047857; font-size: 10px; font-weight: 900; vertical-align: 2px; }
+        .cq-paper-exception { position: relative; margin-top: 4px; padding: 14px 16px; border-radius: 10px; background: rgba(79,70,229,0.05); border-left: 3px solid #a5b4fc; }
+        .cq-paper-exception-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(79,70,229,0.1); color: #4338CA; font-size: 10px; font-weight: 900; vertical-align: 2px; }
 
         .cq-preview { background: rgba(241,245,249,0.5); border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
         .cq-preview-head { display: inline-flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; }
@@ -489,7 +490,7 @@ export default function ContractQuestionsMockup() {
         .cq-info-side-tag.high { background: rgba(51,65,85,0.1); color: #334155; }
         .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 0 4px; }
 
-        .cq-composite { display: flex; flex-direction: column; gap: 22px; }
+        .cq-composite { display: flex; flex-direction: column; gap: 32px; }
         .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 10px; }
 
         .cq-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226,232,240,0.5); z-index: 100; }

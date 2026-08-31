@@ -319,10 +319,12 @@ img {
   gap: 26px;
   color: var(--muted);
   font-size: 12px;
-  transform: translateY(4px);
 }
 
 .nav-links a {
+  /* 아래 여백은 활성 링크의 밑줄 자리다. 한쪽만 주면 글자가 그만큼 내려앉아
+     로고·로그인보다 낮게 붙는다. 위에도 같은 값을 줘 가운데를 되찾는다. */
+  padding-top: 4px;
   padding-bottom: 4px;
 }
 
