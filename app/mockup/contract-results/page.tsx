@@ -363,6 +363,19 @@ export default function ContractResultsMockup() {
               </div>
             </section>
 
+            {/* 조문을 본 직후가 "그럼 이건 못 바꾸나?"라는 의문이 생기는 시점이다.
+                오른쪽 정보 열은 접힌 카드들이 있어 "안 봐도 되는 영역"으로 학습되므로
+                항상 읽혀야 하는 안내는 본문에 둔다. */}
+            {q.info.advisory && (
+              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
+                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}><Gloss text={q.info.advisory} /></p>
+                </div>
+              </div>
+            )}
+
           </article>
         </main>
 
@@ -376,18 +389,6 @@ export default function ContractResultsMockup() {
               <p style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.7, margin: 0, wordBreak: "keep-all" }}>
                 대표도 이 합의안의 제재 대상이 되고, 대표가 퇴사하면 그 지분이 다른 주주들에게 넘어갑니다.
                 나중에 투자를 받게 되면 이 내용을 다시 손봐야 할 수 있어요. 계약서로 만들 때는 전문가 검토를 거치세요.
-              </p>
-            </div>
-          )}
-          {/* 접지 않는 안내. "여기서 정하지 말고 전문가에게 가라" 같은, 항상 읽혀야 하는 것.
-              접힌 정보 카드에 넣으면 안 펼치는 사람에게는 없는 것과 같다. */}
-          {q.info.advisory && (
-            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 800, color: "#475569", marginBottom: 6 }}>
-                <Scale size={14} /> 짚고 갈 것
-              </div>
-              <p style={{ fontSize: 12.5, color: "#475569", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>
-                <Gloss text={q.info.advisory} />
               </p>
             </div>
           )}
