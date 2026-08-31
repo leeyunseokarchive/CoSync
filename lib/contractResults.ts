@@ -86,7 +86,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const out: ResultBlock[] = [];
   const A = answers;
 
-  const decisionAmount = num(A.decisionAmount);
+  // 금액으로 선을 긋기로 한 경우에만 기준 금액이 의미를 가진다.
+  const spendMode = str(part(A.decisionAmount, "mode"));
+  const decisionAmount = spendMode === "amount" ? num(part(A.decisionAmount, "limit")) : null;
   const deadlockDays = num(A.deadlock);
   const equity = alloc(A.equity);
   const noncompete = num(A.noncompete);
@@ -109,11 +111,22 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const penaltyRate = num(part(A.penalty, "rate"));
 
   // ── 제2조 ①7호 · 전원 합의 금액 ──
+  if (qid === "decisionAmount" && spendMode === "lead") {
+    out.push({
+      id: "decisionAmount",
+      plain: "회사가 돈을 쓰는 결정은 금액과 상관없이 대표가 해요. 나머지 주주는 사후에 알게 됩니다.",
+      formal: "제2조 ①항 7호를 적용하지 않고, 회사의 지출 및 투자 집행을 대표이사인 주주의 단독 결정에 맡깁니다. 집행 속도가 빨라지는 대신 다른 주주에게는 사전 통제 수단이 남지 않습니다.",
+      figure: {
+        shape: "magnitude",
+        bars: [{ label: "회사 지출·투자 집행", value: 1, text: "대표 단독" }],
+      },
+    });
+  }
   if (qid === "decisionAmount" && decisionAmount) {
     out.push({
       id: "decisionAmount",
-      plain: `${won(decisionAmount)}이 넘는 투자는 주주 전원이 동의해야 해요. 그보다 작으면 따로 동의를 받지 않고 집행할 수 있어요.`,
-      formal: `제2조 ①항 7호의 기준 금액이 ${won(decisionAmount)}으로 정해집니다. 이 금액 이하의 투자·처분은 주주 전원의 사전 서면 합의 없이 집행할 수 있습니다.`,
+      plain: `${won(decisionAmount)}이 넘는 지출은 주주 전원이 동의해야 해요. 그보다 작으면 따로 동의를 받지 않고 집행할 수 있어요.`,
+      formal: `제2조 ①항 7호의 기준 금액이 ${won(decisionAmount)}으로 정해집니다. 이 금액 이하의 지출·투자 집행은 주주 전원의 사전 서면 합의 없이 할 수 있습니다.`,
       figure: {
         shape: "magnitude",
         bars: [
@@ -123,6 +136,7 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       },
     });
   }
+
 
   // ── 제3조 · 기술·지식재산 이전 ──
   // 제8조 ①③이 이름을 부르는 조항이라 위반의 대가가 있다. 그 사실이 화면에 없었다.

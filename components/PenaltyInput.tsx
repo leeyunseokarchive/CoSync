@@ -294,14 +294,16 @@ const PEN_CSS = `
   display: flex; flex-direction: column; gap: 8px;
 }
 
-/* ── SVG 경로 ── */
+/* ── SVG 경로 ──
+   정액(제8조 ①③)은 남색, 비율(②)은 에메랄드. 두 갈래가 ⑤에서 만난다.
+   전에는 둘 다 보라 계열이라 색이 갈래를 구분해 주지 못했다. */
 .pen-path {
   fill: none; stroke-width: 1.5;
   transition: stroke 0.3s, stroke-dasharray 0.3s;
 }
 .pen-path-off { stroke: #d1d5db; stroke-dasharray: 4 3; }
 .pen-path-base { stroke: #818CF8; stroke-dasharray: none; }
-.pen-path-rate { stroke: #A78BFA; stroke-dasharray: none; }
+.pen-path-rate { stroke: #34D399; stroke-dasharray: none; }
 .pen-path-base.pen-path-dashed { stroke-dasharray: 5 3; stroke: #a5b4fc; }
 
 /* ── 입력 카드 ── */
@@ -312,15 +314,15 @@ const PEN_CSS = `
   display: flex; flex-direction: column; gap: 8px;
   transition: border-color 0.18s, background 0.18s;
 }
-.pen-icard-base { border-color: #c7d2fe; background: #f5f3ff; }
-.pen-icard-rate { border-color: #ddd6fe; background: #fdf4ff; }
+.pen-icard-base { border-color: #c7d2fe; background: #F5F6FF; }
+.pen-icard-rate { border-color: #A7F3D0; background: #F0FDF9; }
 .pen-icard-meta { display: flex; align-items: baseline; justify-content: space-between; }
 .pen-icard-label { font-size: 13px; font-weight: 800; color: #475569; }
 .pen-icard-applies { font-size: 11px; font-weight: 900; color: #a5b4fc; letter-spacing: 0.04em; }
 .pen-icard-base .pen-icard-label { color: #3730A3; }
 .pen-icard-base .pen-icard-applies { color: #818CF8; }
-.pen-icard-rate .pen-icard-label { color: #6D28D9; }
-.pen-icard-rate .pen-icard-applies { color: #A78BFA; }
+.pen-icard-rate .pen-icard-label { color: #047857; }
+.pen-icard-rate .pen-icard-applies { color: #34D399; }
 
 /* ── 조항 박스 ── */
 .pen-clause {
@@ -332,17 +334,17 @@ const PEN_CSS = `
   overflow: hidden;
 }
 .pen-clause-5 { flex: none; min-height: 88px; }
-.pen-clause-base { border-color: #c7d2fe; background: #EEF2FF; }
-.pen-clause-rate { border-color: #ddd6fe; background: #F5F3FF; }
-.pen-clause-both { border-color: #c4b5fd; background: linear-gradient(135deg, #EEF2FF, #F5F3FF); }
+.pen-clause-base { border-color: #c7d2fe; background: #fff; }
+.pen-clause-rate { border-color: #A7F3D0; background: #fff; }
+.pen-clause-both { border-color: #cbd5e1; background: #fff; }
 .pen-clause-art { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: 0.06em; }
 .pen-clause-base .pen-clause-art { color: #4338CA; }
-.pen-clause-rate .pen-clause-art { color: #6D28D9; }
+.pen-clause-rate .pen-clause-art { color: #047857; }
 .pen-clause-both .pen-clause-art { color: #4338CA; }
 .pen-clause-name { font-size: 13px; font-weight: 700; color: #64748b; line-height: 1.4; }
 .pen-clause-val { font-size: 15px; font-weight: 900; color: #94a3b8; font-variant-numeric: tabular-nums; margin-top: 2px; }
 .pen-clause-base .pen-clause-val { color: #3730A3; }
-.pen-clause-rate .pen-clause-val { color: #5B21B6; }
+.pen-clause-rate .pen-clause-val { color: #065F46; }
 .pen-dash { color: #cbd5e1; font-style: normal; }
 
 /* ── MAX 비교 (⑤) ── */
@@ -354,13 +356,13 @@ const PEN_CSS = `
   transition: border-color 0.15s, background 0.15s;
 }
 .pen-max-base { border: 1px solid #a5b4fc; border-style: solid; background: #EEF2FF; }
-.pen-max-rate { border: 1px solid #c4b5fd; border-style: solid; background: #F5F3FF; }
+.pen-max-rate { border: 1px solid #A7F3D0; border-style: solid; background: #F0FDF9; }
 .pen-max-lbl { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
 .pen-max-base .pen-max-lbl { color: #6366f1; }
-.pen-max-rate .pen-max-lbl { color: #7C3AED; }
+.pen-max-rate .pen-max-lbl { color: #059669; }
 .pen-max-v { font-size: 12px; font-weight: 900; color: #94a3b8; text-align: center; line-height: 1.3; font-variant-numeric: tabular-nums; }
 .pen-max-base .pen-max-v { color: #3730A3; }
-.pen-max-rate .pen-max-v { color: #5B21B6; }
+.pen-max-rate .pen-max-v { color: #065F46; }
 .pen-max-vs { font-size: 10px; font-weight: 900; color: #cbd5e1; letter-spacing: 0.05em; flex-shrink: 0; }
 .pen-clause-both .pen-max-vs { color: #818CF8; }
 
@@ -392,14 +394,14 @@ const PEN_CSS = `
   font-size: 14px; font-weight: 700; line-height: 1.4;
 }
 .pen-ctx-chip-base { background: #EEF2FF; color: #3730A3; }
-.pen-ctx-chip-rate { background: #F5F3FF; color: #5B21B6; }
-.pen-ctx-chip-both { background: linear-gradient(90deg,#EEF2FF,#F5F3FF); color: #4338CA; }
+.pen-ctx-chip-rate { background: #ECFDF5; color: #065F46; }
+.pen-ctx-chip-both { background: linear-gradient(90deg,#EEF2FF,#ECFDF5); color: #334155; }
 .pen-ctx-empty { font-size: 14px; font-weight: 600; color: #cbd5e1; font-style: italic; }
 .pen-ctx-empty-sm { font-size: 13px; font-weight: 600; color: #d1d5db; font-style: italic; }
 .pen-ctx-summary {
   display: flex; align-items: flex-start; gap: 10px;
   padding-top: 16px; border-top: 1px solid #f1f5f9;
-  font-size: 14px; font-weight: 700; color: #3730A3;
+  font-size: 14px; font-weight: 700; color: #1e293b;
   line-height: 1.75; word-break: keep-all;
 }
 .pen-summary-icon { flex-shrink: 0; margin-top: 3px; color: #4F46E5; }

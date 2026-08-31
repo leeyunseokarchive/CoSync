@@ -22,7 +22,8 @@ export type QuestionTemplate =
   | { type: "choice"; variant?: "person"; options: ChoiceOption[] }
   | { type: "matrix"; variant: "text" | "allocation"; chips?: string[] }
   | { type: "fields"; fields: { key: string; label: string; placeholder: string; kind?: "text" | "date" | "number" }[] }
-  | { type: "composite"; parts: { key: string; label: string; template: QuestionTemplate }[] }
+  // collapseOn: 첫 파트(choice)에서 이 값들을 고르면 뒤 파트를 감춘다. 기본은 "no"다.
+  | { type: "composite"; collapseOn?: string[]; parts: { key: string; label: string; template: QuestionTemplate }[] }
   | { type: "consent"; items?: string[]; question?: string; agreeLabel?: string; denyLabel?: string };
 
 // 미리보기는 조문 전체를 실제 계약서 지면처럼 보여준다.
@@ -257,33 +258,63 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     id: "decisionAmount",
     group: "decision",
     article: "제2조 ① 7호",
-    articleTag: "SPEND THRESHOLD",
-    topic: "큰 투자의 기준 금액",
+    articleTag: "SPEND",
+    topic: "지출·투자 집행 결정",
     consensus: true,
-    title: "얼마를 넘는 투자부터 전원 동의가 필요한가요?",
-    desc: "이 금액을 넘는 투자는 주주 전원이 동의해야 진행할 수 있습니다.",
+    // 7호는 회사가 돈을 "쓰는" 쪽이다. 전에는 제목이 "얼마를 넘는 투자부터"라 투자를
+    // 받는 것처럼 읽혔다. 2차 자문 4-10: "지출만큼은 자기 혼자 결정할 수 있다"라고 꼭
+    // 써달라는 분들이 많다 → 금액 기준 말고 대표 단독이라는 다른 방식을 함께 둔다.
+    title: "회사가 크게 돈을 쓸 때 어떻게 정하나요?",
+    desc: "회사 돈으로 투자하거나 큰 지출을 집행할 때의 결정 방식입니다. 투자를 받는 것(유치)이 아니라 쓰는 쪽입니다.",
     template: {
-      type: "amount",
-      presets: [
-        { label: "1천만 원", value: 10000000 },
-        { label: "5천만 원", value: 50000000 },
-        { label: "1억 원", value: 100000000 },
-        { label: "3억 원", value: 300000000 },
+      type: "composite",
+      collapseOn: ["lead"],
+      parts: [
+        {
+          key: "mode",
+          label: "지출 결정 방식",
+          template: {
+            type: "choice",
+            options: [
+              { id: "amount", label: "금액으로 선을 긋는다", desc: "정한 금액을 넘는 지출만 주주 전원이 동의합니다. 그 아래는 묻지 않고 집행합니다." },
+              { id: "lead", label: "대표 주주가 단독으로 결정한다", desc: "금액과 무관하게 대표이사인 주주가 정합니다. 실무에서 자주 쓰는 방식입니다." },
+            ],
+          },
+        },
+        {
+          key: "limit",
+          label: "기준 금액",
+          template: {
+            type: "amount",
+            presets: [
+              { label: "1천만원", value: 10_000_000 },
+              { label: "5천만원", value: 50_000_000 },
+              { label: "1억원", value: 100_000_000 },
+            ],
+          },
+        },
       ],
     },
     preview: {
       article: "제2조 (주요 의사결정 합의·협의 사항)",
       blocks: [
         { kind: "para", text: "① 주주들은 다음 각 호의 사항에 관하여는 주주들 전원의 합의로 결정하고, 주주총회 또는 이사회 결의가 필요한 경우 주주들의 합의에 따라 의결권을 행사하여야 한다." },
-        ...CONSENT_ITEMS.map((c, i) => ({ kind: "para" as const, indent: true, text: `${i + 1}. ${c.text}` })),
+        // CONSENT_ITEMS는 자기 안에서 {0}을 기준 금액으로 쓴다. 이 문항은 composite라
+        // 첫 자리가 결정 방식이 되므로, 금액이 들어갈 자리만 {1}로 옮겨 끼운다.
+        ...CONSENT_ITEMS.map((c, i) => ({
+          kind: "para" as const,
+          indent: true,
+          text: `${i + 1}. ${c.text.replace("{0}", "{1}")}`,
+        })),
         { kind: "ellipsis" },
+        { kind: "para", text: "④ 회사의 지출 및 투자 집행은 {0}. 제1항 제7호는 금액으로 선을 긋기로 한 경우에 한하여 적용한다." },
       ],
     },
     info: {
-      what: "제2조 ①항은 전원 동의가 필요한 사항 7가지를 열거합니다. 7호는 그중 금액으로 선을 긋는 항목으로, 이 선을 넘는 투자는 대표나 담당자가 단독으로 집행할 수 없습니다.",
-      ifUnset: "금액 기준이 비면 어떤 투자가 전원 동의 대상인지 판단할 근거가 사라집니다. 그러면 집행 후에 \"이건 전원 동의 사항이었다\"는 다툼이 사후적으로 생깁니다.",
+      what: "제2조 ①항은 전원 동의가 필요한 사항 7가지를 열거하고, 그중 7호가 회사가 돈을 쓰는 쪽입니다. 투자를 받는 것(2호)과는 다른 항목입니다. 금액으로 선을 긋거나, 대표이사인 주주가 단독으로 정하도록 할 수 있습니다.",
+      ifUnset: "결정 방식이 비면 어떤 지출이 전원 동의 대상인지 판단할 근거가 없습니다. 그러면 돈이 나간 뒤에 \"이건 같이 정했어야 한다\"는 다툼이 사후적으로 생깁니다.",
       low: "선이 낮을수록 전원 동의를 거쳐야 하는 건이 많아집니다. 일상적인 지출까지 절차를 밟게 되어 집행 속도가 느려집니다.",
-      high: "선이 높을수록 단독 집행 범위가 넓어집니다. 회사 규모에 비해 큰 금액이 다른 주주의 관여 없이 나갈 수 있습니다.",
+      high: "선이 높거나 대표 단독으로 정하면 집행이 빨라집니다. 대신 회사 규모에 비해 큰 금액이 다른 주주의 관여 없이 나갈 수 있습니다. 실무에서는 리스크를 지는 사람이 결정한다는 이유로 대표 단독을 요구하는 경우가 많습니다.",
     },
   },
   {

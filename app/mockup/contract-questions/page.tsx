@@ -347,8 +347,13 @@ export default function ContractQuestionsMockup() {
 
         .cq-input-zone { border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 28px 0; display: flex; flex-direction: column; }
         .cq-field { display: flex; flex-direction: column; gap: 14px; }
+.cq-duration { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 26px; }
+.cq-direct { display: flex; align-items: center; gap: 10px; }
+/* 좁아지면 한 줄에 다 안 들어간다. 반쯤 걸치게 두지 말고 통째로 다음 줄로 내린다. */
+@media (max-width: 860px) { .cq-direct { flex-basis: 100%; } }
         .cq-field-row { display: flex; flex-direction: column; gap: 8px; }
         .cq-label { font-size: 13px; font-weight: 800; color: #475569; }
+.cq-hint-label { font-size: 11px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.08em; align-self: center; }
         .cq-help { font-size: 13px; color: #94a3b8; font-weight: 600; }
         .cq-input { min-height: 44px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 600; color: #1e293b; }
         .cq-input:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
@@ -484,8 +489,8 @@ export default function ContractQuestionsMockup() {
         .cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
         .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 0 4px; }
 
-        .cq-composite { display: flex; flex-direction: column; gap: 28px; }
-        .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+        .cq-composite { display: flex; flex-direction: column; gap: 22px; }
+        .cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 10px; }
 
         .cq-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226,232,240,0.5); z-index: 100; }
         .cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
@@ -631,7 +636,8 @@ function usePreviewValues(
       return t.parts.map((p) => {
         const pv = v[p.key];
         if (pv === undefined || pv === null || pv === "") return null;
-        if (p.template.type === "amount") return formatNumber(Number(pv));
+        // 조문에 들어가는 금액은 한글 단위로 읽는다. 최상위 amount와 같은 규칙을 쓴다.
+      if (p.template.type === "amount") return formatKoreanAmount(Number(pv));
         if (p.template.type === "duration") return `${pv}${p.template.unit}`;
         if (p.template.type === "percent") return String(pv);
         if (p.template.type === "choice") return choiceLabel(p.template, pv);

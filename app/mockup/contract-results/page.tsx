@@ -40,7 +40,7 @@ const EQUITY_THRESHOLDS = [
 
 // 회의에서 바로 결과를 보도록 답을 채워 둔 상태로 시작한다. 값은 자유롭게 바꿀 수 있다.
 const PREFILL: Record<string, unknown> = {
-  decisionAmount: 100_000_000,
+  decisionAmount: { mode: "amount", limit: 100_000_000 },
   deadlock: 7,
   ipTransfer: true,
   tagAlong: "yes",
@@ -106,7 +106,9 @@ export default function ContractResultsMockup() {
   const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
 
   // 7호의 금액은 제2조 ① 7호 문항에서 정한 값을 그대로 쓴다. 아직 없으면 자리만 알려 준다.
-  const consentAmount = answers.decisionAmount ? won(Number(answers.decisionAmount)) : "정한 금액";
+  // 7호 문항이 composite가 되면서 금액이 한 겹 안으로 들어갔다.
+  const spendLimit = (answers.decisionAmount as { limit?: number } | undefined)?.limit;
+  const consentAmount = spendLimit ? won(Number(spendLimit)) : "정한 금액";
 
   return (
     <div className="cq-page">
@@ -185,6 +187,7 @@ export default function ContractResultsMockup() {
                 <details className="cq-fold">
                   <summary className="cq-fold-head">
                     <Scale size={15} /> 몇 %면 무엇을 할 수 있나 — 지분율 4개의 선
+                    <span className="cq-open-label" aria-hidden="true" />
                     <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
                   </summary>
                   <div className="cq-fold-body">
@@ -226,6 +229,7 @@ export default function ContractResultsMockup() {
                 <details className="cq-fold">
                   <summary className="cq-fold-head">
                     <ListChecks size={15} /> 전원 동의가 필요한 7가지 (제2조 ①)
+                    <span className="cq-open-label" aria-hidden="true" />
                     <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
                   </summary>
                   <ol className="cq-fold-body cq-consent-list">
@@ -395,7 +399,8 @@ export default function ContractResultsMockup() {
           <details className="cq-info-card">
             <summary className="cq-info-head">
               <BookOpen size={15} /> 이 조항은 무엇인가
-              <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+              <span className="cq-open-label" aria-hidden="true" />
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
             </summary>
             <div className="cq-info-body"><p><Gloss text={q.info.what} /></p></div>
           </details>
@@ -403,7 +408,8 @@ export default function ContractResultsMockup() {
           <details className="cq-info-card">
             <summary className="cq-info-head">
               <HelpingHand size={15} /> 정하지 않으면
-              <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+              <span className="cq-open-label" aria-hidden="true" />
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
             </summary>
             <div className="cq-info-body"><p><Gloss text={q.info.ifUnset} /></p></div>
           </details>
@@ -413,7 +419,8 @@ export default function ContractResultsMockup() {
             <details className="cq-info-card">
               <summary className="cq-info-head">
                 <Scale size={15} /> 한쪽으로 정하면
-                <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
+                <span className="cq-open-label" aria-hidden="true" />
+                    <ChevronDown size={14} className="cq-info-chev" aria-hidden="true" />
               </summary>
               <div className="cq-info-body">
                 {q.info.low && (
@@ -549,7 +556,8 @@ function usePreviewValues(
       return t.parts.map((p) => {
         const pv = v[p.key];
         if (pv === undefined || pv === null || pv === "") return null;
-        if (p.template.type === "amount") return formatNumber(Number(pv));
+        // 조문에 들어가는 금액은 한글 단위로 읽는다. 최상위 amount와 같은 규칙을 쓴다.
+      if (p.template.type === "amount") return formatKoreanAmount(Number(pv));
         if (p.template.type === "duration") return `${pv}${p.template.unit}`;
         if (p.template.type === "percent") return String(pv);
         if (p.template.type === "choice") return choiceLabel(p.template, pv);
@@ -632,7 +640,11 @@ const CSS = `
 .cq-fold > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; border-radius: 16px; }
 .cq-fold-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #334155; }
 .cq-fold-head svg { color: #4F46E5; flex-shrink: 0; }
-.cq-fold-head .cq-info-chev { margin-left: auto; color: #cbd5e1; }
+.cq-fold-head .cq-info-chev { color: #4F46E5; }
+.cq-open-label { margin-left: auto; font-size: 11.5px; font-weight: 800; color: #4F46E5; letter-spacing: 0.02em; }
+.cq-open-label::after { content: "펼치기"; }
+details[open] .cq-open-label::after { content: "접기"; }
+.cq-fold-head:hover .cq-open-label, .cq-info-head:hover .cq-open-label { text-decoration: underline; }
 .cq-fold[open] .cq-info-chev { transform: rotate(180deg); }
 .cq-fold-body { padding: 4px 18px 18px; }
 .cq-fold-text { font-size: 13px; line-height: 1.8; color: #475569; font-weight: 500; word-break: keep-all; }
@@ -670,8 +682,13 @@ const CSS = `
 
 .cq-input-zone { border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 28px 0; display: flex; flex-direction: column; }
 .cq-field { display: flex; flex-direction: column; gap: 14px; }
+.cq-duration { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 26px; }
+.cq-direct { display: flex; align-items: center; gap: 10px; }
+/* 좁아지면 한 줄에 다 안 들어간다. 반쯤 걸치게 두지 말고 통째로 다음 줄로 내린다. */
+@media (max-width: 860px) { .cq-direct { flex-basis: 100%; } }
 .cq-field-row { display: flex; flex-direction: column; gap: 8px; }
 .cq-label { font-size: 13px; font-weight: 800; color: #475569; }
+.cq-hint-label { font-size: 11px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.08em; align-self: center; }
 .cq-help { font-size: 13px; color: #94a3b8; font-weight: 600; }
 .cq-input { min-height: 44px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 600; color: #1e293b; }
 .cq-input:focus-visible { outline: 2px solid #4F46E5; outline-offset: 1px; }
@@ -799,7 +816,7 @@ const CSS = `
 .cq-info-card > summary:focus-visible { outline: 2px solid #4F46E5; outline-offset: -2px; }
 .cq-info-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
 .cq-info-head svg { color: #4F46E5; flex-shrink: 0; }
-.cq-info-head .cq-info-chev { margin-left: auto; color: #cbd5e1; transition: transform 0.15s; }
+.cq-info-head .cq-info-chev { color: #4F46E5; transition: transform 0.15s; }
 .cq-info-card[open] .cq-info-chev { transform: rotate(180deg); }
 /* info 문구에 줄바꿈(\n)이 들어간다. 목록형 설명이 한 줄로 붙지 않게 한다. */
 .cq-info-body { white-space: pre-line; padding: 0 4px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -811,8 +828,8 @@ const CSS = `
 .cq-info-side-tag.high { background: rgba(79,70,229,0.1); color: #4338CA; }
 .cq-info-disclaimer { font-size: 11px; line-height: 1.7; color: #94a3b8; font-weight: 600; padding: 16px 4px 0; }
 
-.cq-composite { display: flex; flex-direction: column; gap: 28px; }
-.cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+.cq-composite { display: flex; flex-direction: column; gap: 22px; }
+.cq-part-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 10px; }
 
 .cq-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(24px); border-top: 1px solid rgba(226,232,240,0.5); z-index: 100; }
 .cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
@@ -860,6 +877,7 @@ const CSS = `
   max-width: min(240px, calc(100vw - 32px));
   padding: 10px 12px; border-radius: 10px; background: #1e293b; color: #fff;
   font-size: 12px; font-weight: 500; line-height: 1.6; letter-spacing: 0; text-align: left; word-break: keep-all;
+  white-space: normal;
   opacity: 0; visibility: hidden; transition: opacity 0.12s; pointer-events: none; }
 .cq-term:hover .cq-term-pop, .cq-term:focus .cq-term-pop { opacity: 1; visibility: visible; }
 .cq-term:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; border-radius: 3px; }

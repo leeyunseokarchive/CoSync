@@ -63,8 +63,9 @@ function AmountInput({ tpl, value, onChange, id }: {
   const korean = formatKoreanAmount(value ?? 0);
   return (
     <div className="cq-field">
+      <span className="cq-hint-label">예시</span>
       <Chips items={tpl.presets} active={value} onPick={onChange} />
-      <label className="cq-label" htmlFor={id}>금액 직접 입력</label>
+      <label className="cq-label" htmlFor={id}>직접 설정</label>
       <div className="cq-amount-row">
         <span className="cq-amount-won" aria-hidden="true">₩</span>
         <input
@@ -89,25 +90,32 @@ function DurationInput({ tpl, value, onChange, id }: {
 }) {
   const v = value ?? 0;
   return (
-    <div className="cq-field">
+    // 프리셋과 직접 입력을 위아래로 쌓으면 한 문항이 세 줄을 먹는다. 베스팅처럼 기간을
+    // 두 개 받는 문항에서는 그것만으로 화면이 꽉 찬다. 한 줄에 붙이고 라벨은 뺀다 —
+    // − 와 + 사이의 숫자 칸이 무엇인지는 따로 말하지 않아도 읽힌다.
+    <div className="cq-field cq-duration">
+      <span className="cq-hint-label">예시</span>
       <Chips
         items={tpl.presets.map((p) => ({ label: `${p}${tpl.unit}`, value: p }))}
         active={v}
         onPick={onChange}
       />
-      <label className="cq-label" htmlFor={id}>직접 입력</label>
+      <div className="cq-direct">
+      <span className="cq-hint-label">직접 설정</span>
       <div className="cq-stepper">
         <button type="button" className="cq-step-btn" aria-label="1 줄이기" onClick={() => onChange(Math.max(0, v - 1))}>−</button>
         <input
           id={id}
           className="cq-input cq-num cq-step-input"
           inputMode="numeric"
+          aria-label={`직접 입력 (${tpl.unit})`}
           value={v || ""}
           placeholder="0"
           onChange={(e) => onChange(Number(e.target.value.replace(/[^0-9]/g, "")))}
         />
         <button type="button" className="cq-step-btn" aria-label="1 늘리기" onClick={() => onChange(v + 1)}>+</button>
         <span className="cq-unit">{tpl.unit}</span>
+      </div>
       </div>
     </div>
   );
@@ -415,7 +423,8 @@ function CompositeInput({ tpl, value, onChange, id }: {
   const v = value ?? {};
   // 첫 파트가 choice이고 "no"를 골랐으면 이후 파트를 숨긴다 (베스팅 미적용).
   const first = tpl.parts[0];
-  const collapsed = first.template.type === "choice" && v[first.key] === "no";
+  const collapsed =
+    first.template.type === "choice" && (tpl.collapseOn ?? ["no"]).includes(String(v[first.key]));
   const visible = collapsed ? [first] : tpl.parts;
 
   return (
