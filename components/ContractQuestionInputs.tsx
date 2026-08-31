@@ -119,7 +119,9 @@ function PercentInput({ tpl, value, onChange, id }: {
   onChange: (v: number) => void;
   id: string;
 }) {
-  const v = value ?? 0;
+  const min = tpl.min ?? 0;
+  const v = value ?? min;
+  const clamp = (n: number) => Math.min(100, Math.max(min, n));
   return (
     <div className="cq-field">
       <label className="cq-label" htmlFor={id}>비율</label>
@@ -130,19 +132,19 @@ function PercentInput({ tpl, value, onChange, id }: {
           inputMode="numeric"
           value={v || ""}
           placeholder="0"
-          onChange={(e) => onChange(Math.min(100, Number(e.target.value.replace(/[^0-9]/g, ""))))}
+          onChange={(e) => onChange(clamp(Number(e.target.value.replace(/[^0-9]/g, ""))))}
         />
         <span className="cq-unit">%</span>
       </div>
       <input
         type="range"
         className="cq-range"
-        min={0}
+        min={min}
         max={100}
         step={1}
         value={v}
         aria-label="비율 슬라이더"
-        style={{ "--pct": `${v}%` } as React.CSSProperties}
+        style={{ "--pct": `${((v - min) / (100 - min)) * 100}%` } as React.CSSProperties}
         onChange={(e) => onChange(Number(e.target.value))}
       />
       {/* 눈금을 균등 간격으로 늘어놓으면 슬라이더 위치와 어긋난다 — 35%인데 "50%" 글자가
@@ -154,8 +156,8 @@ function PercentInput({ tpl, value, onChange, id }: {
             type="button"
             className={`cq-mark ${v === m.value ? "on" : ""}`}
             style={{
-              left: `${m.value}%`,
-              transform: `translateX(${m.value <= 5 ? "0%" : m.value >= 95 ? "-100%" : "-50%"})`,
+              left: `${((m.value - min) / (100 - min)) * 100}%`,
+              transform: `translateX(${m.value <= min + 5 ? "0%" : m.value >= 95 ? "-100%" : "-50%"})`,
             }}
             onClick={() => onChange(m.value)}
           >
@@ -164,6 +166,10 @@ function PercentInput({ tpl, value, onChange, id }: {
           </button>
         ))}
       </div>
+      {/* 트랙이 0에서 시작하지 않는다는 걸 눈금만으로는 알 수 없다. 왜 막았는지까지 적는다. */}
+      {tpl.min ? (
+        <p className="cq-help">{tpl.min}% 아래로는 정할 수 없어요. 과반이 안 되는 쪽이 나머지를 팔게 할 수는 없습니다.</p>
+      ) : null}
     </div>
   );
 }

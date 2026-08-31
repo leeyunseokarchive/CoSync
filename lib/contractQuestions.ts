@@ -18,7 +18,7 @@ export type ChoiceValue = string | { id: string; sub: string[] };
 export type QuestionTemplate =
   | { type: "amount"; presets: { label: string; value: number }[] }
   | { type: "duration"; unit: "일" | "개월" | "년"; presets: number[]; baseValue?: number }
-  | { type: "percent"; marks: { value: number; label: string }[] }
+  | { type: "percent"; min?: number; marks: { value: number; label: string }[] }
   | { type: "choice"; variant?: "person"; options: ChoiceOption[] }
   | { type: "matrix"; variant: "text" | "allocation"; chips?: string[] }
   | { type: "fields"; fields: { key: string; label: string; placeholder: string; kind?: "text" | "date" | "number" }[] }
@@ -591,10 +591,13 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
           label: "발동 지분율",
           template: {
             type: "percent",
+            // 과반은 50%가 아니라 50% 초과다. 정확히 반이면 반대쪽도 반이라 강제 매도가
+            // 성립하지 않는다. 그 아래는 소수가 다수를 팔게 하는 것이 되어 아예 막는다.
+            min: 51,
             // 75%는 미국식 supermajority 관행이라 한국 상법에 대응하는 선이 없다. 뺐다.
-            // 50 보통결의 · 67 특별결의 · 100 사실상 미적용 — 셋 다 이름이 있는 선만 남긴다.
+            // 51 보통결의 · 67 특별결의 · 100 사실상 미적용 — 셋 다 이름이 있는 선만 남긴다.
             marks: [
-              { value: 50, label: "과반" },
+              { value: 51, label: "과반" },
               { value: 67, label: "3분의 2" },
               { value: 100, label: "전원" },
             ],
