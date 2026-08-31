@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useLayoutEffect } from "react";
-import { Check, ArrowLeft, ArrowRight, FileText, PenLine, X, Info } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, FileText, PenLine, X, Info, Scale } from "lucide-react";
 import { TopNav } from "../../../components/TopNav";
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -10,6 +10,8 @@ type Q = {
   id: string; group: string; sideLabel: string; topic: string;
   title: string; desc: string; opts: Opt[]; hasCustom?: boolean;
   tip?: { title: string; body: string };
+  // tip은 접혀 있어 안 누르면 안 보인다. 반드시 읽혀야 하는 고지는 여기에 둔다.
+  advisory?: string;
   scenario?: string;
   clause: (opt: string, chips: Record<string, string>, custom: string) => string;
 };
@@ -370,6 +372,10 @@ const QUESTIONS: Q[] = [
     scenario: "파트너가 '기회가 사라질 것 같아서' 동의 없이 에이전시에 500만원을 선결제했습니다.",
     desc: "지출 기준이 명확하면 실행 속도와 팀 신뢰를 동시에 지킬 수 있습니다.",
     opts: [
+      // 2차 자문 4-10: "대표자 단독 결정도 있으면 좋을 것 같기는 해요. ... 그렇게 요구하시는
+      // 분들이 많은 걸 봐서는 저희도 넣어놓는 게 나을 것 같습니다."
+      // 기존 "역할 범위 내 단독"은 각자가 자기 역할 안에서 정하는 것이라 다른 개념이다.
+      { id: "5", label: "대표 단독 결정", desc: "금액과 무관하게 대표가 지출을 결정합니다. 리스크를 지는 사람이 정한다는 이유로 실무에서 자주 요구됩니다." },
       { id: "1", label: "역할 범위 내 단독", desc: "담당 역할 범위 내 지출은 단독으로 결정할 수 있습니다." },
       {
         id: "2", label: "금액 기준 협의", desc: "일정 금액 초과 지출은 사전 협의를 거칩니다.",
@@ -382,6 +388,7 @@ const QUESTIONS: Q[] = [
     clause: (opt, chips, custom) => {
       if (opt === "custom") return custom ? `지출 결정 기준은 ${custom}으로 한다.` : "";
       return ({
+        "5": "지출 집행은 금액과 무관하게 대표가 단독으로 결정하는 것을 원칙으로 한다.",
         "1": "지출 집행은 각자의 역할 범위 내에서 단독으로 결정할 수 있는 것을 원칙으로 한다.",
         "2": `${chips.amount ?? "__"}을 초과하는 지출은 사전 협의를 거쳐 집행하기로 한다.`,
         "3": "지출 항목별로 자율 집행 항목과 협의 필요 항목을 구분하여 운영하기로 한다.",
@@ -418,20 +425,24 @@ const QUESTIONS: Q[] = [
     title: "법인 계좌와 카드를 어떻게 관리하나요?",
     scenario: "법인카드 내역을 처음으로 같이 들여다봤는데, 서로 설명이 안 되는 지출 항목이 몇 개 보입니다.",
     desc: "재무 관리 주체를 명확히 해두면 투명성과 신뢰를 함께 지킬 수 있습니다.",
+    // 2차 자문 4-11: 공동 관리는 빼고 두 가지만 둔다. 법인카드 결제는 법인을 대표한
+    // 행위라 대표권 있는 사람이 하는 것이 원칙이고, 남에게 쥐어 주는 것은 위임으로 본다.
+    // "대표이사랑 한낱 근로자 한 명이랑 아예 역할별로 따로따로 카드를 분리 관리한다,
+    //  이거는 좀 법적으로 문제가 생길 수가 있는 거죠."
     opts: [
-      { id: "1", label: "대표 단독 관리",       desc: "법인 계좌·카드는 대표가 단독으로 관리합니다." },
-      { id: "2", label: "대표 주도 + 월간 공유", desc: "대표가 주도적으로 관리하되, 월간 내역을 전원과 공유합니다." },
-      { id: "3", label: "역할별 분리 관리",     desc: "담당 역할에 따라 분리하여 각자 관리합니다." },
-      { id: "4", label: "공동 관리",             desc: "구성원 공동으로 관리하며, 일정 금액 이상은 공동 서명합니다." },
+      { id: "1", label: "대표 단독 관리", desc: "법인 계좌·카드는 대표가 단독으로 관리합니다. 월간 내역을 전원과 공유할지는 아래에 직접 적을 수 있습니다." },
+      { id: "3", label: "대표 관리 + 역할별 분리", desc: "대표가 관리 주체가 되고, 담당 역할에 따라 사용 권한을 나눠 줍니다." },
     ],
     hasCustom: true,
+    tip: {
+      title: "공동 관리를 뺀 이유",
+      body: "법인카드로 결제하는 것은 법인을 대표해 결제하는 행위라, 원칙적으로 대표권이 있는 사람이 합니다. 다른 사람에게 카드를 주는 것은 그 권한을 위임한 것으로 봅니다. 대표가 아무것도 위임하지 않으면 법인카드는 대표가 쓰는 것이 맞습니다. 그래서 구성원이 대등하게 나눠 관리하는 방식은 두지 않았습니다. 역할별로 나눌 때도 대표가 관리 주체로 남아야 하고, 공동창업자가 등기 임원이 아니라 근로계약으로 들어온 경우에는 특히 그렇습니다.",
+    },
     clause: (opt, _, custom) => {
       if (opt === "custom") return custom ? `법인 계좌 및 법인카드 관리는 ${custom}을 원칙으로 한다.` : "";
       return ({
         "1": "법인 계좌 및 법인카드는 대표가 단독으로 관리하기로 한다.",
-        "2": "법인 계좌 및 법인카드는 대표가 주도적으로 관리하되, 월간 내역을 구성원 전원과 공유하기로 한다.",
-        "3": "법인 계좌 및 법인카드는 담당 역할에 따라 분리하여 각자 관리하기로 한다.",
-        "4": "법인 계좌 및 법인카드는 구성원 공동으로 관리하되, 일정 금액 이상의 지출은 공동 서명을 원칙으로 한다.",
+        "3": "법인 계좌 및 법인카드는 대표가 관리하되, 담당 역할에 따라 사용 권한을 나누어 부여하기로 한다.",
       }[opt] ?? "");
     },
   },
@@ -441,6 +452,9 @@ const QUESTIONS: Q[] = [
     title: "창업 초기에 각자 보수를 어떻게 운영할 건가요?",
     scenario: "투자금이 들어왔습니다. 한 명은 생활비가 급하고, 한 명은 최대한 회사에 재투자하자는 입장입니다.",
     desc: "보수 불균형은 팀 갈등의 핵심 원인입니다. 초기 기준을 솔직하게 맞춰둡니다.",
+    // 2차 자문 4-12: "등기이사가 보수를 받을 때는 관련 전문가의 상담을 받아서 상법상
+    // 절차를 지켜야 될 수 있으니까 상담을 받아봐라. ... 너무 실수를 많이 하는 내용이라서."
+    advisory: "등기이사(대표이사 포함)가 보수를 받으려면, 근로계약을 따로 맺었더라도 주주총회에서 보수 승인을 받아야 할 수 있습니다. 절차를 빠뜨리면 이미 지급한 보수가 무효가 될 수 있으니, 창업자 보수를 실제로 지급하기 전에 관련 전문가에게 꼭 상담을 받으세요.",
     opts: [
       { id: "1", label: "무보수 (투자 전까지)", desc: "창업자 간 합의로 외부 투자를 받기 전까지는 무보수로 운영합니다." },
       {
@@ -691,6 +705,18 @@ export default function BasicConsensusMockup() {
                   </button>
                 )}
               </div>
+
+              {/* 반드시 읽혀야 하는 고지. 계약서 문항의 「짚고 갈 것」과 같은 모양이다 —
+                  내가 고른 것(보라)이 아니라 조심할 것(앰버)이라 색이 다르다. */}
+              {q.advisory && (
+                <div style={{ border: "1px solid rgba(146,64,14,0.28)", background: "none", borderRadius: 24, padding: "18px 20px", display: "flex", gap: 10, alignItems: "flex-start", marginTop: 20 }}>
+                  <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#92400E" }} />
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: "#92400E", marginBottom: 5 }}>짚고 갈 것</div>
+                    <p style={{ fontSize: 13, color: "#334155", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.advisory}</p>
+                  </div>
+                </div>
+              )}
 
               {/* sub-chips: blank filling */}
               {subChips.length > 0 && (

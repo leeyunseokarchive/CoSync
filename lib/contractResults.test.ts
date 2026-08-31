@@ -4,7 +4,7 @@ import { resultsFor, won } from "./contractResults.ts";
 
 // 승인된 설계의 기준 답변. 조합 규칙이 전부 걸리도록 채워 둔다.
 const FULL = {
-  decisionAmount: { mode: "amount", limit: 100_000_000 },
+  decisionAmount: 1_000_000_000,
   deadlock: 7,
   equity: { m1: 50, m2: 30, m3: 20 },
   noncompete: 1,

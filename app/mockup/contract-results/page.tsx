@@ -20,7 +20,7 @@ import {
   type ContractQuestion,
   type PreviewBlock,
 } from "../../../lib/contractQuestions";
-import { resultsFor, RESULT_QUESTION_IDS, won } from "../../../lib/contractResults";
+import { resultsFor, RESULT_QUESTION_IDS } from "../../../lib/contractResults";
 import {
   ArrowLeft, ArrowRight, FileText, Users, Check,
   BookOpen, HelpingHand, Scale, Plus, Trash2, ChevronDown, Sparkles, ListChecks,
@@ -40,7 +40,7 @@ const EQUITY_THRESHOLDS = [
 
 // 회의에서 바로 결과를 보도록 답을 채워 둔 상태로 시작한다. 값은 자유롭게 바꿀 수 있다.
 const PREFILL: Record<string, unknown> = {
-  decisionAmount: { mode: "amount", limit: 100_000_000 },
+  decisionAmount: 1_000_000_000,
   deadlock: 7,
   ipTransfer: true,
   tagAlong: "yes",
@@ -104,11 +104,6 @@ export default function ContractResultsMockup() {
   const go = (delta: number) => jumpTo(index + delta);
 
   const progress = Math.round(((index + 1) / CONTRACT_QUESTIONS.length) * 100);
-
-  // 7호의 금액은 제2조 ① 7호 문항에서 정한 값을 그대로 쓴다. 아직 없으면 자리만 알려 준다.
-  // 7호 문항이 composite가 되면서 금액이 한 겹 안으로 들어갔다.
-  const spendLimit = (answers.decisionAmount as { limit?: number } | undefined)?.limit;
-  const consentAmount = spendLimit ? won(Number(spendLimit)) : "정한 금액";
 
   return (
     <div className="cq-page">
@@ -237,8 +232,8 @@ export default function ContractResultsMockup() {
                       <li key={i}>
                         <span className="cq-consent-n">{i + 1}</span>
                         <span className="cq-consent-body">
-                          <span className="cq-consent-plain">{c.plain.replace("{0}", consentAmount)}</span>
-                          <span className="cq-consent-text">{c.text.replace("{0}", consentAmount)}</span>
+                          <span className="cq-consent-plain">{c.plain}</span>
+                          <span className="cq-consent-text">{c.text}</span>
                         </span>
                       </li>
                     ))}
