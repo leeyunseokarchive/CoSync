@@ -379,6 +379,18 @@ export default function ContractResultsMockup() {
               </p>
             </div>
           )}
+          {/* 2차 변호사 자문: 차등 구조는 여기서 만들지 않고 전문가로 넘긴다.
+              "액면가로 하고, 만약에 차등을 두고 싶은 경우에는 별도 자문을 받아라라고
+               넘기는 게 제일 안전할 것으로 보여요." */}
+          {q.id === "buybackPrice" && (answers.buybackPrice === "consult" || (answers.buybackPrice as { id?: string })?.id === "consult") && (
+            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>여기서는 정하지 않습니다</div>
+              <p style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.7, margin: 0, wordBreak: "keep-all" }}>
+                어떤 경우를 어떻게 나눌지는 노무사·변호사와, 주식 가치 산정은 회계사와 함께 정하세요.
+                합의안에는 액면가로 남고, 선택하신 뜻은 메모로 기록됩니다.
+              </p>
+            </div>
+          )}
           <div className="cq-info-label">알아두면 좋은 것</div>
 
           {/* 한 페이지에 글이 너무 많아진다. 제목만 두고 필요한 사람만 펼친다. */}
