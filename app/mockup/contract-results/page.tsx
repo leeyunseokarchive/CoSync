@@ -320,8 +320,8 @@ export default function ContractResultsMockup() {
                   aria-expanded={false}
                   onClick={() => setExceptionOpen(true)}
                 >
-                  <Plus size={15} /> 예외 조항 추가
-                  <span className="cq-exception-hint">이 조항에 붙일 단서가 있다면</span>
+                  <Plus size={15} /> 예외 추가
+                  <span className="cq-exception-hint">이 조항에 예외를 두고 싶다면</span>
                 </button>
               ) : (
                 <div className="cq-exception-box">
@@ -796,7 +796,7 @@ const CSS = `
 .cq-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; min-height: 44px; border-radius: 16px; border: none; background: none; color: #94a3b8; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .cq-back:hover:not(:disabled) { color: #4F46E5; background: #f8fafc; }
 .cq-back:disabled { opacity: 0.4; cursor: not-allowed; }
-.cq-footer-right { display: flex; align-items: center; gap: 44px; }
+.cq-footer-right { display: flex; align-items: center; gap: 64px; }
 .cq-team { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #94a3b8; }
 .cq-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .cq-progress-meta { display: flex; align-items: center; gap: 14px; }
