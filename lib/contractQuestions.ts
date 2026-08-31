@@ -23,7 +23,7 @@ export type QuestionTemplate =
   | { type: "matrix"; variant: "text" | "allocation"; chips?: string[] }
   | { type: "fields"; fields: { key: string; label: string; placeholder: string; kind?: "text" | "date" | "number" }[] }
   | { type: "composite"; parts: { key: string; label: string; template: QuestionTemplate }[] }
-  | { type: "consent"; items: string[] };
+  | { type: "consent"; items?: string[]; question?: string; agreeLabel?: string; denyLabel?: string };
 
 // 미리보기는 조문 전체를 실제 계약서 지면처럼 보여준다.
 // 마크다운 표 기호를 그대로 노출하지 않기 위해 블록으로 구조화한다.
@@ -58,7 +58,6 @@ export type ContractQuestion = {
   article: string;      // 화면 표시용 조문 번호
   articleTag: string;   // eyebrow 영문 태그
   topic: string;        // 조문 번호 대신 화면에 세우는 우리말 주제목 (ex. 지분 배분)
-  proposed: boolean;    // true면 `제안` 배지 — 사용자 확정 전 후보 문항
   consensus: boolean;   // false면 합의 대상 아닌 사실정보
 
   title: string;
@@ -81,6 +80,10 @@ export const QUESTION_GROUPS = [
 // 제2조 ①항이 전원 동의를 요구하는 7가지. 조문 문구는 원문 그대로 두고,
 // plain 에 초보자용 한 줄을 붙여 같은 배열을 조문 미리보기와 안내 드롭다운이 함께 쓴다.
 // {0} = 제2조 ① 7호의 기준 금액.
+//
+// 미리보기 치환 자리 중 {9}는 예외다. 제5조 ②항의 회수 기간은 ①항의 근속 의무와
+// 항상 같은 값이어야 하는데 그 문장이 세 문항(근속·베스팅·회수 가격) 미리보기에
+// 모두 실린다. 자기 문항 답이 아니라 근속 문항의 답에서 채워지는 자리다.
 export const CONSENT_ITEMS: { plain: string; text: string }[] = [
   { plain: "회사 규칙(정관) 고치기", text: "정관의 변경" },
   { plain: "주식·사채를 새로 발행하거나 스톡옵션 주기", text: "주식 및 주식관련 사채의 발행, 주식매수선택권 부여 등 자본금의 증감을 가져올 수 있는 행위" },
@@ -110,13 +113,6 @@ export const INFO_DISCLAIMER =
 export function validateAllocation(values: Record<string, number>) {
   const total = Object.values(values).reduce((sum, v) => sum + (Number(v) || 0), 0);
   return { total, ok: total === 100, remaining: 100 - total };
-}
-
-// 베이스 5조②가 "3년 이내 퇴사" 기준이라, 5조① 근무 의무가 3년 미만이면 두 항이 어긋난다.
-// 차단하지 않고 알리기만 한다.
-export function tenureWarning(years: number): string | null {
-  if (!years || years >= 3) return null;
-  return "제5조 ②항은 3년 기준으로 작성되어 있습니다. 3년 미만으로 정하면 두 항의 기준이 달라집니다.";
 }
 
 // 선택지 답을 조문에 넣을 한 줄로 만든다. sub를 고른 종류주식은 괄호로 내용을 덧붙인다.
@@ -154,7 +150,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "전문 · 서명란",
     articleTag: "PARTIES",
     topic: "계약 당사자",
-    proposed: true,
     consensus: false,
     title: "본인의 신원 정보를 입력해 주세요",
     desc: "서명란에 들어갑니다. 다른 팀원의 정보는 각자 입력합니다.",
@@ -192,7 +187,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "전문 · 계약 성격",
     articleTag: "STRUCTURE",
     topic: "계약 성격",
-    proposed: true,
     consensus: true,
     title: "투자를 받을 계획이 있나요?",
     desc: "계획에 따라 뒤에 나오는 항목들이 다르게 채워져요. 아직 확실하지 않아도 괜찮습니다. 나중에 바꿀 수 있어요.",
@@ -239,7 +233,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제3조",
     articleTag: "IP TRANSFER",
     topic: "기술·지식재산 이전",
-    proposed: true,
     consensus: true,
     title: "지금 각자 가진 기술과 자료 중, 무엇을 회사로 넘기나요?",
     desc: "설립 전에 각자 만들어 둔 코드·디자인·상표·데이터 가운데 회사로 넘길 것을 적습니다. 여기 적은 것은 회사가 세워지는 순간 회사 소유가 됩니다.",
@@ -266,7 +259,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제2조 ① 7호",
     articleTag: "SPEND THRESHOLD",
     topic: "큰 투자의 기준 금액",
-    proposed: false,
     consensus: true,
     title: "얼마를 넘는 투자부터 전원 동의가 필요한가요?",
     desc: "이 금액을 넘는 투자는 주주 전원이 동의해야 진행할 수 있습니다.",
@@ -300,7 +292,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제2조 ③ (신설)",
     articleTag: "DEADLOCK",
     topic: "결정이 막혔을 때",
-    proposed: false,
     consensus: true,
     title: "결정이 막히면 며칠까지 이야기해볼까요?",
     desc: "아래 7가지는 주주 전원이 동의해야 정할 수 있습니다. 한 명이라도 반대해 결정이 멈췄을 때 며칠을 더 이야기할지 정합니다. 그래도 안 되면 대표가 정합니다.",
@@ -331,7 +322,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제3의 2조",
     articleTag: "ROLES",
     topic: "역할 분담",
-    proposed: false,
     consensus: true,
     title: "각자 담당하는 역할과 업무는 무엇인가요?",
     desc: "본인이 담당하는 역할뿐 아니라 다른 팀원에게 기대하는 역할도 적어 주세요. 기대가 어긋나는 지점이 여기서 드러납니다.",
@@ -366,7 +356,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "전문 · 제3의 3조",
     articleTag: "EQUITY SPLIT",
     topic: "지분 배분",
-    proposed: false,
     consensus: true,
     title: "지분을 어떻게 나누나요?",
     desc: "회사 설립 시 발행하는 총 주식의 배분입니다. 합계가 정확히 100%가 되어야 합니다.",
@@ -400,7 +389,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제5조 (강화)",
     articleTag: "VESTING",
     topic: "지분 확정 (베스팅·클리프)",
-    proposed: true,
     consensus: true,
     title: "지분을 시간에 따라 단계적으로 확정하나요?",
     desc: "베스팅은 근무 기간에 비례해 지분을 확정하는 방식, 클리프는 그 전에 나가면 한 주도 확정되지 않는 최소 기간입니다.",
@@ -413,7 +401,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
           template: {
             type: "choice",
             options: [
-              { id: "yes", label: "적용한다", desc: "근무 기간에 비례해 지분이 단계적으로 확정됩니다." },
+              { id: "yes", label: "적용한다", desc: "근무 기간에 비례해 지분이 단계적으로 확정됩니다. 국내 스타트업에서 통상 적용하는 쪽입니다." },
               { id: "no", label: "적용하지 않는다", desc: "제5조 ②항의 액면가 매수권만으로 이탈 상황을 처리합니다." },
             ],
           },
@@ -434,13 +422,20 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       article: "제5조 (계속근무)",
       blocks: [
         { kind: "ellipsis" },
-        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 3년 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
+        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 {9} 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
         { kind: "para", text: "③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다." },
         { kind: "para", text: "④ 주주가 보유한 주식은 본 계약 체결일로부터 {1}에 걸쳐 매월 균등하게 확정되며, 최초 {2}이 경과하기 전에 퇴사하는 경우 확정된 주식이 없는 것으로 본다. (베스팅 {0})" },
+        // ④항은 "확정 안 됨"이라는 상태만 정하고 주식을 움직이지 않는다. 창업자 주식은 설립 시
+        // 이미 발행돼 있어 회수 조항이 없으면 그대로 퇴사자에게 남는다. ②항은 근속 기간 안에서만
+        // 작동하므로, 근속보다 베스팅이 길면 그 사이 구간이 비어버린다.
+        // 매수 주체를 회사가 아니라 대표 주주로 둔 것은 상법 제341조 때문이다 — 회사의 자기주식
+        // 취득은 배당가능이익 범위 내에서만 가능한데 초기 스타트업에는 그 이익이 없다.
+        { kind: "para", text: "⑤ 일반 주주가 퇴사하는 경우, 대표 주주는 퇴사 시점에 제4항에 따라 확정되지 아니한 주식 전부를 액면가로 매수할 수 있는 권리를 가진다. 본 항의 권리는 제2항의 권리와 별도로 존재하며, 제2항의 기간이 지난 후의 퇴사에도 적용된다." },
       ],
     },
     info: {
-      what: "지분을 처음에 전부 확정하지 않고 시간이 지남에 따라 나누어 확정하는 구조입니다. 클리프는 그 앞에 두는 관문으로, 클리프를 넘기기 전에 떠나면 확정된 몫이 없습니다. 이 계약의 제5조 ②항도 3년 내 퇴사 시 액면가 매수권을 두어 비슷한 효과를 내지만, 확정 시점이 단계적으로 나뉘지는 않습니다.",
+      what: "지분을 처음에 전부 확정하지 않고 시간이 지남에 따라 나누어 확정하는 구조입니다. 클리프는 그 앞에 두는 관문으로, 클리프를 넘기기 전에 떠나면 확정된 몫이 없습니다. 확정은 매월 균등하게 쌓이는 방식으로 두었습니다 — 국내 스타트업에서 가장 흔한 방식이고, 1년 단위로 끊어 쓰는 곳도 있습니다. 이 계약의 제5조 ②항도 근속 의무 기간 안에 퇴사하면 액면가 매수권을 두어 비슷한 효과를 내지만, 전부 아니면 전무라 확정 시점이 단계적으로 나뉘지는 않습니다.",
+      advisory: "베스팅은 몇 %가 확정되는지만 정합니다. 확정되지 않은 몫을 실제로 가져오려면 그것을 매수하는 조항이 함께 있어야 하고, 이 합의안은 대표 주주가 액면가로 매수하는 방식으로 두었습니다. 회수 주체나 가격을 다르게 정하려면 관련 전문가에게 꼭 상담을 받으세요.",
       ifUnset: "베스팅이 없으면 설립 시 배분한 지분이 근무 기간과 무관하게 그대로 유지됩니다. 짧게 일하고 떠난 사람도 처음 받은 비율을 그대로 보유하게 되며, 이후 투자 유치 과정에서 투자자가 이 구조를 확인하고 조정을 요구하는 경우가 있습니다.",
       low: "베스팅 기간이 짧으면 지분이 빨리 확정되어 각자의 몫이 일찍 안정됩니다. 대신 조기 이탈에 대비하는 효과는 줄어듭니다.",
       high: "기간이 길면 오래 남을수록 확정 몫이 커지는 구조가 됩니다. 대신 그 기간 동안 각자가 실제로 얼마를 가진 것인지 계산이 계속 바뀝니다.",
@@ -452,7 +447,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제4조 ②",
     articleTag: "NON-COMPETE",
     topic: "퇴사 후 경업 금지",
-    proposed: true,
     consensus: true,
     title: "퇴사 후 몇 년간 경업을 금지하나요?",
     desc: "주주와 임직원 지위를 모두 잃은 날부터 동종 사업을 하지 못하는 기간입니다.",
@@ -478,23 +472,32 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제5조 ①",
     articleTag: "TENURE",
     topic: "최소 근무 기간",
-    proposed: false,
     consensus: true,
     title: "최소 몇 년간 근무 의무를 지나요?",
     desc: "일반 주주가 이 기간 안에 퇴사하려면 다른 주주 전원의 서면 동의가 필요합니다. 대표 주주에게는 이 의무를 지우지 않습니다.",
-    template: { type: "duration", unit: "년", presets: [1, 2, 3, 5] },
+    // 1·2년은 근거가 없어 뺐다. 2차 자문이 전제한 3년과, 1차 자문의 "근속 의무는 보통
+    // 5년 이상"이 프리셋 안에서 보이도록 5·7을 둔다. 5가 최댓값이면 "5년 이상"이 안 보인다.
+    template: { type: "duration", unit: "년", presets: [3, 5, 7] },
+    // ①항의 비자발적 퇴사 단서는 모두싸인 베이스 원문에 있던 것이다. 2차 자문의 "대표 주주
+    // 제외"를 넣으면서 같이 지워졌던 것을 되살렸다. 이 단서가 없으면 대표가 동의를 거부하는
+    // 것만으로 상대에게 위약벌을 걸 수 있다.
+    //
+    // 다만 원문의 "본 조의 적용을 배제한다"를 "본 항"으로 좁혔다. 원문대로면 제5조 전체가
+    // 배제되어 ②항의 액면가 회수까지 면제되는데, 변호사 권고는 "이유를 막론한 퇴사는 무조건
+    // 액면가로 정리"이기 때문이다. 위약벌은 면제하고 지분 회수는 유지한다.
+    // 원문에서 벗어나는 부분이라 변호사 확인이 필요하다.
     preview: {
       article: "제5조 (계속근무)",
       blocks: [
-        { kind: "para", text: "① 일반 주주는 본 계약 체결일로부터 사유를 불문하고 {0}간 다른 주주들 전원의 사전 서면 동의 없이 회사에서 퇴사하여서는 아니된다. 대표 주주에게는 본 항의 계속근무 의무를 적용하지 아니한다." },
-        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 3년 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
+        { kind: "para", text: "① 일반 주주는 본 계약 체결일로부터 사유를 불문하고 {0}간 다른 주주들 전원의 사전 서면 동의 없이 회사에서 퇴사하여서는 아니된다. 단, 해당 주주에게 책임 없는 사유로 인한 비자발적 퇴사에 대하여는 본 항의 적용을 배제한다. 대표 주주에게는 본 항의 계속근무 의무를 적용하지 아니한다." },
+        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 {9} 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
         { kind: "para", text: "③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다." },
       ],
     },
     info: {
-      what: "일반 주주가 일정 기간 회사에 남아 있기로 하는 약정입니다. 이 기간을 어기고 나가면 제8조의 위약벌 대상이 됩니다. 대표 주주를 뺀 것은, 대표가 그만두면 회사 자체가 유지되기 어려워 근속을 강제하는 실익이 없기 때문입니다.",
+      what: "일반 주주가 일정 기간 회사에 남아 있기로 하는 약정입니다. 이 기간에 다른 주주 전원의 동의 없이 나가면 제8조의 위약벌 대상이 됩니다. 단, 본인에게 책임 없는 비자발적 퇴사는 이 의무에서 빠집니다. 대표 주주를 뺀 것은, 대표가 그만두면 회사 자체가 유지되기 어려워 근속을 강제하는 실익이 없기 때문입니다.",
       ifUnset: "기간이 비면 언제 나가는 것이 위반인지 판단할 수 없어, 제8조가 제5조 위반에 걸어둔 제재도 작동할 대상을 잃습니다.",
-      low: "이 계약서 제5조 ②항은 \"3년 이내 퇴사\" 시 다른 주주가 액면가로 매수할 수 있다고 이미 적혀 있습니다. ①항을 3년보다 짧게 정하면 두 항의 기준 연수가 서로 달라지므로, ②항도 함께 손볼지 확인해야 합니다.",
+      low: "여기서 정한 기간은 제5조 ②항의 액면가 매수권 기간으로도 그대로 들어갑니다. 짧게 잡으면 일찍 나가도 지분을 그대로 들고 나가고, 길게 잡으면 그만큼 오래 회수 대상으로 남습니다.",
       high: "기간이 길면 그동안 다른 주주 전원의 동의 없이는 퇴사가 계약 위반이 됩니다. 다만 근로관계 자체를 강제할 수는 없으므로, 실제로는 남으라고 강제하기보다 위반에 따른 금전적 책임이 남는 형태로 작동합니다.",
     },
   },
@@ -504,18 +507,25 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제5조 ② · 제9조 ③",
     articleTag: "BUYBACK",
     topic: "퇴사자 주식 회수 가격",
-    proposed: true,
-    // 고를 것이 없는 안내 문항이다. 변호사 권고안이 액면가 하나로 정해져 있고,
-    // 차등은 여기서 만들지 않고 전문가에게 넘긴다. 선택지를 두면 골라도 조문이
-    // 바뀌지 않아 "고르면 뭔가 달라지겠지"라는 오해만 남는다.
-    consensus: false,
+    // 값을 고르는 문항이 아니다. 변호사 권고안이 액면가 하나로 정해져 있고, 차등은
+    // 여기서 만들지 않고 전문가에게 넘긴다. 선택지를 두면 골라도 조문이 바뀌지 않아
+    // "고르면 뭔가 달라지겠지"라는 오해만 남는다.
+    // 대신 동의는 받는다. 퇴사자의 돈이 걸린 조항이라 읽고 지나가게 두면 안 되고,
+    // 한 명만 동의하지 않은 상태 자체가 팀이 먼저 이야기해야 할 갭이다.
+    consensus: true,
+    template: {
+      type: "consent",
+      question: "사유를 가리지 않고 액면가로 정리하는 데 동의하시나요?",
+      agreeLabel: "동의합니다",
+      denyLabel: "더 이야기해 봐야겠어요",
+    },
     title: "퇴사하는 사람의 주식을 얼마에 되사나요?",
     desc: "이 합의안은 사유를 가리지 않고 액면가로 정리합니다.",
     preview: {
       article: "제5조 (계속근무) · 제9조 (계약의 해지 및 해제)",
       blocks: [
         { kind: "ellipsis" },
-        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 3년 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
+        { kind: "para", text: "② 제1항에도 불구하고 일반 주주가 {9} 이내에 회사에서 퇴사하는 경우, 대표 주주는 퇴사하는 일반 주주가 보유하고 있는 주식 전부 또는 일부를 액면가로 매수할 수 있는 권리를 가진다." },
         { kind: "para", text: "③ 본 조에 의한 권리행사는 퇴사자가 다른 주주 및 회사에 대하여 부담하는 위약금 등 손해배상의무에 영향을 미치지 아니한다." },
         { kind: "ellipsis" },
         { kind: "para", text: "제9조 ③ 다른 주주가 전항에 따라 본 계약을 해지 또는 해제하는 경우 본 계약 해지 또는 해제에 대해 귀책사유가 있는 주주는 해당 주주가 보유한 회사의 주식 전부를 다른 주주들이 보유한 주식수에 비례하여 다른 주주들에게 액면가로 양도하여야 한다." },
@@ -535,7 +545,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제6조",
     articleTag: "LOCK-UP",
     topic: "주식 매각 제한 기간",
-    proposed: false,
     consensus: true,
     title: "몇 년간 주식을 팔 수 없나요?",
     desc: "이 기간에는 다른 주주 전원의 서면 동의 없이 주식을 양도·담보 설정할 수 없습니다. 제7조와 제7의 2조에 따른 처분은 예외입니다.",
@@ -559,17 +568,37 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제7의 2조 ① (신설)",
     articleTag: "DRAG-ALONG",
     topic: "다 같이 팔기 (드래그얼롱)",
-    proposed: false,
     consensus: true,
-    title: "몇 % 이상이 동의하면 전원이 함께 팔아야 하나요?",
-    desc: "이 비율 이상을 가진 주주가 매각을 결정하면 나머지 주주도 같은 조건으로 함께 팔아야 합니다.",
+    title: "다수가 팔기로 하면 전원이 함께 팔게 할까요?",
+    desc: "이 권리를 넣으면, 정한 비율 이상을 가진 주주가 매각을 결정할 때 반대한 주주도 같은 조건으로 함께 팔아야 합니다. 넣지 않으면 한 명만 반대해도 매각이 막힙니다.",
+    // 2차 자문: 도입 여부는 선택으로 두고, 비율은 통상값("3분의 2 이상")을 제시한다.
     template: {
-      type: "percent",
-      marks: [
-        { value: 50, label: "과반" },
-        { value: 67, label: "3분의 2" },
-        { value: 75, label: "" },
-        { value: 100, label: "전원" },
+      type: "composite",
+      parts: [
+        {
+          key: "apply",
+          label: "공동매도요구권 도입 여부",
+          template: {
+            type: "choice",
+            options: [
+              { id: "yes", label: "넣는다", desc: "정한 비율이 모이면 반대 주주도 함께 매도해야 합니다." },
+              { id: "no", label: "넣지 않는다", desc: "제6조에 따라 주주 전원의 동의가 있어야 매각할 수 있습니다." },
+            ],
+          },
+        },
+        {
+          key: "ratio",
+          label: "발동 지분율",
+          template: {
+            type: "percent",
+            marks: [
+              { value: 50, label: "과반" },
+              { value: 67, label: "3분의 2" },
+              { value: 75, label: "" },
+              { value: 100, label: "전원" },
+            ],
+          },
+        },
       ],
     },
     preview: {
@@ -594,10 +623,20 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제7조 ①",
     articleTag: "TAG-ALONG",
     topic: "함께 팔 권리 (태그얼롱)",
-    proposed: false,
-    consensus: false,
-    title: "소수 주주도 같은 조건으로 함께 팔 수 있어요",
-    desc: "한 주주가 제3자에게 지분을 처분할 때, 다른 주주들도 같은 가격과 조건으로 동반 매각에 참여할 수 있는 권리입니다. 이 조항은 기본 계약서에 이미 포함되어 있습니다.",
+    // 2차 자문: "태그·드래그얼롱은 선택으로 두되 의미를 쉽게 풀어 설명 + 설정 시 전문가 상담 안내"
+    consensus: true,
+    title: "소수 주주도 같은 조건으로 함께 팔 수 있게 할까요?",
+    desc: "한 주주가 제3자에게 지분을 처분할 때, 다른 주주들도 같은 가격과 조건으로 동반 매각에 참여할 수 있는 권리입니다.",
+    // 조항을 넣을지 뺄지를 정하는 문항이라 드래그얼롱과 같은 카드형을 쓴다. 버튼형은
+    // 이미 있는 조항에 동의하는 문항(기술·지식재산 이전, 액면가 회수)에만 남긴다.
+    // 빼면 무엇이 달라지는지 보이지 않는 채로 고르게 두면 안 된다.
+    template: {
+      type: "choice",
+      options: [
+        { id: "yes", label: "넣는다", desc: "다른 주주가 제3자에게 팔 때, 나도 같은 가격·조건으로 함께 팔 수 있습니다." },
+        { id: "no", label: "넣지 않는다", desc: "대주주만 팔고 나갈 수 있고, 남은 주주는 새 대주주와 함께 남습니다." },
+      ],
+    },
     preview: {
       article: "제7조 (주주의 우선매수권 및 공동매도참여권)",
       blocks: [
@@ -619,7 +658,6 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     article: "제8조",
     articleTag: "PENALTIES",
     topic: "위약벌",
-    proposed: false,
     consensus: true,
     title: "조항을 어기면 얼마를 내나요?",
     desc: "제8조는 주요 조항 위반에 대한 위약벌과 손해배상예정액을 정합니다. 기준 금액과 처분 비율 두 가지로 모든 항이 채워집니다.",

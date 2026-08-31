@@ -10,9 +10,9 @@ const FULL = {
   noncompete: 1,
   tenure: 3,
   vesting: { apply: "yes", vestingYears: 4, cliffYears: 1 },
-  buybackPrice: "par",
+  buybackPrice: true,
   lockup: 5,
-  dragAlong: 67,
+  dragAlong: { apply: "yes", ratio: 67 },
   penalty: { base: 100_000_000, rate: 30 },
 };
 
@@ -99,7 +99,7 @@ test("모든 결과에 쉬운 말과 정식 문장이 함께 있다", () => {
   }
 });
 
-test("도형은 4종뿐이다", () => {
+test("도형 종류가 늘어나지 않는다", () => {
   const shapes = new Set<string>();
   for (const qid of Object.keys(FULL)) {
     for (const r of resultsFor(qid, FULL)) shapes.add(r.figure.shape);
@@ -107,6 +107,7 @@ test("도형은 4종뿐이다", () => {
   assert.deepEqual(
     [...shapes].sort(),
     // balance는 deadlock-equity가 유일한 사용처였고 그 블록을 뺐다. 규칙이 늘면 다시 쓴다.
-    ["magnitude", "threshold", "timeline"]
+    // accrual은 베스팅 전용이다 — 시간에 따라 쌓이는 몫은 막대로 그려지지 않는다.
+    ["accrual", "magnitude", "threshold", "timeline"]
   );
 });

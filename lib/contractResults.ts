@@ -11,7 +11,9 @@ export type Figure =
   | { shape: "timeline"; unit: "년" | "일"; bars: TimeBar[]; gap?: { from: number; to: number; label: string } }
   | { shape: "threshold"; blocks: { label: string; value: number }[]; line: number; lineLabel: string }
   | { shape: "magnitude"; bars: { label: string; value: number; text: string; outline?: boolean }[] }
-  | { shape: "balance"; left: { label: string; value: number }; right: { label: string; value: number } };
+  | { shape: "balance"; left: { label: string; value: number }; right: { label: string; value: number } }
+  // 시간에 따라 쌓이는 몫. 막대 하나로는 "조금씩 확정된다"가 그려지지 않아 계단으로 그린다.
+  | { shape: "accrual"; unit: "년"; years: number; cliff: number | null; band?: { from: number; to: number; label: string } };
 
 export type ResultBlock = {
   id: string;
@@ -91,9 +93,15 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   const vestingOn = str(part(A.vesting, "apply")) === "yes";
   const vestingYears = vestingOn ? num(part(A.vesting, "vestingYears")) : null;
   const cliffYears = vestingOn ? num(part(A.vesting, "cliffYears")) : null;
-  const buyback = str(A.buybackPrice);
+  // 동의 문항이라 답은 boolean이다. 미응답(undefined)과 "더 이야기해 봐야겠어요"(false)를 구분한다.
+  // 제5조 ②항의 회수 기간은 ①항의 근속 의무와 같은 값이다. 근속을 아직 안 정했으면
+  // 베이스 계약서에 적힌 3년을 그대로 쓴다.
+  const buybackYears = tenure ?? 3;
+  const buyback = typeof A.buybackPrice === "boolean" ? (A.buybackPrice ? "agree" : "hold") : null;
   const lockup = num(A.lockup);
-  const dragAlong = num(A.dragAlong);
+  // 도입 여부와 비율을 한 문항에서 받는다. 넣지 않기로 했으면 비율은 의미가 없다.
+  const dragOn = str(part(A.dragAlong, "apply")) === "yes";
+  const dragAlong = dragOn ? num(part(A.dragAlong, "ratio")) : null;
   const penaltyBase = num(part(A.penalty, "base"));
   const penaltyRate = num(part(A.penalty, "rate"));
 
@@ -157,16 +165,17 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "noncompete" && noncompete) {
     out.push({
       id: "noncompete",
-      plain: `회사를 나가고 ${noncompete}년 동안은 같은 일을 할 수 없어요.`,
-      formal: `제4조 ②항의 경업금지 기간이 퇴사일로부터 ${noncompete}년으로 정해집니다. 법원은 경업금지 약정의 유효성을 보호할 이익, 재직 기간과 지위, 제한 기간과 지역, 대가 지급 여부를 종합해 판단합니다.`,
+      plain: `회사를 나가고 ${noncompete}년 동안은 같은 일을 할 수 없어요. 어기면 위약벌을 물어요.`,
+      formal: `제4조 ②항의 경업금지 기간이 퇴사일로부터 ${noncompete}년으로 정해지고, 위반 시 제8조 ②·③항의 위약벌 대상이 됩니다. 법원은 경업금지 약정의 유효성을 보호할 이익, 재직 기간과 지위, 제한 기간과 지역, 대가 지급 여부를 종합해 판단합니다.`,
       figure: {
         shape: "timeline",
         unit: "년",
         bars: [{ label: "퇴사 후 경업금지", from: 0, to: noncompete }],
+        gap: { from: 0, to: noncompete, label: "어기면 위약벌" },
       },
     });
   }
-  if (qid === "noncompete" && noncompete && buyback === "par") {
+  if (qid === "noncompete" && noncompete && buyback) {
     out.push({
       id: "noncompete-buyback",
       from: ["buybackPrice"],
@@ -184,16 +193,36 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   }
 
   // ── 제5조 ① · 계속근무 의무 ──
+  // ①항을 어긴 직접 효과는 제8조의 위약벌이다. ②항의 액면가 회수는 "제1항에도 불구하고"라
+  // 위반 여부와 무관하게 발생하므로(동의를 받고 나가도 회수된다) 여기에 결과로 붙이면
+  // 인과가 뒤바뀐다. 액면가는 아래 조합 줄에서 "같은 기간을 쓴다"는 사실로만 잇는다.
   if (qid === "tenure" && tenure) {
     out.push({
       id: "tenure",
-      plain: `${tenure}년 안에 나가면, 내 주식을 다른 주주가 액면가로 사갈 수 있어요.`,
-      formal: `제5조 ①항의 계속근무 의무가 ${tenure}년으로 정해집니다. 제5조 ②항은 3년 이내 퇴사 시 다른 주주의 액면가 매수권을 규정하고 있어, ①항을 3년과 다르게 정하면 두 항의 기준 연수가 달라집니다.`,
+      // 금액은 넣지 않는다. 위약벌 금액은 제8조 문항의 답이라 여기서 쓰면 칩 없이 다른 문항
+      // 답을 끌어오는 셈이고, 그 계산은 위약벌 문항이 이미 화면에서 하고 있다.
+      plain: `${tenure}년 안에 동의 없이 나가면 위약벌을 물어요. 본인 잘못이 아닌 퇴사는 빠집니다.`,
+      formal: `제5조 ①항의 계속근무 의무가 ${tenure}년으로 정해집니다. 이 기간에 다른 주주 전원의 사전 서면 동의 없이 퇴사하면 제8조가 정한 위약벌 대상이 되며, 본인에게 책임 없는 사유로 인한 비자발적 퇴사는 ①항 단서에 따라 적용이 배제됩니다.`,
       figure: {
         shape: "timeline",
         unit: "년",
         bars: [{ label: "계속근무 의무", from: 0, to: tenure }],
-        gap: { from: 0, to: Math.min(3, tenure), label: "액면가 매수 대상 구간" },
+        gap: { from: 0, to: tenure, label: "동의 없이 나가면 위약벌" },
+      },
+    });
+  }
+  // ②항의 회수 기간은 ①항과 같은 값으로 채워진다. 여기서 정한 숫자가 지분 회수 기간도
+  // 정한다는 사실은 알려야 하되, 근속 위반의 결과가 아니라 별도 규칙임을 분명히 한다.
+  if (qid === "tenure" && tenure && buyback) {
+    out.push({
+      id: "tenure-buyback",
+      from: ["buybackPrice"],
+      plain: `이 ${tenure}년 안에 나가면 확정된 몫까지 포함해 지분 전부가 액면가 회수 대상이에요. 동의를 받고 나가도 마찬가지예요.`,
+      formal: `제5조 ②항은 "제1항에도 불구하고" ${tenure}년 이내 퇴사에 액면가 매수권을 부여합니다. 전원의 사전 서면 동의를 받아 적법하게 퇴사하는 경우에도 매수권은 발생하며, ③항에 따라 위약벌 등 손해배상의무와는 별도로 작동합니다.`,
+      figure: {
+        shape: "timeline",
+        unit: "년",
+        bars: [{ label: "액면가 매수 대상", from: 0, to: tenure }],
       },
     });
   }
@@ -201,8 +230,10 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     out.push({
       id: "tenure-vesting",
       from: ["vesting"],
-      plain: `${tenure}년을 채우고 나가도, 지분은 ${vestingYears - tenure}년을 더 있어야 다 내 것이 돼요.`,
-      formal: `제5조 ①항의 계속근무 의무는 ${tenure}년, 베스팅 기간은 ${vestingYears}년입니다. 근무 의무가 종료된 시점에도 ${vestingYears - tenure}년분의 지분이 미확정 상태로 남습니다.`,
+      // 근속 기간 밖에서 나가면 ②항의 매수권은 없지만 ⑤항이 미확정분을 덮는다.
+      // 두 조항이 다른 것을 가져간다는 걸 이 자리에서 구분해 준다.
+      plain: `${tenure}년을 채우고 나가도, 지분은 ${vestingYears - tenure}년을 더 있어야 다 내 것이 돼요. 그때부터는 확정 안 된 몫만 액면가 회수 대상이에요.`,
+      formal: `제5조 ①항의 계속근무 의무는 ${tenure}년, 베스팅 기간은 ${vestingYears}년입니다. 근무 의무가 종료된 시점에도 ${vestingYears - tenure}년분의 지분이 미확정 상태로 남습니다. ②항의 액면가 매수권은 ${tenure}년 이내 퇴사에만 발생하지만, ⑤항의 매수권은 기간 제한 없이 미확정분에 적용되므로 이 시점 이후의 퇴사에서도 미확정분은 회수 대상입니다.`,
       figure: {
         shape: "timeline",
         unit: "년",
@@ -241,33 +272,65 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
         : `지분이 ${vestingYears}년에 걸쳐 조금씩 내 것이 돼요.`,
       formal: `베스팅 기간 ${vestingYears}년${cliffYears ? `, 클리프 ${cliffYears}년` : ""}으로 제5조가 구성됩니다. 클리프 기간 중 이탈하면 확정된 지분이 없고, 클리프 경과 후에는 근무 기간에 비례해 확정분이 늘어납니다.`,
       figure: {
-        shape: "timeline",
+        shape: "accrual",
         unit: "년",
-        bars: [{ label: "베스팅", from: 0, to: vestingYears }],
-        ...(cliffYears ? { gap: { from: 0, to: cliffYears, label: "클리프 · 확정분 없음" } } : {}),
+        years: vestingYears,
+        cliff: cliffYears,
+        ...(cliffYears ? { band: { from: 0, to: cliffYears, label: "클리프 · 확정분 없음" } } : {}),
       },
     });
   }
 
   // ── 제5조 ②·제9조 ③ · 퇴사 시 매수 가격 ──
   if (qid === "buybackPrice" && buyback) {
-    const split = buyback === "split";
+    // 동의 여부와 상관없이 조문은 액면가 하나다. 달라지는 건 그 조문이 확정됐는지다.
+    const hold = buyback === "hold";
+    // "액면가" 막대 하나는 조문이 이미 한 말을 옮긴 것뿐이라 볼 것이 없다.
+    // 베스팅을 답했으면 그 기간 위에 매수 구간을 겹쳐 그린다 — 지분이 확정되어 가는
+    // 구간이 곧 액면가 회수 구간이라는 게 눈으로 잡힌다.
     out.push({
       id: "buybackPrice",
-      plain: split
-        ? "나가는 이유에 따라 값이 달라져요. 어떤 게 내 잘못인지는 계약서에 적어둬야 해요."
-        : "어떤 이유로 나가든 값은 똑같아요. 액면가로 정리돼요.",
-      formal: split
-        ? "제5조 ②항과 제9조 ③항이 일반 퇴사와 귀책 퇴사에 서로 다른 매수 가격을 적용하는 구조가 됩니다. 귀책 사유의 범위를 조문에 구체적으로 열거하지 않으면 해당 여부 자체가 다툼의 대상이 됩니다."
+      plain: hold
+        ? "이 합의안은 어떤 이유로 나가든 액면가예요. 아직 동의하지 않았으니 팀원과 먼저 이야기해 보세요."
+        : "어떤 이유로 나가든 값은 똑같아요. 액면가로 정리돼요. 오래 일하고 나가도 그동안 오른 회사 가치는 못 받아요.",
+      formal: hold
+        ? "제5조 ②항의 현재 문안대로 사유를 불문하고 액면가가 적용됩니다. 이 조항에 동의하지 않은 주주가 있어, 확정 전에 팀 내 조율이 필요합니다."
         : "제5조 ②항의 현재 문안대로 사유를 불문하고 액면가가 적용됩니다. 산정이 명확해 가격 다툼이 없고, 오래 기여하고 떠나는 경우에도 회사 가치 상승분은 반영되지 않습니다.",
+      figure: vestingYears
+        ? {
+            shape: "accrual",
+            unit: "년",
+            years: vestingYears,
+            cliff: cliffYears,
+            band: { from: 0, to: Math.min(buybackYears, vestingYears), label: "액면가 매수 대상 구간" },
+          }
+        : {
+            shape: "magnitude",
+            bars: [{ label: "모든 퇴사", value: 1, text: "액면가", outline: hold }],
+          },
+    });
+  }
+
+  // 베스팅을 "내 지분이 지켜지는 장치"로 읽은 사람이 뒤집히는 지점이다.
+  // 확정분이 쌓여도 회수 기간 안에 나가면 그 확정분까지 액면가 매수 대상이 된다.
+  if (qid === "buybackPrice" && buyback && vestingYears) {
+    out.push({
+      id: "vesting-buyback",
+      from: ["vesting"],
+      // 베스팅 기간과 회수 기간은 서로 다른 데서 온다. 한 문장에 두 숫자를 그냥 나열하면
+      // 뒤의 숫자가 어디서 왔는지 알 수 없어 각각 이름을 붙인다.
+      // 회수 기간이 끝나는 시점에 얼마가 쌓여 있는지까지 적어야 "그 뒤에 나가면?"이 답해진다.
+      plain:
+        vestingYears <= buybackYears
+          ? `지분은 ${vestingYears}년에 걸쳐 확정되는데, 그 기간이 통째로 액면가로 되사갈 수 있는 ${buybackYears}년 안에 들어와요. 언제 나가든 그때까지 확정된 몫까지 되사갈 수 있어요.`
+          : `지분은 ${vestingYears}년에 걸쳐 확정되는데, 액면가로 되사갈 수 있는 기간은 ${buybackYears}년이에요. ${buybackYears}년째에 나가면 그때까지 쌓인 ${Math.round((buybackYears / vestingYears) * 100)}%까지 되사갈 수 있고, 그 뒤에 나가면 그 권리는 없어져요.`,
+      formal: `베스팅으로 확정된 지분도 제5조 ②항의 매수 대상에서 제외되지 않습니다. 제5조 ④항의 베스팅 기간은 ${vestingYears}년이고 ②항의 액면가 매수권은 ${buybackYears}년 이내 퇴사에만 발생하므로, 앞 ${buybackYears}년은 확정분이 쌓이는 기간과 매수권이 살아 있는 기간이 겹칩니다. ${buybackYears}년이 지난 뒤 퇴사하면 ②항의 매수권은 발생하지 않고, ④항에 따라 미확정 상태로 남은 지분만 확정되지 않습니다.`,
       figure: {
-        shape: "magnitude",
-        bars: split
-          ? [
-              { label: "일반 퇴사", value: 1, text: "가격 A", outline: true },
-              { label: "귀책 퇴사", value: 1, text: "가격 B", outline: true },
-            ]
-          : [{ label: "모든 퇴사", value: 1, text: "액면가" }],
+        shape: "accrual",
+        unit: "년",
+        years: vestingYears,
+        cliff: cliffYears,
+        band: { from: 0, to: Math.min(buybackYears, vestingYears), label: "액면가 매수 대상 구간" },
       },
     });
   }
@@ -276,12 +339,13 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
   if (qid === "lockup" && lockup) {
     out.push({
       id: "lockup",
-      plain: `${lockup}년 동안은 내 주식을 팔 수 없어요.`,
-      formal: `제6조의 처분 제한 기간이 ${lockup}년으로 정해집니다. 제10조는 계약 변경을 주주 전원의 서면 합의로만 허용하므로, 이 기간을 나중에 줄이려면 전원이 동의해야 합니다.`,
+      plain: `${lockup}년 동안은 내 주식을 팔 수 없어요. 몰래 팔면 위약벌을 물고, 그 거래는 다른 주주들에게 통하지 않아요.`,
+      formal: `제6조의 처분 제한 기간이 ${lockup}년으로 정해집니다. 위반해 처분한 경우 제8조 ⑤항에 따라 처분 금액의 일정 비율 또는 정액 중 큰 금액을 위약벌로 지급하며, 그 처분행위로써 다른 주주들에게 대항할 수 없습니다. 제10조는 계약 변경을 주주 전원의 서면 합의로만 허용하므로, 이 기간을 나중에 줄이려면 전원이 동의해야 합니다.`,
       figure: {
         shape: "timeline",
         unit: "년",
         bars: [{ label: "처분 제한", from: 0, to: lockup }],
+        gap: { from: 0, to: lockup, label: "몰래 팔면 위약벌 · 거래 무효 주장 가능" },
       },
     });
   }

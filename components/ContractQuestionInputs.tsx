@@ -234,6 +234,19 @@ function MatrixInput({ tpl, value, onChange, id }: {
   const v = value ?? {};
   const set = (k: string, next: string | number) => onChange({ ...v, [k]: next });
 
+  // 역할은 한 사람이 여러 개를 맡는다. 칩은 고르는 게 아니라 덧붙이는 것이라, 누르면
+  // 지금 값에 붙고 다시 누르면 빠진다. 직접 적은 내용은 건드리지 않는다.
+  // 칩 이름 안에 가운뎃점이 있어("영업·마케팅") 구분자는 쉼표를 쓴다.
+  const partsOf = (k: string) =>
+    String(v[k] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const toggleChip = (k: string, c: string) => {
+    const parts = partsOf(k);
+    const i = parts.indexOf(c);
+    if (i >= 0) parts.splice(i, 1);
+    else parts.push(c);
+    set(k, parts.join(", "));
+  };
+
   if (tpl.variant === "allocation") {
     const nums: Record<string, number> = {};
     for (const m of MOCK_MEMBERS) nums[m.id] = Number(v[m.id]) || 0;
@@ -243,7 +256,7 @@ function MatrixInput({ tpl, value, onChange, id }: {
         {MOCK_MEMBERS.map((m) => (
           <div key={m.id} className="cq-matrix-row">
             <label className="cq-matrix-name" htmlFor={`${id}-${m.id}`}>
-              {m.name} <span className="cq-matrix-role">{m.role}</span>
+              {m.name} {m.self && <span className="cq-matrix-role">{m.role}</span>}
             </label>
             <div className="cq-pct-row">
               <input
@@ -277,19 +290,30 @@ function MatrixInput({ tpl, value, onChange, id }: {
       {MOCK_MEMBERS.map((m) => (
         <div key={m.id} className="cq-matrix-row text">
           <label className="cq-matrix-name" htmlFor={`${id}-${m.id}`}>
-            {m.name} <span className="cq-matrix-role">{m.role}</span>
+            {m.name} {m.self && <span className="cq-matrix-role">{m.role}</span>}
           </label>
           {tpl.chips && (
             <div className="cq-chips small">
-              {tpl.chips.map((c) => (
-                <button key={c} type="button" className="cq-chip" onClick={() => set(m.id, c)}>{c}</button>
-              ))}
+              {tpl.chips.map((c) => {
+                const on = partsOf(m.id).includes(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={on}
+                    className={`cq-chip ${on ? "on" : ""}`}
+                    onClick={() => toggleChip(m.id, c)}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
             </div>
           )}
           <input
             id={`${id}-${m.id}`}
             className="cq-input"
-            placeholder="담당하는 역할과 업무를 적어 주세요"
+            placeholder="위에서 고르거나, 직접 적어 주세요"
             value={String(v[m.id] ?? "")}
             onChange={(e) => set(m.id, e.target.value)}
           />
@@ -306,12 +330,16 @@ function ConsentInput({ tpl, value, onChange }: {
 }) {
   return (
     <div className="cq-consent">
-      <ol className="cq-consent-list">
-        {tpl.items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ol>
-      <p className="cq-consent-q">위 항목 중 내가 보유한 것을 법인 명의로 이전하는 것에 동의하시나요?</p>
+      {tpl.items && (
+        <ol className="cq-consent-list">
+          {tpl.items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      )}
+      <p className="cq-consent-q">
+        {tpl.question ?? "위 항목 중 내가 보유한 것을 법인 명의로 이전하는 것에 동의하시나요?"}
+      </p>
       <div className="cq-consent-btns">
         <button
           type="button"
@@ -319,7 +347,7 @@ function ConsentInput({ tpl, value, onChange }: {
           className={`cq-consent-opt cq-consent-agree ${value === true ? "on" : ""}`}
           onClick={() => onChange(value === true ? undefined : true)}
         >
-          동의합니다
+          {tpl.agreeLabel ?? "동의합니다"}
         </button>
         <button
           type="button"
@@ -327,7 +355,7 @@ function ConsentInput({ tpl, value, onChange }: {
           className={`cq-consent-opt cq-consent-none ${value === false ? "on" : ""}`}
           onClick={() => onChange(value === false ? undefined : false)}
         >
-          해당 없음
+          {tpl.denyLabel ?? "해당 없음"}
         </button>
       </div>
     </div>

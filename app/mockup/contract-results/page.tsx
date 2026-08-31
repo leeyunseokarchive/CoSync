@@ -47,9 +47,9 @@ const PREFILL: Record<string, unknown> = {
   noncompete: 1,
   tenure: 3,
   vesting: { apply: "yes", vestingYears: 4, cliffYears: 1 },
-  buybackPrice: "par",
+  buybackPrice: true,
   lockup: 5,
-  dragAlong: 67,
+  dragAlong: { apply: "yes", ratio: 67 },
 };
 
 export default function ContractResultsMockup() {
@@ -75,7 +75,7 @@ export default function ContractResultsMockup() {
   const exception = exceptions[q.id] ?? "";
   const showException = exceptionOpen || exception.length > 0;
 
-  const previewValues = usePreviewValues(q, value);
+  const previewValues = usePreviewValues(q, value, answers);
   const blocked = isBlocked(q, value);
 
   // 결과는 내가 답한 값만으로 만든다. 팀원 답은 이 단계에서 볼 수 없다.
@@ -132,9 +132,6 @@ export default function ContractResultsMockup() {
                   <button type="button" className="cq-side-head" onClick={() => jumpTo(firstIndex)}>
                     <span className="cq-side-ko">
                       {g.ko}
-                      {inGroup.some((x) => x.proposed) && (
-                        <span className="cq-side-dot" title="제안 문항 포함" aria-label="제안 문항 포함" />
-                      )}
                     </span>
                     <span className="cq-side-en">{g.en}</span>
                     <span className="cq-side-count">{done}/{inGroup.length}</span>
@@ -177,7 +174,6 @@ export default function ContractResultsMockup() {
                 <span className="cq-eyebrow-bar" />
                 <span className="cq-eyebrow">{q.topic}</span>
                 <span className="cq-article-ref">{q.article}</span>
-                {q.proposed && <span className="cq-badge-proposed">제안</span>}
                 {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
               </div>
               <h1 className="cq-title">{q.title}</h1>
@@ -259,6 +255,18 @@ export default function ContractResultsMockup() {
                   <QuestionInput template={q.template!} value={value} onChange={setValue} keyPrefix={q.id} />
                 )}
               </section>
+            )}
+
+            {/* 「이렇게 됩니다」 바로 위에 둔다. 이 안내는 결과를 뒤집는 성격이라
+                ("여기서 정하지 마세요") 결과와 붙어 있어야 한 흐름으로 읽힌다. */}
+            {q.info.advisory && (
+              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
+                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}><Gloss text={q.info.advisory} /></p>
+                </div>
+              </div>
             )}
 
             {/* 추가되는 유일한 덩어리. 내가 넣은 값이 만드는 결과를 그 자리에서 보여준다. */}
@@ -363,18 +371,6 @@ export default function ContractResultsMockup() {
               </div>
             </section>
 
-            {/* 조문을 본 직후가 "그럼 이건 못 바꾸나?"라는 의문이 생기는 시점이다.
-                오른쪽 정보 열은 접힌 카드들이 있어 "안 봐도 되는 영역"으로 학습되므로
-                항상 읽혀야 하는 안내는 본문에 둔다. */}
-            {q.info.advisory && (
-              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
-                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}><Gloss text={q.info.advisory} /></p>
-                </div>
-              </div>
-            )}
 
           </article>
         </main>
@@ -515,42 +511,54 @@ function PreviewBlockView({ block, values }: { block: PreviewBlock; values: (str
   );
 }
 
-function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[] {
+function usePreviewValues(
+  q: ContractQuestion,
+  value: unknown,
+  answers: Record<string, unknown>,
+): (string | null)[] {
+  // {9}는 근속 문항의 답에서 온다. 제5조 ②항의 회수 기간이 ①항과 항상 같아야 하는데
+  // 그 문장이 세 문항 미리보기에 모두 실려서, 자기 답만으로는 채울 수 없다.
+  const tenureLabel = answers.tenure ? `${answers.tenure}년` : null;
   return useMemo(() => {
-    if (q.id === "penalty") {
-      const p = (value ?? {}) as { base?: number; rate?: number };
-      return [
-        p.base ? formatKoreanAmount(p.base) : null,
-        p.rate ? String(p.rate) : null,
-      ];
-    }
-    const t = q.template;
-    if (!t || value === undefined || value === null || value === "") return [];
+    const base = ((): (string | null)[] => {
+      if (q.id === "penalty") {
+        const p = (value ?? {}) as { base?: number; rate?: number };
+        return [
+          p.base ? formatKoreanAmount(p.base) : null,
+          p.rate ? String(p.rate) : null,
+        ];
+      }
+      const t = q.template;
+      if (!t || value === undefined || value === null || value === "") return [];
 
-    if (t.type === "amount") return [formatKoreanAmount(Number(value))];
-    if (t.type === "duration") return [`${value}${t.unit}`];
-    if (t.type === "percent") return [String(value)];
-    if (t.type === "choice") return [choiceLabel(t, value)];
-    if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
-    if (t.type === "matrix") {
-      const v = value as Record<string, string | number>;
-      return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
-    }
-    if (t.type === "fields") {
-      const v = value as Record<string, string>;
-      return t.fields.map((f) => v[f.key] || null);
-    }
-    const v = value as Record<string, unknown>;
-    return t.parts.map((p) => {
-      const pv = v[p.key];
-      if (pv === undefined || pv === null || pv === "") return null;
-      if (p.template.type === "amount") return formatNumber(Number(pv));
-      if (p.template.type === "duration") return `${pv}${p.template.unit}`;
-      if (p.template.type === "percent") return String(pv);
-      if (p.template.type === "choice") return choiceLabel(p.template, pv);
-      return String(pv);
-    });
-  }, [q, value]);
+      if (t.type === "amount") return [formatKoreanAmount(Number(value))];
+      if (t.type === "duration") return [`${value}${t.unit}`];
+      if (t.type === "percent") return [String(value)];
+      if (t.type === "choice") return [choiceLabel(t, value)];
+      if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
+      if (t.type === "matrix") {
+        const v = value as Record<string, string | number>;
+        return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
+      }
+      if (t.type === "fields") {
+        const v = value as Record<string, string>;
+        return t.fields.map((f) => v[f.key] || null);
+      }
+      const v = value as Record<string, unknown>;
+      return t.parts.map((p) => {
+        const pv = v[p.key];
+        if (pv === undefined || pv === null || pv === "") return null;
+        if (p.template.type === "amount") return formatNumber(Number(pv));
+        if (p.template.type === "duration") return `${pv}${p.template.unit}`;
+        if (p.template.type === "percent") return String(pv);
+        if (p.template.type === "choice") return choiceLabel(p.template, pv);
+        return String(pv);
+      });
+    })();
+    const out = [...base];
+    out[9] = tenureLabel;
+    return out;
+  }, [q, value, tenureLabel]);
 }
 
 function isBlocked(q: ContractQuestion, value: unknown): boolean {
@@ -587,7 +595,6 @@ const CSS = `
 .cq-side-ko { grid-area: ko; font-size: 14px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px; }
 .cq-side-en { grid-area: en; font-size: 10px; font-weight: 500; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 0.08em; }
 .cq-side-count { grid-area: count; font-size: 12px; font-weight: 800; color: #cbd5e1; font-variant-numeric: tabular-nums; }
-.cq-side-dot { width: 6px; height: 6px; border-radius: 999px; background: #F59E0B; }
 .cq-side-group.active .cq-side-ko { font-weight: 800; color: #0f172a; }
 .cq-side-group.active .cq-side-en { color: rgba(79,70,229,0.7); }
 .cq-side-group.active .cq-side-count { color: #4F46E5; }
@@ -656,7 +663,6 @@ const CSS = `
 .cq-thr-name em { margin-left: 6px; font-style: normal; font-size: 11px; font-weight: 700; color: #cbd5e1; }
 .cq-thr-plain { font-size: 13px; line-height: 1.65; font-weight: 500; color: #64748b; word-break: keep-all; }
 .cq-thr-note { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #FEF3C7; color: #92400E; font-size: 12.5px; line-height: 1.7; font-weight: 700; word-break: keep-all; }
-.cq-badge-proposed { padding: 4px 10px; border-radius: 999px; border: 1px dashed #F59E0B; background: rgba(245,158,11,0.06); color: #B45309; font-size: 11px; font-weight: 900; }
 .cq-badge-fact { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 800; }
 .cq-title { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
 .cq-desc { font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.7; max-width: 42rem; }
@@ -844,12 +850,14 @@ const CSS = `
 .cr-row-text { font-size: 14.5px; line-height: 1.7; font-weight: 700; color: #1e293b; word-break: keep-all; }
 
 /* 어려운 말 뜻풀이. 마우스와 키보드 둘 다로 열린다 — hover 전용은 만들지 않는다. */
-.cq-term { position: relative; border-bottom: 1px dashed #cbd5e1; cursor: help; }
+/* 회색 점선만으로는 본문 글자와 구분되지 않아 눌러볼 것이 있다는 걸 알 수 없다.
+   링크색을 입혀 "여기 뭔가 있다"를 색으로 알린다. */
+.cq-term { position: relative; color: #4338CA; border-bottom: 1px dashed #a5b4fc; cursor: help; }
 .cq-term-pop { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60; width: max-content; max-width: 240px;
   padding: 10px 12px; border-radius: 10px; background: #1e293b; color: #fff;
   font-size: 12px; font-weight: 500; line-height: 1.6; letter-spacing: 0; text-align: left; word-break: keep-all;
   opacity: 0; visibility: hidden; transition: opacity 0.12s; pointer-events: none; }
-.cq-term:hover .cq-term-pop, .cq-term:focus-visible .cq-term-pop { opacity: 1; visibility: visible; }
+.cq-term:hover .cq-term-pop, .cq-term:focus .cq-term-pop { opacity: 1; visibility: visible; }
 .cq-term:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; border-radius: 3px; }
 .cq-info .cq-term-pop { left: auto; right: 0; }
 

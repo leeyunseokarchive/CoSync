@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { Figure } from "../lib/contractResults";
+import { GLOSSARY } from "../lib/glossary";
 
 // 도형 4종. 규칙마다 SVG를 그리지 않고, 형태에 값을 넣는다.
 // 기존 화면과 같은 평면 스타일로 그린다 — 그라디언트·그림자·하이라이트 없이 면과 선만 쓴다.
@@ -40,6 +41,7 @@ export function ResultFigure({ figure }: { figure: Figure }) {
   if (figure.shape === "timeline") return <TimelineFigure figure={figure} />;
   if (figure.shape === "threshold") return <ThresholdFigure figure={figure} />;
   if (figure.shape === "magnitude") return <MagnitudeFigure figure={figure} />;
+  if (figure.shape === "accrual") return <AccrualFigure figure={figure} />;
   return <BalanceFigure figure={figure} />;
 }
 
@@ -99,6 +101,121 @@ function TimelineFigure({ figure }: { figure: Extract<Figure, { shape: "timeline
         </g>
       ))}
     </svg>
+  );
+}
+
+// 시간이 갈수록 쌓이는 몫. 막대 하나는 길이만 보여줘서 "조금씩 확정된다"가 안 보인다.
+// 제5조 ④항이 "매월 균등하게 확정"이므로 해마다 뛰는 계단이 아니라, 클리프에서 한 번
+// 뛴 뒤 완만히 오르는 선이다. 계단으로 그리면 "1년차 내내 25%"라는 틀린 말이 된다.
+function AccrualFigure({ figure }: { figure: Extract<Figure, { shape: "accrual" }> }) {
+  const { years, cliff, band, unit } = figure;
+  const L = 96, R = 486, TOP = 46, BASE = 138;
+  const x = (v: number) => L + (v / years) * (R - L);
+  const y = (frac: number) => BASE - frac * (BASE - TOP);
+  const h = 188;
+  const pct = (f: number) => `${Math.round(f * 100)}%`;
+
+  // t년 시점에 확정된 비율. 클리프 전이면 한 주도 없고, 클리프에 닿는 순간 그만큼 한 번에 확정된다.
+  const vested = (t: number) => (cliff && t < cliff ? 0 : Math.min(1, t / years));
+
+  const c = cliff ?? 0;
+  const ramp = cliff
+    ? `M ${L} ${y(0)} L ${x(c)} ${y(0)} L ${x(c)} ${y(vested(c))} L ${R} ${y(1)}`
+    : `M ${L} ${y(0)} L ${R} ${y(1)}`;
+
+  // 노란 구간이 닫히는 시점에 얼마가 쌓여 있는지. "3년에 나가면 몇 %인가"가 이 점 하나로 답해진다.
+  const markAt = band && band.to > c && band.to < years ? band.to : null;
+
+  const svg = (
+    <svg viewBox={`0 0 520 ${h}`} className="cr-svg" role="img">
+      <text x={L - 12} y={TOP + 4} textAnchor="end" fontSize="10.5" fontWeight="700" fill={SLATE}>100%</text>
+      <text x={L - 12} y={BASE + 4} textAnchor="end" fontSize="10.5" fontWeight="700" fill={SLATE}>0%</text>
+      <text x={L - 12} y={(TOP + BASE) / 2 - 10} textAnchor="end" fontSize="12" fontWeight="800" fill={INK}>확정된</text>
+      <text x={L - 12} y={(TOP + BASE) / 2 + 6} textAnchor="end" fontSize="12" fontWeight="800" fill={INK}>지분</text>
+
+      <line x1={L} y1={TOP} x2={R} y2={TOP} stroke={LINE} strokeWidth="1" strokeDasharray="3 4" />
+      <line x1={L} y1={BASE} x2={R} y2={BASE} stroke={LINE} strokeWidth="1" />
+
+      {band && (
+        <>
+          <rect
+            x={x(band.from)} y={TOP - 10}
+            width={Math.max(8, x(band.to) - x(band.from))} height={BASE - TOP + 18}
+            rx="12" fill={AMBER_SOFT} stroke={AMBER} strokeWidth="1" strokeDasharray="4 4"
+          />
+          <Pill
+            x={Math.min(R - band.label.length * 7.6 - 18, (x(band.from) + x(band.to)) / 2 - (band.label.length * 7.6 + 18) / 2)}
+            y={4} text={band.label} tone="amber"
+          />
+        </>
+      )}
+
+      <path d={`${ramp} L ${R} ${BASE} L ${L} ${BASE} Z`} fill={IND_MID} />
+      <path d={ramp} fill="none" stroke={IND} strokeWidth="2" strokeLinejoin="round" />
+
+      {cliff ? (
+        <text x={x(c) + 8} y={y(vested(c)) - 8} fontSize="10.5" fontWeight="800" fill={IND_INK}>
+          {pct(vested(c))}
+        </text>
+      ) : null}
+
+      {markAt !== null && (
+        <g>
+          <line x1={x(markAt)} y1={BASE} x2={x(markAt)} y2={y(vested(markAt))} stroke={AMBER} strokeWidth="1.5" strokeDasharray="3 3" />
+          <circle cx={x(markAt)} cy={y(vested(markAt))} r="4.5" fill="#fff" stroke={AMBER} strokeWidth="2.5" />
+          <text x={x(markAt) - 8} y={y(vested(markAt)) - 9} textAnchor="end" fontSize="11" fontWeight="800" fill={AMBER_INK}>
+            {trim(markAt)}{unit} · {pct(vested(markAt))}
+          </text>
+        </g>
+      )}
+
+      {/* 선으로 바꾸면서 해마다 얼마가 쌓였는지가 사라졌다. 클리프와 끝점 사이의 각 해에
+          점을 찍어 눈금을 되살린다. 노란 구간 끝(markAt)은 이미 값을 달고 있어 건너뛴다. */}
+      {Array.from({ length: Math.max(0, years - 1) }, (_, k) => k + 1)
+        .filter((i) => i > c && i !== markAt)
+        .map((i) => (
+          <g key={i}>
+            <circle cx={x(i)} cy={y(vested(i))} r="3.5" fill="#fff" stroke={IND} strokeWidth="2" />
+            <text x={x(i)} y={y(vested(i)) - 10} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={IND_INK}>
+              {pct(vested(i))}
+            </text>
+          </g>
+        ))}
+
+      <circle cx={R} cy={y(1)} r="4.5" fill={IND} />
+      <text x={R} y={y(1) - 11} textAnchor="middle" fontSize="10.5" fontWeight="800" fill={IND}>100%</text>
+
+      {Array.from({ length: years + 1 }, (_, i) => (
+        <text key={i} x={x(i)} y={BASE + 22} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={SLATE}>
+          {i}{unit}
+        </text>
+      ))}
+    </svg>
+  );
+
+  // 클리프 라벨만 SVG 밖으로 뺀다. <text>에는 뜻풀이 말풍선(span)을 붙일 수 없어서,
+  // 그림 위에 겹쳐 두고 다른 용어와 같은 .cq-term 을 그대로 쓴다.
+  if (!cliff) return svg;
+  return (
+    <div style={{ position: "relative" }}>
+      {svg}
+      <span
+        className="cq-term"
+        tabIndex={0}
+        style={{
+          position: "absolute",
+          left: `${(x(c) / 520) * 100}%`,
+          bottom: `${((h - BASE - 44) / h) * 100}%`,
+          transform: "translateX(-50%)",
+          fontSize: 10.5,
+          fontWeight: 800,
+          whiteSpace: "nowrap",
+        }}
+      >
+        클리프
+        <span className="cq-term-pop" role="tooltip">{GLOSSARY["클리프"]}</span>
+      </span>
+    </div>
   );
 }
 

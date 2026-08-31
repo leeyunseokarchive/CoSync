@@ -5,7 +5,6 @@ import {
   QUESTION_GROUPS,
   MOCK_MEMBERS,
   validateAllocation,
-  tenureWarning,
   fillPreview,
   choiceLabel,
   type QuestionTemplate,
@@ -15,15 +14,6 @@ test("질문은 15개이고 id가 중복되지 않는다", () => {
   assert.equal(CONTRACT_QUESTIONS.length, 15);
   const ids = CONTRACT_QUESTIONS.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
-});
-
-test("확정 9개 / 제안 6개로 나뉜다", () => {
-  const proposed = CONTRACT_QUESTIONS.filter((q) => q.proposed);
-  assert.deepEqual(
-    proposed.map((q) => q.id),
-    ["identity", "structure", "ipTransfer", "vesting", "noncompete", "buybackPrice"]
-  );
-  assert.equal(CONTRACT_QUESTIONS.length - proposed.length, 9);
 });
 
 test("모든 질문에 정보 카드 2종(무엇인가·정하지 않으면)이 있다", () => {
@@ -79,7 +69,9 @@ test("모든 질문은 조문 제목과 치환 자리를 가진다", () => {
     assert.ok(q.preview.article.startsWith("제") || q.preview.article.startsWith("계약"), `조문 제목 이상: ${q.id}`);
     assert.ok(q.preview.blocks.length >= 1, `미리보기 블록 없음: ${q.id}`);
     // consensus:false 정보 문항은 합의 대상이 아니라 빈칸이 없다.
-    if (q.consensus) {
+    // 값이 아니라 동의를 받는 문항은 조문에 채울 빈칸이 없다. buybackPrice는 동의 여부와
+    // 무관하게 조문이 같고, tagAlong은 조항을 넣을지 말지를 정할 뿐이다.
+    if (q.consensus && !["buybackPrice", "tagAlong"].includes(q.id)) {
       assert.ok(
         previewStrings(q).some((line) => /\{\d\}/.test(line)),
         `치환 자리 없음: ${q.id}`
@@ -96,9 +88,15 @@ test("미리보기에 마크다운 표 기호가 남아있지 않다", () => {
   }
 });
 
-test("7종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
-  const used = new Set(CONTRACT_QUESTIONS.filter((q) => q.template).map((q) => q.template!.type));
-  for (const t of ["amount", "duration", "percent", "choice", "matrix", "fields", "composite"]) {
+test("8종 템플릿이 모두 최소 한 번씩 쓰인다", () => {
+  // composite 안에 들어간 템플릿도 쓰인 것으로 센다 — 드래그얼롱의 percent가 그 안에 있다.
+  const used = new Set<string>();
+  const walk = (t: { type: string; parts?: { template: { type: string } }[] }) => {
+    used.add(t.type);
+    t.parts?.forEach((p) => walk(p.template));
+  };
+  for (const q of CONTRACT_QUESTIONS) if (q.template) walk(q.template);
+  for (const t of ["amount", "duration", "percent", "choice", "matrix", "fields", "composite", "consent"]) {
     assert.ok(used.has(t as never), `쓰이지 않은 템플릿: ${t}`);
   }
 });
@@ -138,16 +136,6 @@ test("빈 값은 0으로 세어 초기 상태에서 통과하지 않는다", () 
   assert.equal(validateAllocation({}).ok, false);
 });
 
-test("계속근무 3년 미만이면 5조② 정합성 경고를 낸다", () => {
-  const w = tenureWarning(2);
-  assert.ok(w);
-  assert.match(w, /3년/);
-});
-
-test("계속근무 3년 이상이면 경고가 없다", () => {
-  assert.equal(tenureWarning(3), null);
-  assert.equal(tenureWarning(5), null);
-});
 
 test("미리보기는 값이 들어간 조각을 filled로 표시한다", () => {
   const parts = fillPreview("주주들은 {0}일간 협의한다.", ["7"]);

@@ -12,7 +12,6 @@ import {
   MOCK_MEMBERS,
   INFO_DISCLAIMER,
   validateAllocation,
-  tenureWarning,
   fillPreview,
   choiceLabel,
   type ContractQuestion,
@@ -49,11 +48,9 @@ export default function ContractQuestionsMockup() {
   const exception = exceptions[q.id] ?? "";
   const showException = exceptionOpen || exception.length > 0;
 
-  const previewValues = usePreviewValues(q, value);
+  const previewValues = usePreviewValues(q, value, answers);
   const blocked = isBlocked(q, value);
   // 경고가 나올 수 있는 문항에서만 자리를 비워둔다. 나머지 12개까지 여백을 잡으면 낭비다.
-  const canWarn = q.id === "tenure";
-  const warning = canWarn ? tenureWarning(Number(value) || 0) : null;
 
   // 지분 배분이 미완이어도 사이드바 이동은 막지 않는다. 되돌아와 채우면 된다.
   const jumpTo = (i: number) => {
@@ -99,9 +96,6 @@ export default function ContractQuestionsMockup() {
                   <button type="button" className="cq-side-head" onClick={() => jumpTo(firstIndex)}>
                     <span className="cq-side-ko">
                       {g.ko}
-                      {inGroup.some((x) => x.proposed) && (
-                        <span className="cq-side-dot" title="제안 문항 포함" aria-label="제안 문항 포함" />
-                      )}
                     </span>
                     <span className="cq-side-en">{g.en}</span>
                     <span className="cq-side-count">{done}/{inGroup.length}</span>
@@ -142,7 +136,6 @@ export default function ContractQuestionsMockup() {
               <div className="cq-eyebrow-row">
                 <span className="cq-eyebrow-bar" />
                 <span className="cq-eyebrow">{q.article} · {q.articleTag}</span>
-                {q.proposed && <span className="cq-badge-proposed">제안</span>}
                 {!q.consensus && <span className="cq-badge-fact">합의 대상 아님</span>}
               </div>
               <h1 className="cq-title">{q.title}</h1>
@@ -162,6 +155,18 @@ export default function ContractQuestionsMockup() {
                   <QuestionInput template={q.template!} value={value} onChange={setValue} keyPrefix={q.id} />
                 )}
               </section>
+            )}
+
+            {/* 「이렇게 됩니다」 바로 위에 둔다. 이 안내는 결과를 뒤집는 성격이라
+                ("여기서 정하지 마세요") 결과와 붙어 있어야 한 흐름으로 읽힌다. */}
+            {q.info.advisory && (
+              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
+                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.info.advisory}</p>
+                </div>
+              </div>
             )}
 
             <section className="cq-exception">
@@ -215,18 +220,6 @@ export default function ContractQuestionsMockup() {
               </div>
             </section>
 
-            {/* 조문을 본 직후가 "그럼 이건 못 바꾸나?"라는 의문이 생기는 시점이다.
-                오른쪽 정보 열은 접힌 카드들이 있어 "안 봐도 되는 영역"으로 학습되므로
-                항상 읽혀야 하는 안내는 본문에 둔다. */}
-            {q.info.advisory && (
-              <div style={{ border: "1px solid #c7d2fe", background: "#f5f5ff", borderRadius: 16, padding: "16px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <Scale size={16} style={{ flexShrink: 0, marginTop: 2, color: "#5b5be7" }} />
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>짚고 갈 것</div>
-                  <p style={{ fontSize: 13, color: "#3d3d6b", lineHeight: 1.75, margin: 0, wordBreak: "keep-all" }}>{q.info.advisory}</p>
-                </div>
-              </div>
-            )}
 
           </article>
         </main>
@@ -323,7 +316,6 @@ export default function ContractQuestionsMockup() {
         .cq-side-ko { grid-area: ko; font-size: 14px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px; }
         .cq-side-en { grid-area: en; font-size: 10px; font-weight: 500; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 0.08em; }
         .cq-side-count { grid-area: count; font-size: 12px; font-weight: 800; color: #cbd5e1; font-variant-numeric: tabular-nums; }
-        .cq-side-dot { width: 6px; height: 6px; border-radius: 999px; background: #F59E0B; }
         .cq-side-group.active .cq-side-ko { font-weight: 800; color: #0f172a; }
         .cq-side-group.active .cq-side-en { color: rgba(79,70,229,0.7); }
         .cq-side-group.active .cq-side-count { color: #4F46E5; }
@@ -349,7 +341,6 @@ export default function ContractQuestionsMockup() {
         .cq-eyebrow-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .cq-eyebrow-bar { height: 3px; width: 32px; background: #4F46E5; border-radius: 999px; }
         .cq-eyebrow { color: #4F46E5; font-weight: 900; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
-        .cq-badge-proposed { padding: 4px 10px; border-radius: 999px; border: 1px dashed #F59E0B; background: rgba(245,158,11,0.06); color: #B45309; font-size: 11px; font-weight: 900; }
         .cq-badge-fact { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 800; }
         .cq-title { font-size: 30px; font-weight: 900; line-height: 1.25; color: #0f172a; letter-spacing: -0.02em; }
         .cq-desc { font-size: 15px; color: #64748b; font-weight: 500; line-height: 1.7; max-width: 42rem; }
@@ -596,43 +587,60 @@ function PreviewBlockView({ block, values }: { block: PreviewBlock; values: (str
 }
 
 // 답변 값을 미리보기 {0} {1} 자리에 넣을 문자열 배열로 바꾼다.
-function usePreviewValues(q: ContractQuestion, value: unknown): (string | null)[] {
+function usePreviewValues(
+  q: ContractQuestion,
+  value: unknown,
+  answers: Record<string, unknown>,
+): (string | null)[] {
+  // {9}는 근속 문항의 답에서 온다. 제5조 ②항의 회수 기간이 ①항과 항상 같아야 하는데
+  // 그 문장이 세 문항 미리보기에 모두 실려서, 자기 답만으로는 채울 수 없다.
+  const tenureLabel = answers.tenure ? `${answers.tenure}년` : null;
   return useMemo(() => {
-    if (q.id === "penalty") {
-      const p = (value ?? {}) as { base?: number; rate?: number };
-      return [
-        p.base ? formatKoreanAmount(p.base) : null,
-        p.rate ? String(p.rate) : null,
-      ];
-    }
-    const t = q.template;
-    if (!t || value === undefined || value === null || value === "") return [];
+    const base = ((): (string | null)[] => {
+      const withTenure = (vals: (string | null)[]) => {
+        const out = [...vals];
+        out[9] = tenureLabel;
+        return out;
+      };
+      if (q.id === "penalty") {
+        const p = (value ?? {}) as { base?: number; rate?: number };
+        return [
+          p.base ? formatKoreanAmount(p.base) : null,
+          p.rate ? String(p.rate) : null,
+        ];
+      }
+      const t = q.template;
+      if (!t || value === undefined || value === null || value === "") return [];
 
-    if (t.type === "amount") return [formatKoreanAmount(Number(value))];
-    if (t.type === "duration") return [`${value}${t.unit}`];
-    if (t.type === "percent") return [String(value)];
-    if (t.type === "choice") return [choiceLabel(t, value)];
-    if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
-    if (t.type === "matrix") {
-      const v = value as Record<string, string | number>;
-      return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
-    }
-    if (t.type === "fields") {
-      const v = value as Record<string, string>;
-      return t.fields.map((f) => v[f.key] || null);
-    }
-    // composite: 파트 순서대로 각 파트를 자기 규칙으로 변환해 이어 붙인다.
-    const v = value as Record<string, unknown>;
-    return t.parts.map((p) => {
-      const pv = v[p.key];
-      if (pv === undefined || pv === null || pv === "") return null;
-      if (p.template.type === "amount") return formatNumber(Number(pv));
-      if (p.template.type === "duration") return `${pv}${p.template.unit}`;
-      if (p.template.type === "percent") return String(pv);
-      if (p.template.type === "choice") return choiceLabel(p.template, pv);
-      return String(pv);
-    });
-  }, [q, value]);
+      if (t.type === "amount") return [formatKoreanAmount(Number(value))];
+      if (t.type === "duration") return [`${value}${t.unit}`];
+      if (t.type === "percent") return [String(value)];
+      if (t.type === "choice") return [choiceLabel(t, value)];
+      if (t.type === "consent") return [value === true ? "동의함" : value === false ? "해당 없음" : null];
+      if (t.type === "matrix") {
+        const v = value as Record<string, string | number>;
+        return MOCK_MEMBERS.map((m) => (v[m.id] ? String(v[m.id]) : null));
+      }
+      if (t.type === "fields") {
+        const v = value as Record<string, string>;
+        return t.fields.map((f) => v[f.key] || null);
+      }
+      // composite: 파트 순서대로 각 파트를 자기 규칙으로 변환해 이어 붙인다.
+      const v = value as Record<string, unknown>;
+      return t.parts.map((p) => {
+        const pv = v[p.key];
+        if (pv === undefined || pv === null || pv === "") return null;
+        if (p.template.type === "amount") return formatNumber(Number(pv));
+        if (p.template.type === "duration") return `${pv}${p.template.unit}`;
+        if (p.template.type === "percent") return String(pv);
+        if (p.template.type === "choice") return choiceLabel(p.template, pv);
+        return String(pv);
+      });
+    })();
+    const out = [...base];
+    out[9] = tenureLabel;
+    return out;
+  }, [q, value, tenureLabel]);
 }
 
 // 지분 배분만 다음 진행을 막는다. 합계가 100이 아니면 계약서가 성립하지 않는다.
