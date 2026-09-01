@@ -40,7 +40,7 @@ const EQUITY_THRESHOLDS = [
 
 // 회의에서 바로 결과를 보도록 답을 채워 둔 상태로 시작한다. 값은 자유롭게 바꿀 수 있다.
 const PREFILL: Record<string, unknown> = {
-  decisionAmount: 1_000_000_000,
+  decisionAmount: 100_000_000,
   deadlock: 7,
   ipTransfer: true,
   tagAlong: "yes",
