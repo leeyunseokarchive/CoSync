@@ -40,6 +40,10 @@ const alloc = (v: unknown): { id: string; name: string; value: number }[] | null
   return rows.some((r) => r.value > 0) ? rows : null;
 };
 
+// 제5조 ①②⑤는 일반 주주에게만 적용된다(2차 자문). 읽는 사람이 대표면 같은 조항이
+// "나에게 걸리는 것"이 아니라 "내가 행사하는 것"이 된다.
+const meIsLead = () => MOCK_MEMBERS.find((m) => m.self)?.lead === true;
+
 const nameOf = (id: string | null) => MOCK_MEMBERS.find((m) => m.id === id)?.name ?? null;
 
 // 이름 뒤 조사. "김민준이(가)" 처럼 두 개를 다 적으면 쉬운 말이 아니게 된다.
@@ -234,7 +238,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     out.push({
       id: "noncompete-buyback",
       from: ["buybackPrice"],
-      plain: `내 주식은 액면가로 정리되고, 그러고도 ${noncompete}년 동안 같은 일을 못 해요.`,
+      plain: meIsLead()
+        ? `일반 주주의 주식은 액면가로 정리되고, 그 사람은 그러고도 ${noncompete}년 동안 같은 일을 못 해요. 경업금지는 나에게도 걸립니다.`
+        : `내 주식은 액면가로 정리되고, 그러고도 ${noncompete}년 동안 같은 일을 못 해요.`,
       formal: `제5조 ②항에 따라 사유를 불문하고 액면가로 매수되며, 제4조 ②항에 따라 그 후 ${noncompete}년간 경업이 금지됩니다. 두 조항이 함께 적용되면 회사 가치 상승분을 받지 못한 상태로 경업 제한 기간이 시작됩니다.`,
       figure: {
         shape: "timeline",
@@ -256,7 +262,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       id: "tenure",
       // 금액은 넣지 않는다. 위약벌 금액은 제8조 문항의 답이라 여기서 쓰면 칩 없이 다른 문항
       // 답을 끌어오는 셈이고, 그 계산은 위약벌 문항이 이미 화면에서 하고 있다.
-      plain: `${tenure}년 안에 동의 없이 나가면 위약벌을 물어요. 본인 잘못이 아닌 퇴사는 빠집니다.`,
+      plain: meIsLead()
+        ? `일반 주주는 ${tenure}년 안에 동의 없이 나가면 위약벌을 물어요. 대표인 나에게는 이 의무가 없어요.`
+        : `${tenure}년 안에 동의 없이 나가면 위약벌을 물어요. 본인 잘못이 아닌 퇴사는 빠집니다.`,
       formal: `제5조 ①항의 계속근무 의무가 ${tenure}년으로 정해집니다. 이 기간에 다른 주주 전원의 사전 서면 동의 없이 퇴사하면 제8조가 정한 위약벌 대상이 되며, 본인에게 책임 없는 사유로 인한 비자발적 퇴사는 ①항 단서에 따라 적용이 배제됩니다.`,
       figure: {
         shape: "timeline",
@@ -272,7 +280,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
     out.push({
       id: "tenure-buyback",
       from: ["buybackPrice"],
-      plain: `이 ${tenure}년 안에 나가면 확정된 몫까지 포함해 지분 전부가 액면가 회수 대상이에요. 동의를 받고 나가도 마찬가지예요.`,
+      plain: meIsLead()
+        ? `일반 주주가 이 ${tenure}년 안에 나가면, 확정된 몫까지 포함해 지분 전부를 내가 액면가로 되살 수 있어요. 그쪽이 동의를 받고 나가도 마찬가지예요.`
+        : `이 ${tenure}년 안에 나가면 확정된 몫까지 포함해 지분 전부가 액면가 회수 대상이에요. 동의를 받고 나가도 마찬가지예요.`,
       formal: `제5조 ②항은 "제1항에도 불구하고" ${tenure}년 이내 퇴사에 액면가 매수권을 부여합니다. 전원의 사전 서면 동의를 받아 적법하게 퇴사하는 경우에도 매수권은 발생하며, ③항에 따라 위약벌 등 손해배상의무와는 별도로 작동합니다.`,
       figure: {
         shape: "timeline",
@@ -287,7 +297,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       from: ["vesting"],
       // 근속 기간 밖에서 나가면 ②항의 매수권은 없지만 ⑤항이 미확정분을 덮는다.
       // 두 조항이 다른 것을 가져간다는 걸 이 자리에서 구분해 준다.
-      plain: `${tenure}년을 채우고 나가도, 지분은 ${vestingYears - tenure}년을 더 있어야 다 내 것이 돼요. 그때부터는 확정 안 된 몫만 액면가 회수 대상이에요.`,
+      plain: meIsLead()
+        ? `일반 주주가 ${tenure}년을 채우고 나가도, 그쪽 지분은 ${vestingYears - tenure}년을 더 있어야 다 확정돼요. 그때부터는 확정 안 된 몫만 내가 되살 수 있어요.`
+        : `${tenure}년을 채우고 나가도, 지분은 ${vestingYears - tenure}년을 더 있어야 다 내 것이 돼요. 그때부터는 확정 안 된 몫만 액면가 회수 대상이에요.`,
       formal: `제5조 ①항의 계속근무 의무는 ${tenure}년, 베스팅 기간은 ${vestingYears}년입니다. 근무 의무가 종료된 시점에도 ${vestingYears - tenure}년분의 지분이 미확정 상태로 남습니다. ②항의 액면가 매수권은 ${tenure}년 이내 퇴사에만 발생하지만, ⑤항의 매수권은 기간 제한 없이 미확정분에 적용되므로 이 시점 이후의 퇴사에서도 미확정분은 회수 대상입니다.`,
       figure: {
         shape: "timeline",
@@ -347,7 +359,9 @@ export function resultsFor(qid: string, answers: Record<string, unknown>): Resul
       id: "buybackPrice",
       plain: hold
         ? "이 합의안은 어떤 이유로 나가든 액면가예요. 아직 동의하지 않았으니 팀원과 먼저 이야기해 보세요."
-        : "어떤 이유로 나가든 값은 똑같아요. 액면가로 정리돼요. 오래 일하고 나가도 그동안 오른 회사 가치는 못 받아요.",
+        : meIsLead()
+          ? "일반 주주가 어떤 이유로 나가든 값은 똑같아요. 액면가로 정리돼요. 오래 일하고 나간 사람도 그동안 오른 회사 가치는 못 받습니다."
+          : "어떤 이유로 나가든 값은 똑같아요. 액면가로 정리돼요. 오래 일하고 나가도 그동안 오른 회사 가치는 못 받아요.",
       formal: hold
         ? "제5조 ②항의 현재 문안대로 사유를 불문하고 액면가가 적용됩니다. 이 조항에 동의하지 않은 주주가 있어, 확정 전에 팀 내 조율이 필요합니다."
         : "제5조 ②항의 현재 문안대로 사유를 불문하고 액면가가 적용됩니다. 산정이 명확해 가격 다툼이 없고, 오래 기여하고 떠나는 경우에도 회사 가치 상승분은 반영되지 않습니다.",
