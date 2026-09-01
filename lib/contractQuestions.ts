@@ -486,7 +486,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
     articleTag: "TENURE",
     topic: "최소 근무 기간",
     consensus: true,
-    title: "최소 몇 년간 근무 의무를 지나요?",
+    title: "일반 주주는 최소 몇 년간 근무 의무를 지나요?",
     desc: "일반 주주가 이 기간 안에 퇴사하려면 다른 주주 전원의 서면 동의가 필요합니다. 대표 주주에게는 이 의무를 지우지 않습니다.",
     // 1·2년은 근거가 없어 뺐다. 2차 자문이 전제한 3년과, 1차 자문의 "근속 의무는 보통
     // 5년 이상"이 프리셋 안에서 보이도록 5·7을 둔다. 5가 최댓값이면 "5년 이상"이 안 보인다.
@@ -532,7 +532,7 @@ export const CONTRACT_QUESTIONS: ContractQuestion[] = [
       agreeLabel: "동의합니다",
       denyLabel: "더 이야기해 봐야겠어요",
     },
-    title: "퇴사하는 사람의 주식을 얼마에 되사나요?",
+    title: "퇴사하는 일반 주주의 주식을 얼마에 되사나요?",
     desc: "이 합의안은 사유를 가리지 않고 액면가로 정리합니다.",
     preview: {
       article: "제5조 (계속근무) · 제9조 (계약의 해지 및 해제)",
